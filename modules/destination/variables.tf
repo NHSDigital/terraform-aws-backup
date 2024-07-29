@@ -1,13 +1,27 @@
 variable "source_account_name" {
   description = "The name of the account that backups will come from"
+  type        = string
 }
 
 variable "source_account_id" {
   description = "The id of the account that backups will come from"
+  type        = string
+}
+
+variable "account_id" {
+  description = "The id of the account that the vault will be in"
+  type        = string
+}
+
+variable "region" {
+  description = "The region we should be operating in"
+  type        = string
+  default     = "eu-west-2"
 }
 
 variable "kms_key" {
   description = "The KMS key used to secure the vault"
+  type        = string
 }
 
 variable "enable_vault_protection" {
