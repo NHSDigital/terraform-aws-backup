@@ -28,11 +28,12 @@ The AWS Backup Module helps automates the setup of AWS Backup resources in a sou
 
 ```
 module "test_aws_backup" {
-  count  = local.aws_backup_enabled[local.account_name] ? 1 : 0
   source = "./modules/aws-backup"
 
   environment_name                   = "environment_name"
-  notifications_target_email_address = "backup@example.com"
   bootstrap_kms_key_arn              = kms_key[0].arn
+  project_name                       = "testproject"
+  reports_bucket                     = "compliance-reports"
+  terraform_role_arn                 = data.aws_iam_role.terraform_role.arn
 }
 ```
