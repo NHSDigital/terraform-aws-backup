@@ -33,6 +33,8 @@ variable "enable_vault_protection" {
 variable "vault_lock_type" {
   description = "The type of lock that the vault should be, will default to governance"
   type        = string
+  # See toplevel README.md:
+  #   DO NOT SET THIS TO compliance UNTIL YOU ARE SURE THAT YOU WANT TO LOCK THE VAULT PERMANENTLY
   default     = "governance"
 }
 

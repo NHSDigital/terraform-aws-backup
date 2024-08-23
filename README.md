@@ -2,185 +2,88 @@
 
 ## Introduction
 
-This repository intends to provide a simple and easy to consume solution for provisioning AWS Backup. It's aim is to give developers terraform modules that can be used in a source and destination account to create and manage AWS Backup vaults.
+This repository intends to provide a simple and easy to consume solution for provisioning AWS Backup with terraform. The headline features we aim to provide are:
 
-The following technologies are used:
+* Immutable storage of persistent data for disaster recovery.
+* Backup and restore within an AWS account, supporting all AWS services that AWS Backup supports.
+* Backup and restore to a separate account, allowing for recovery from a situation where the original account is compromised.
+* Customisable backup plans to allow for different retention periods and schedules appropriate to the data and product.
+* Notifications to alert on backup failures and successes, and reporting for wider visibility.
 
-* AWS
-* Terraform
+This solution does not intend to provide backup and restoration of application code or executable assets.  It is *only* for persistent data storage of data that you cannot afford to lose, and typically this will be data that you cannot recreate from another source.
 
-### Outstanding Questions
+Similarly there is no mechanism within this solution to ensure that any schema versions or data formats are compatible with the live version of the application when it is restored.  You may wish to include an application version tag in your backups to ensure that you can identify a viable version of the application to restore the data to.
 
-* The source module was initially created to support backups of S3 and DynamoDB. It should be possible to support other AWS services by setting the compliance_resource_types and selection_tag however it will require proper testing with different AWS services before use.
+Setting retention periods and backup schedules will need the input of your Information Asset Owner.  We can't set a default that will apply to all situations.  We must not hold data for longer than we have legal rights to do so, and we must also minimise the storage cost; however we must also ensure that we can restore data to a point in time that is useful to the business.
 
-## Design
+Today, the AWS services supported by these modules are:
 
-The repository consists of:
+* S3
+* DynamoDB
 
-* Terraform modules to create the infrastructure required for AWS backup
+The terraform structure allows any service supported by AWS Backup to be added in the future, so if you find that you need to apply this module to a new service, you will find that you can do so but we need you to contribute those changes back to this repository.
+
+There is some terminology that is important to understand when working with AWS Backup vaults. It uses the terms "governance mode" and "compliance mode". In governance mode, a backup vault can be deleted, and mistakes can be fixed. In compliance mode, the backup vault is locked and cannot be deleted. Mistakes persist. The default mode is governance mode.
+
+DO NOT SWITCH TO COMPLIANCE MODE UNTIL YOU ARE CERTAIN THAT YOU WANT TO LOCK THE VAULT.
+
+A "compliance mode" vault that has passed a cooling-off period is intentionally impossible to delete. This is a feature, not a bug: we want to ensure that the stored data cannot be tampered with by an attacker or their malware, even in the face of collusion. This is good for data that you cannot afford to lose, but it is bad if you have misconfigured retention periods.
+
+Again: DO NOT SWITCH TO COMPLIANCE MODE UNTIL YOU ARE CERTAIN THAT YOU WANT TO LOCK THE VAULT.
 
 ### Infrastructure
 
-A typical backup solution that utilises these modules will consist of a number of AWS resources:
+The code provided here is divided into two modules: `modules/source`, and `modules/destination`. The `source` module is to deploy to any account holding data that needs to be backed up and restored. The destination module is to configure to a dedicated backup AWS account used to maintain a replicated copy of vault recovery points from the source account.  You will need both of these accounts provisioned ahead of time to use the full solution, but you can test the source and destination modules within the same account to check that the resources are provisioned correctly.
 
-* modules/source - Intended to be deployed to any account that has a requirement to utilise AWS Backup.
-  * AWS Backup resources that could be provisioned
-    * Vault
-    * Backup plans
-    * Restore testing
-    * Vault policies
-    * Backup KMS key
-    * SNS topic for notifications
-    * Backup framework for compliance
-* modules/destination - Intended to be deployed to a dedicated backup AWS account used to maintain a replicated copy of vault recovery points from a source account
-  * AWS Backup resources that could be provisioned
-    * Vault
-    * Vault policies
-    * Vault lock
+These modules will deploy a number of AWS resources:
+
+* In the source account:
+  * Vault
+  * Backup plans
+  * Restore testing
+  * Vault policies
+  * Backup KMS key
+  * SNS topic for notifications
+  * Backup framework for compliance
+* modules/destination
+  * Vault
+  * Vault policies
+  * Vault lock
 
 ![AWS Architecture](./docs/diagrams/aws-architecture.png)
 
-## Repository Structure
-
-The repository consists of the following directories:
-
-* `./docs`
-
-  Stores files and assets related to the documentation.
-
-* `./modules`
-
-  Stores the infrastructure as code - a set of terraform modules.
+Note that there are always two vaults.  In most restoration cases you should only need the `source` vault, so there is no need to copy data from the second, `destination` vault.  The latter is only used in the case of a disaster recovery scenario where the source account is compromised beyond use. As such the recovery time and recovery point objectives you will care about for situations in which the second vault is used should take this into account.
 
 ## Developer Guide
 
-### Source module
+This guide will walk you through the set-up and deployment of the AWS Backup solution in a typical project.  This first implementation will only consider backing up S3 buckets.  It relies on the configuration in `examples/aws-backups.tf` to supply pre-requisite resources that are outside what the actual backup modules provide.  You may find that you need to change details in that file to harmonise with your project's structure and policies, but it is provided as a working example.
 
-**Pre-Requisites**
+You will need:
 
-The following resources will need to have already been provisioned or identified to be passed into the module as variables
+* The ARN of an IAM role in each account that allows terraform to create the resources.  This role should have the `AdministratorAccess` policy attached.
+* The target email address for notifications of backup success and failure.  For testing you can use a personal account, but this must be changed to a distribution list for a production deployment.
 
-* KMS Key used for encryption at rest of the SNS topic
-* S3 bucket for compliance reports
-* Destination vault (optional)
-  * Only required if you intend utilise the destination module to copy recovery points to a dedicated backup account. You will need to provision a vault using the destination module prior to provisioning the source vault.
+The terraform example in `examples/aws-backups.tf` uses the IAM roles to identify the source and destination accounts. You will need to supply the two ARNs in your deployment pipeline.  If you already have an `$AWS_ROLE_ARN` environment variable for your `source` account configured, supply an `$AWS_BACKUP_ROLE_ARN` for the `destination` account.  Remember that these ARNs must be treated as secrets so as not to risk leaking the AWS account IDs.
 
-**Simple example**
+I will assume that your project uses the [repository template structure](https://github.com/nhs-england-tools/repository-template).  In that structure, the terraform configuration is in the `infrastructure/modules` and `infrastructure/environments` directories.  The `modules` directory contains the reusable modules, and the `environments` directory contains the environment-specific configuration.  If this does not match your project structure, you will need to adapt the instructions accordingly.  I will also assume that you are applying this configuration to your `dev` environment, which would be found in the `infrastructure/environments/dev` directory, with `infrastructure/environments/dev/main.tf` as an entry-point.
 
-Example of how the module can be used to provision the resources for AWS Backup using default variables
+Copy the `modules/source` and `modules/destination` directories into your `infrastructure/modules` directory, giving you `infrastructure/modules/aws-backup-source` and `infrastructure/modules/aws-backup-destination`.
 
-```terraform
-
-module "test_aws_backup" {
-  source = "./modules/aws-backup"
-
-  environment_name                   = "environment_name"
-  bootstrap_kms_key_arn              = kms_key[0].arn
-  project_name                       = "testproject"
-  reports_bucket                     = "compliance-reports"
-  terraform_role_arn                 = data.aws_iam_role.terraform_role.arn
-}
-
-```
-
-**More complex example - without enabling copy to a backup account**
-
-Example of how the module can be used to provision the resources for AWS Backup and setting custom a backup plan but not copying recovery points to a destination backup account
+To set which resources will be backed up by AWS Backup, you need to tag them with the tag `NHSE-Enable-Backup`.  So do that now: in your *existing* terraform configuration, add the tag to the resources that you want to back up, and apply it.  For example, if you want to back up an S3 bucket, you would add the tag to the bucket resource:
 
 ```terraform
+resource "aws_s3_bucket" "my_precious_bucket" {
+  bucket = "my-precious-bucket"
 
-module "test_aws_backup" {
-  source = "./modules/aws-backup"
-
-  environment_name                   = "environment_name"
-  bootstrap_kms_key_arn              = kms_key[0].arn
-  project_name                       = "testproject"
-  reports_bucket                     = "compliance-reports"
-  terraform_role_arn                 = data.aws_iam_role.terraform_role.arn
-  notifications_target_email_address = "backupnotifications@email.com"
-  backup_plan_config                 = {
-                                          "compliance_resource_types": [
-                                            "S3"
-                                          ],
-                                          "rules": [
-                                            {
-                                              "lifecycle": {
-                                                "delete_after": 35
-                                              },
-                                              "name": "daily_kept_5_weeks",
-                                              "schedule": "cron(0 0 * * ? *)"
-                                            }
-                                          ],
-                                          "selection_tag": "EnableBackup"
-                                        }
+  tags = {
+    "NHSE-Enable-Backup" = "True"
+  }
 }
-
 ```
 
-**More complex example - with backup account copy**
+Now copy the file `examples/aws-backups.tf` to your project as `infrastructure/environments/dev/aws-backups.tf`.  Read it and make sure you understand the comments.
 
-Example of how the module can be used to provision the resources for AWS Backup and setting custom a backup plan and copying recovery points to a destination backup account
-
-```terraform
-
-module "test_aws_backup" {
-  source = "./modules/aws-backup"
-
-  backup_copy_vault_account_id       = "000123456789"
-  backup_copy_vault_arn              = "arn:aws:backup:region:account-id:backup-vault:testvault"
-  environment_name                   = "environment_name"
-  bootstrap_kms_key_arn              = kms_key[0].arn
-  project_name                       = "testproject"
-  reports_bucket                     = "compliance-reports"
-  terraform_role_arn                 = data.aws_iam_role.terraform_role.arn
-  notifications_target_email_address = "backupnotifications@email.com"
-  backup_plan_config                 = {
-                                          "compliance_resource_types": [
-                                            "S3"
-                                          ],
-                                          "rules": [
-                                            {
-                                              "copy_action": {
-                                                "delete_after": 365
-                                              },
-                                              "lifecycle": {
-                                                "delete_after": 35
-                                              },
-                                              "name": "daily_kept_5_weeks",
-                                              "schedule": "cron(0 0 * * ? *)"
-                                            }
-                                          ],
-                                          "selection_tag": "EnableBackup"
-                                        }
-}
-
-```
-
-### Destination module
-
-**Pre-Requisites**
-
-The following resources will need to have already been provisioned or identified to be passed into the module as variables
-
-* KMS Key used to encrypt the vault
-* Source AWS Account ID and name
-
-**Example**
-
-Example of how the module can be used to provision the resources for AWS Backup in a dedicated backup account
-
-```terraform
-
-module "test_backup_vault" {
-  source                  = "./modules/aws_backup"
-  source_account_name     = "test"
-  account_id              = local.aws_accounts_ids["backup"]
-  source_account_id       = local.aws_accounts_ids["test"]
-  kms_key                 = aws_kms_key.backup_key.arn
-  enable_vault_protection = true
-}
-
-```
+TODO: confirm that we can mix and match the source and destination IAM roles when using OIDC auth.
 
 ## Usage
 
@@ -192,9 +95,9 @@ To customise the solution and apply it to your own use case take the following s
 
 2. Considerations
 
-   Consider implmenting SCP policies to prevent any IAM entity from alerting  Vault Locks, Vault Access Policy and Vault Restore Points. 
+   Consider implmenting SCP policies to prevent any IAM entity from alerting  Vault Locks, Vault Access Policy and Vault Restore Points.
 
-   Consider what AWS Backup Vault Lock you want to enable and at what point you might want to move from governance to compliance mode - https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html
+   Consider what [AWS Backup Vault Lock](https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html) you want to enable and at what point you might want to move from governance to compliance mode.
 
    Consider how you intend on testing backup and in particular how you will test that the destination vault is locked down sufficiently enough to ensure recovery points can not be interfered with.
 
