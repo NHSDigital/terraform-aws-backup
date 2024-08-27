@@ -2,9 +2,11 @@
 
 ## Introduction
 
+This module is to address the Engineering Red Line [Cloud-6](https://nhs.sharepoint.com/sites/X26_EngineeringCOE/SitePages/Red-lines.aspx#cloud-infrastructure).  It provides both a business-as-usual backup facility and the ability to recover from ransomware attacks with a logically airgapped backup[^1] in a separate AWS account.
+
 This repository intends to provide a simple and easy to consume solution for provisioning AWS Backup with terraform. The headline features we aim to provide are:
 
-* Immutable storage of persistent data for disaster recovery.
+* Immutable storage of persistent data for disaster recovery, with no possibility of human error or malicious tampering.
 * Backup and restore within an AWS account, supporting all AWS services that AWS Backup supports.
 * Backup and restore to a separate account, allowing for recovery from a situation where the original account is compromised.
 * Customisable backup plans to allow for different retention periods and schedules appropriate to the data and product.
@@ -14,7 +16,7 @@ This solution does not intend to provide backup and restoration of application c
 
 Similarly there is no mechanism within this solution to ensure that any schema versions or data formats are compatible with the live version of the application when it is restored.  You may wish to include an application version tag in your backups to ensure that you can identify a viable version of the application to restore the data to.
 
-Setting retention periods and backup schedules will need the input of your Information Asset Owner.  We can't set a default that will apply to all situations.  We must not hold data for longer than we have legal rights to do so, and we must also minimise the storage cost; however we must also ensure that we can restore data to a point in time that is useful to the business.
+Setting retention periods and backup schedules will need the input of your Information Asset Owner.  We can't set a default that will apply to all situations.  We must not hold data for longer than we have legal rights to do so, and we must also minimise the storage cost; however we must also ensure that we can restore data to a point in time that is useful to the business.  Further, to comply fully with [Cloud-6](https://nhs.sharepoint.com/sites/X26_EngineeringCOE/SitePages/Red-lines.aspx#cloud-infrastructure) you will need to test the restoration process. Ransomware often targets backups and seeks not to be discovered. The immutability of the backups provided by this blueprint is a strong defence against this, but to avoid losing all your uncompromised backups, you will need your restoration testing cycle to be _shorter_ than the retention period.  That will guarantee that any ransomware compromise is discovered before all uncompromised backups are deleted.  If your retention period was six months, for instance, you might want to test restoration every two months to ensure that even if one restoration test is missed, there is still an opportunity to catch ransomware before your last good backup expires.
 
 Today, the AWS services supported by these modules are:
 
@@ -112,3 +114,5 @@ To customise the solution and apply it to your own use case take the following s
 5. Deploy and Verify
 
    Deploy the terraform using your existing procedures and verify the resources have been provisioned as expected using the AWS console.
+
+[^1]: While this blueprint was being written, AWS released [logically air-gapped vaults](https://docs.aws.amazon.com/aws-backup/latest/devguide/logicallyairgappedvault.html) to AWS Backup. This solution does not use that feature because at time of writing it lacks support for some critical use cases.  It is reasonable to assume that at some point a future release of this blueprint will switch to it, as it will allow a reduction of complexity and cost.
