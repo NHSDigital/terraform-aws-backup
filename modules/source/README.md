@@ -4,8 +4,6 @@ The AWS Backup Module helps automates the setup of AWS Backup resources in a sou
 
 ## Inputs
 
-## Inputs
-
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_backup_copy_vault_account_id"></a> [backup\_copy\_vault\_account\_id](#input\_backup\_copy\_vault\_account\_id) | The account id of the destination backup vault for allowing restores back into the source account. | `string` | `""` | no |
@@ -26,7 +24,7 @@ The AWS Backup Module helps automates the setup of AWS Backup resources in a sou
 
 ## Example
 
-```
+```terraform
 module "test_aws_backup" {
   source = "./modules/aws-backup"
 
