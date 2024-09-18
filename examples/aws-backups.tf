@@ -102,26 +102,7 @@ resource "aws_kms_key" "backup_notifications" {
 
 # Now we need a key for the backup vaults. This key will be used to encrypt the backups themselves.
 # We need one per vault (on the assumption that each vault will be in a different account).
-
-resource "aws_kms_key" "source_backup_key" {
-  description             = "KMS key for AWS Backup vaults"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Sid    = "Enable IAM User Permissions"
-        Principal = {
-          AWS = "arn:aws:iam::${local.source_account_id}:root"
-        }
-        Action = "kms:*"
-        Resource = "*"
-      }
-    ]
-  })
-}
+# The source module defines its own key, so we only need to define the destination key here.
 
 resource "aws_kms_key" "destination_backup_key" {
  # provider                = aws.destination
