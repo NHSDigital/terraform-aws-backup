@@ -37,7 +37,7 @@ Please consult the AWS documentation on [vault locks](https://docs.aws.amazon.co
 
 ### Infrastructure
 
-The code provided here is divided into two modules: `modules/source`, and `modules/destination`. The `source` module is to deploy to any account holding data that needs to be backed up and restored. The `destination` module is to configure a dedicated AWS account to maintain a replicated copy of vault recovery points from the source account: it holds a backup of the backup.  You will need both of these accounts provisioned ahead of time to use the full solution, but you can test the source and destination modules within the same account to check that the resources are provisioned correctly.
+The code provided here is divided into two modules: `modules/aws-backup-source`, and `modules/aws-backup-destination`. The `source` module is to deploy to any account holding data that needs to be backed up and restored. The `destination` module is to configure a dedicated AWS account to maintain a replicated copy of vault recovery points from the source account: it holds a backup of the backup.  You will need both of these accounts provisioned ahead of time to use the full solution, but you can test the source and destination modules within the same account to check that the resources are provisioned correctly.
 
 These modules will deploy a number of AWS resources:
 
@@ -76,7 +76,7 @@ I will assume that your project uses the [repository template structure](https:/
 
 Similarly I will assume that you have your backup destination account configuration at `infrastructure/environments/dev-backup`.  We'll configure that first.
 
-Copy the `modules/source` and `modules/destination` directories into your `infrastructure/modules` directory, and rename them, giving you `infrastructure/modules/aws-backup-source` and `infrastructure/modules/aws-backup-destination`.
+Copy the `modules/aws-backup-source` and `modules/aws-backup-destination` directories into your `infrastructure/modules` directory, giving you `infrastructure/modules/aws-backup-source` and `infrastructure/modules/aws-backup-destination`.
 
 ### IAM roles
 
