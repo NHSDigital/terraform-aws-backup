@@ -1,5 +1,9 @@
 # AWS Backup
 
+*v1.1.0 is coming*
+
+We have new documentation currently under review [here](https://github.com/NHSDigital/terraform-aws-backup/pull/15), and will be merging it within the next few days.  If you want to get involved in the review, please comment on the pull request and reach out to the Engineering Technical Authority to get involved.
+
 ## Introduction
 
 This repository intends to provide a simple and easy to consume solution for provisioning AWS Backup. It's aim is to give developers terraform modules that can be used in a source and destination account to create and manage AWS Backup vaults.
@@ -192,7 +196,7 @@ To customise the solution and apply it to your own use case take the following s
 
 2. Considerations
 
-   Consider implmenting SCP policies to prevent any IAM entity from alerting  Vault Locks, Vault Access Policy and Vault Restore Points. 
+   Consider implmenting SCP policies to prevent any IAM entity from alerting  Vault Locks, Vault Access Policy and Vault Restore Points.
 
    Consider what AWS Backup Vault Lock you want to enable and at what point you might want to move from governance to compliance mode - https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html
 
