@@ -142,6 +142,31 @@ resource "aws_s3_bucket" "my_precious_bucket" {
 
 The backup plan supplied in the module configuration will back up all resources with this tag, and the matching is case-sensitive.  It *will not* match a resource tagged `true` or `TRUE`, only `True`.
 
+One detail to be aware of is that AWS insists on versioning being switched on to back up S3 buckets.  If you don't already have a lifecycle policy set for the bucket you want to protect, this will work:
+
+```terraform
+resource "aws_s3_bucket_versioning" "my_precious_bucket" {
+  bucket = aws_s3_bucket.my_precious_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "my_precious_bucket" {
+  bucket = aws_s3_bucket.my_precious_bucket.id
+  depends_on = [aws_s3_bucket_versioning.my_precious_bucket]
+
+  rule {
+    status = "Enabled"
+    id      = "expire-previous-versions"
+    filter {}
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+  }
+}
+```
+
 ### Source account configuration
 
 Now copy the file `examples/source/aws-backups.tf` to your project as `infrastructure/environments/dev/aws-backups.tf`.  Read it and make sure you understand the comments.
