@@ -1,9 +1,5 @@
 # AWS Backup Blueprint
 
-*v1.1.0 is coming*
-
-We have new documentation currently under review [here](https://github.com/NHSDigital/terraform-aws-backup/pull/15), and will be merging it within the next few days.  If you want to get involved in the review, please comment on the pull request and reach out to the Engineering Technical Authority to get involved.
-
 ## Introduction
 
 This module addresses the Engineering Red Line [Cloud-6](https://nhs.sharepoint.com/sites/X26_EngineeringCOE/SitePages/Red-lines.aspx#cloud-infrastructure).  It provides both a business-as-usual backup facility and the ability to recover from ransomware attacks with a logically air-gapped backup[^1] in a separate AWS account.
