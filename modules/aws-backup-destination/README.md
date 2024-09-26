@@ -19,7 +19,7 @@ The AWS Backup Module helps automates the setup of AWS Backup resources in a des
 
 ## Example
 
-```
+```terraform
 module "test_backup_vault" {
   source                  = "./modules/aws_backup"
   source_account_name     = "test"

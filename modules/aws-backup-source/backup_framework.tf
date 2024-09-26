@@ -26,7 +26,7 @@ resource "aws_backup_framework" "main" {
 
     input_parameter {
       name  = "principalArnList"
-      value = join(",", [one(data.aws_iam_roles.roles.arns), var.terraform_role_arn])
+      value = var.terraform_role_arn
     }
   }
 

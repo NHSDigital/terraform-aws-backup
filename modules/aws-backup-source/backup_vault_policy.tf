@@ -5,8 +5,9 @@ resource "aws_backup_vault_policy" "vault_policy" {
 
 data "aws_iam_policy_document" "vault_policy" {
 
+
   statement {
-    sid    = "DenyApartFromTerraformAndAdmins"
+    sid    = "DenyApartFromTerraform"
     effect = "Deny"
 
     principals {
@@ -16,7 +17,7 @@ data "aws_iam_policy_document" "vault_policy" {
 
     condition {
       test     = "ArnNotEquals"
-      values   = [var.terraform_role_arn, one(data.aws_iam_roles.roles.arns)]
+      values   = [var.terraform_role_arn]
       variable = "aws:PrincipalArn"
     }
 
@@ -28,7 +29,6 @@ data "aws_iam_policy_document" "vault_policy" {
 
     resources = ["*"]
   }
-
   dynamic "statement" {
     for_each = var.backup_copy_vault_arn != "" && var.backup_copy_vault_account_id != "" ? [1] : []
     content {
