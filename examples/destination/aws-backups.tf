@@ -3,20 +3,9 @@ provider  "aws" {
   region = "eu-west-2"
 }
 
-terraform {
-  backend "s3" {
-    bucket         = "project-env-backup-tf-bucket"  # change this to the destination account terraform state s3 bucket name
-    key            = "project-env-backup.tfstate"  # change this to the destination account terraform state s3 key name
-    dynamodb_table = "project-env-backup-lock-table"  # change this to the destination account terraform state dynamodb table name
-    region = "eu-west-2"
-  }
-}
-
-
 variable "source_terraform_role_arn" {
   description = "ARN of the terraform role in the source account"
   type        = string
-  default     = "arn:aws:iam::account_id:role/project-terraform-role" # change this to the source account terraform role arn
 }
 
 data "aws_arn" "source_terraform_role" {
@@ -60,7 +49,7 @@ resource "aws_kms_key" "destination_backup_key" {
 module "destination" {
   source = "../../modules/aws-backup-destination"
 
-  source_account_name     = "source" # change this to the value of the prefix in the aws_backup_vault.vault.name
+  source_account_name     = "source" # please note that the assigned value would be the prefix in aws_backup_vault.vault.name
   account_id              = local.destination_account_id
   source_account_id       = local.source_account_id
   kms_key                 = aws_kms_key.destination_backup_key.arn

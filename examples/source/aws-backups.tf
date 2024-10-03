@@ -3,15 +3,6 @@ provider  "aws" {
   region = "eu-west-2"
 }
 
-terraform {
-  backend "s3" {
-    bucket         = "project-env-sourcebackup-tf-bucket"  # change this to the source account terraform state s3 bucket name
-    key            = "project-env-sourcebackup.tfstate"  # change this to the source account terraform state s3 key name
-    dynamodb_table = "project-env-sourcebackup-lock-table"  # change this to the source account terraform state dynamodb table name
-    region = "eu-west-2"
-  }
-}
-
 variable "destination_vault_arn" {
   description = "ARN of the backup vault in the destination account"
   type        = string
