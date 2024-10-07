@@ -87,7 +87,7 @@ module "source" {
   source = "../../modules/aws-backup-source"
 
   backup_copy_vault_account_id       = local.destination_account_id
-  backup_copy_vault_arn              = var.destination_vault_arn.arn
+  backup_copy_vault_arn              = data.aws_arn.destination_vault_arn.arn
   environment_name                   = local.environment_name
   bootstrap_kms_key_arn              = aws_kms_key.backup_notifications.arn
   project_name                       = local.project_name
