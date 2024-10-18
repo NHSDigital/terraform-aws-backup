@@ -12,7 +12,7 @@ Please remember that this is an open source, public project. If you need to keep
 
 ### Feature Requests
 
-We welcome feature requests! If you have an idea for a new feature, please open a feature request using the [Feature Request Template](.github/ISSUE_TEMPLATE/2_feature_request.yaml). Provide a detailed description of the feature and explain why it would be useful.
+We welcome feature requests! If you have an idea for a new feature, please open a feature request. Provide a detailed description of the feature and explain why it would be useful.
 
 ### Submitting Pull Requests
 
@@ -54,10 +54,6 @@ Please ensure that your code adheres to the project's coding standards. We use `
 ### Documentation
 
 Update the documentation to reflect your changes. This includes updating the `README.md` and any relevant documentation files in the `docs/` directory.
-
-### Code of Conduct
-
-Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project, you agree to abide by its terms.
 
 ## Getting Help
 
