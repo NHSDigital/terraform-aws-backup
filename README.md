@@ -246,7 +246,7 @@ The `aws-backup-source` module requires the ARN of the role in the destination a
           terraform apply -auto-approve -input=false
 ```
 
-When the earlier step wrote to the `$GITHUB_ENV` file, it wrote the `destination_vault_arn` output from the destination configuration.  This is passed in as the `destination_vault_arn` variable to the source configuration, so we don't need to explicitly configure it here.  Your CI/CD pipeline will need to ensure that the destination configuration is applied before the source configuration and that the `destination_vault_arn` output is passed along, and probably has a similar mechnaisim to the above.
+When the earlier step wrote to the `$GITHUB_ENV` file, it wrote the `destination_vault_arn` output from the destination configuration.  This is passed in as the `destination_vault_arn` variable to the source configuration, so we don't need to explicitly configure it here.  Your CI/CD pipeline will need to ensure that the destination configuration is applied before the source configuration and that the `destination_vault_arn` output is passed along, and probably has a similar mechanism to the above.
 
 ## Next steps
 
