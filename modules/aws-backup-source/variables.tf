@@ -161,7 +161,7 @@ variable "backup_plan_config_dynamodb" {
     rules = optional(list(object({
       name                     = string
       schedule                 = string
-      completion_window         = optional(number)
+      completion_widow         = optional(number)
       enable_continuous_backup = optional(bool)
       lifecycle = object({
         delete_after       = number
@@ -285,7 +285,7 @@ variable "iam_role_permissions_boundary" {
   type        = string
   default     = "" # Empty by default
 }
-    
+
 variable "backup_plan_config_ebsvol" {
   description = "Configuration for backup plans with EBS"
   type = object({
