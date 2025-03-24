@@ -197,3 +197,69 @@ variable "backup_plan_config_dynamodb" {
     ]
   }
 }
+
+variable "backup_plan_config_aurora" {
+  description = "Configuration for backup plans with aurora"
+  type = object({
+    enable                    = bool
+    selection_tag             = string
+    compliance_resource_types = list(string)
+    restore_testing_overrides = optional(string)
+    rules = optional(list(object({
+      name                     = string
+      schedule                 = string
+      enable_continuous_backup = optional(bool)
+      lifecycle = object({
+        delete_after       = number
+        cold_storage_after = optional(number)
+      })
+      copy_action = optional(object({
+        delete_after = optional(number)
+      }))
+    })))
+  })
+  default = {
+    enable                    = true
+    selection_tag             = "BackupAurora"
+    compliance_resource_types = ["Aurora"]
+    rules = [
+      {
+        name     = "aurora_daily_kept_5_weeks"
+        schedule = "cron(0 0 * * ? *)"
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "aurora_weekly_kept_3_months"
+        schedule = "cron(0 1 ? * SUN *)"
+        lifecycle = {
+          delete_after = 90
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "aurora_monthly_kept_7_years"
+        schedule = "cron(0 2 1  * ? *)"
+        lifecycle = {
+          cold_storage_after = 30
+          delete_after       = 2555
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      }
+    ]
+  }
+}
+
+variable "iam_role_permissions_boundary" {
+  description = "Optional permissions boundary ARN for backup role"
+  type        = string
+  default     = "" # Empty by default
+}
