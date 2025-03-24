@@ -233,66 +233,8 @@ variable "name_prefix" {
   type        = string
 }
 
-variable "backup_plan_config_ebsvol" {
-  description = "Configuration for backup plans with EBS"
-  type = object({
-    enable              = bool
-    selection_tag       = string
-    selection_tag_value = optional(string)
-    selection_tags = optional(list(object({
-      key   = optional(string)
-      value = optional(string)
-    })))
-    compliance_resource_types = list(string)
-    rules = optional(list(object({
-      name                     = string
-      schedule                 = string
-      enable_continuous_backup = optional(bool)
-      lifecycle = object({
-        delete_after       = number
-        cold_storage_after = optional(number)
-      })
-      copy_action = optional(object({
-        delete_after = optional(number)
-      }))
-    })))
-  })
-  default = {
-    enable                    = true
-    selection_tag             = "BackupEBSVol"
-    compliance_resource_types = ["EBS"]
-    rules = [
-      {
-        name     = "ebsvol_daily_kept_5_weeks"
-        schedule = "cron(0 0 * * ? *)"
-        lifecycle = {
-          delete_after = 35
-        }
-        copy_action = {
-          delete_after = 365
-        }
-      },
-      {
-        name     = "ebsvol_weekly_kept_3_months"
-        schedule = "cron(0 1 ? * SUN *)"
-        lifecycle = {
-          delete_after = 90
-        }
-        copy_action = {
-          delete_after = 365
-        }
-      },
-      {
-        name     = "ebsvol_monthly_kept_7_years"
-        schedule = "cron(0 2 1  * ? *)"
-        lifecycle = {
-          cold_storage_after = 30
-          delete_after       = 2555
-        }
-        copy_action = {
-          delete_after = 365
-        }
-      }
-    ]
-  }
+variable "iam_role_permissions_boundary" {
+  description = "Optional permissions boundary ARN for backup role"
+  type        = string
+  default     = "" # Empty by default
 }
