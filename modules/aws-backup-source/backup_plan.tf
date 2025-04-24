@@ -67,7 +67,16 @@ resource "aws_backup_selection" "default" {
   selection_tag {
     key   = var.backup_plan_config.selection_tag
     type  = "STRINGEQUALS"
-    value = "True"
+    value = var.backup_plan_config.selection_tag_value
+  }
+  condition {
+    dynamic "string_equals" {
+      for_each = var.backup_plan_config.supplementary_tags
+      content {
+          key   = "aws:ResourceTag/${string_equals.value.key}"
+          value = string_equals.value.value
+      }
+    }
   }
 }
 
@@ -80,6 +89,15 @@ resource "aws_backup_selection" "dynamodb" {
   selection_tag {
     key   = var.backup_plan_config_dynamodb.selection_tag
     type  = "STRINGEQUALS"
-    value = "True"
+    value = var.backup_plan_config_dynamodb.selection_tag_value
+  }
+  condition {
+    dynamic "string_equals" {
+      for_each = var.backup_plan_config_dynamodb.supplementary_tags
+      content {
+          key   = "aws:ResourceTag/${string_equals.value.key}"
+          value = string_equals.value.value
+      }
+    }
   }
 }

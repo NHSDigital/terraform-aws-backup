@@ -74,11 +74,11 @@ variable "backup_copy_vault_account_id" {
 variable "backup_plan_config" {
   description = "Configuration for backup plans"
   type = object({
-    selection_tag             = string
-    selection_tag_value       = string
+    selection_tag       = string
+    selection_tag_value = string
     supplementary_tags = optional(list(object({
-      key= optional(string)
-      value= optional(string)
+      key   = optional(string)
+      value = optional(string)
     })))
     compliance_resource_types = list(string)
     rules = list(object({
@@ -148,12 +148,12 @@ variable "backup_plan_config" {
 variable "backup_plan_config_dynamodb" {
   description = "Configuration for backup plans with dynamodb"
   type = object({
-    enable                    = bool
-    selection_tag             = string
-    selection_tag_value       = string
+    enable              = bool
+    selection_tag       = string
+    selection_tag_value = string
     supplementary_tags = optional(list(object({
-      key= optional(string)
-      value= optional(string)
+      key   = optional(string)
+      value = optional(string)
     })))
     compliance_resource_types = list(string)
     rules = optional(list(object({
