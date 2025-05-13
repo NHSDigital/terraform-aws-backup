@@ -197,3 +197,9 @@ variable "backup_plan_config_dynamodb" {
     ]
   }
 }
+
+variable "name_prefix" {
+  description = "Optional name prefix for vault resources"
+  type        = string
+  default     = null
+}

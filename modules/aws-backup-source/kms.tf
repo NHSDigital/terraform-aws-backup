@@ -6,7 +6,7 @@ resource "aws_kms_key" "aws_backup_key" {
 }
 
 resource "aws_kms_alias" "backup_key" {
-  name          = "alias/${var.environment_name}/backup-key"
+  name          = "alias/${var.project_name}/backup-key"
   target_key_id = aws_kms_key.aws_backup_key.key_id
 }
 
