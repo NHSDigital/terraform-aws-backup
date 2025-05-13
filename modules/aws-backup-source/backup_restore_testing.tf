@@ -24,3 +24,19 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
     }]
   }
 }
+
+resource "awscc_backup_restore_testing_selection" "backup_restore_testing_selection_aurora" {
+  count                          = var.backup_plan_config_aurora.enable ? 1 : 0
+  iam_role_arn                   = aws_iam_role.backup.arn
+  protected_resource_type        = "Aurora"
+  restore_testing_plan_name      = awscc_backup_restore_testing_plan.backup_restore_testing_plan.restore_testing_plan_name
+  restore_testing_selection_name = "backup_restore_testing_selection_aurora"
+  protected_resource_arns        = ["*"]
+  protected_resource_conditions = {
+    string_equals = [{
+      key   = "aws:ResourceTag/${var.backup_plan_config_aurora.selection_tag}"
+      value = "True"
+    }]
+  }
+  restore_metadata_overrides = local.aurora_overrides
+}
