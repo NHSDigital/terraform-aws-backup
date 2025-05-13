@@ -76,7 +76,7 @@ variable "backup_plan_config" {
   type = object({
     selection_tag       = string
     selection_tag_value = string
-    supplementary_tags = optional(list(object({
+    selection_tags = optional(list(object({
       key   = optional(string)
       value = optional(string)
     })))
@@ -151,7 +151,7 @@ variable "backup_plan_config_dynamodb" {
     enable              = bool
     selection_tag       = string
     selection_tag_value = string
-    supplementary_tags = optional(list(object({
+    selection_tags = optional(list(object({
       key   = optional(string)
       value = optional(string)
     })))

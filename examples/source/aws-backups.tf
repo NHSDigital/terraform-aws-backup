@@ -111,9 +111,9 @@ module "source" {
                                           }
                                         ],
                                         "selection_tag": "NHSE-Enable-Backup"
-                                        # The supplementary_tags are optional and can be used to
+                                        # The selection_tags are optional and can be used to
                                         # provide fine grained resource selection with existing tagging
-                                        "supplementary_tags": [
+                                        "selection_tags": [
                                           {
                                             "key": "Environment"
                                             "value": "myenvironment"
