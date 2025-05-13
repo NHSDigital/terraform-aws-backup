@@ -97,12 +97,7 @@ variable "backup_plan_config" {
   default = {
     selection_tag             = "BackupLocal"
     selection_tag_value       = "True"
-    selection_tags            = [
-      {
-        "key": null
-        "value": null
-      }
-    ]
+    selection_tags            = []
     compliance_resource_types = ["S3"]
     rules = [
       {
@@ -179,12 +174,7 @@ variable "backup_plan_config_dynamodb" {
     enable                    = true
     selection_tag             = "BackupDynamoDB"
     selection_tag_value       = "True"
-    selection_tags            = [
-      {
-        "key": null
-        "value": null
-      }
-    ]
+    selection_tags            = []
     compliance_resource_types = ["DynamoDB"]
     rules = [
       {
