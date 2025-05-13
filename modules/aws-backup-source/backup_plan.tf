@@ -71,10 +71,10 @@ resource "aws_backup_selection" "default" {
   }
   condition {
     dynamic "string_equals" {
-      for_each = (var.backup_plan_config.selection_tags == null) ? {} : var.backup_plan_config.selection_tags
+      for_each = (var.backup_plan_config.selection_tags == null) ? [] : var.backup_plan_config.selection_tags
       content {
-          key   = "aws:ResourceTag/${string_equals.value.key}"
-          value = string_equals.value.value
+          key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
+          value = try(string_equals.value.value, null)
       }
     }
   }
@@ -93,10 +93,10 @@ resource "aws_backup_selection" "dynamodb" {
   }
   condition {
     dynamic "string_equals" {
-      for_each = (var.backup_plan_config_dynamodb.selection_tags == null) ? {} : var.backup_plan_config_dynamodb.selection_tags
+      for_each = (var.backup_plan_config_dynamodb.selection_tags == null) ? [] : var.backup_plan_config_dynamodb.selection_tags
       content {
-          key   = "aws:ResourceTag/${string_equals.value.key}"
-          value = string_equals.value.value
+          key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
+          value = try(string_equals.value.value, null)
       }
     }
   }
