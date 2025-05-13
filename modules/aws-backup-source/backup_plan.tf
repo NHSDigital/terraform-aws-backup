@@ -7,10 +7,10 @@ resource "aws_backup_plan" "default" {
       recovery_point_tags = {
         backup_rule_name = rule.value.name
       }
-      rule_name         = rule.value.name
-      target_vault_name = aws_backup_vault.main.name
-      schedule          = rule.value.schedule
-      enable_continuous_backup  = rule.value.enable_continuous_backup != null ? rule.value.enable_continuous_backup : null
+      rule_name                = rule.value.name
+      target_vault_name        = aws_backup_vault.main.name
+      schedule                 = rule.value.schedule
+      enable_continuous_backup = rule.value.enable_continuous_backup != null ? rule.value.enable_continuous_backup : null
       lifecycle {
         delete_after       = rule.value.lifecycle.delete_after != null ? rule.value.lifecycle.delete_after : null
         cold_storage_after = rule.value.lifecycle.cold_storage_after != null ? rule.value.lifecycle.cold_storage_after : null
@@ -71,10 +71,10 @@ resource "aws_backup_selection" "default" {
   }
   condition {
     dynamic "string_equals" {
-      for_each = { for selection_tag in var.backup_plan_config.selection_tag : selection_tag.name => selection_tag}
+      for_each = (var.backup_plan_config.selection_tags == null) ? [{ "key" : var.backup_plan_config.selection_tag, "value" : var.backup_plan_config.selection_tag_value }] : var.backup_plan_config.selection_tags
       content {
-          key   = "aws:ResourceTag/${each.value.key}"
-          value = each.value.value
+        key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
+        value = try(string_equals.value.value, null)
       }
     }
   }
@@ -93,10 +93,10 @@ resource "aws_backup_selection" "dynamodb" {
   }
   condition {
     dynamic "string_equals" {
-      for_each = { for selection_tag in var.backup_plan_config.selection_tag : selection_tag.name => selection_tag}
+      for_each = (var.backup_plan_config_dynamodb.selection_tags == null) ? [{ "key" : var.backup_plan_config_dynamodb.selection_tag, "value" : var.backup_plan_config_dynamodb.selection_tag_value }] : var.backup_plan_config_dynamodb.selection_tags
       content {
-          key   = "aws:ResourceTag/${each.value.key}"
-          value = each.value.value
+        key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
+        value = try(string_equals.value.value, null)
       }
     }
   }
