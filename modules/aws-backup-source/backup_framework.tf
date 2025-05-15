@@ -83,7 +83,7 @@ resource "aws_backup_framework" "main" {
     scope {
       compliance_resource_types = var.backup_plan_config.compliance_resource_types
       tags = {
-        (var.backup_plan_config.selection_tag) = "True"
+        (var.backup_plan_config.selection_tag) = (var.backup_plan_config.selection_tag_value)
       }
     }
   }
@@ -105,7 +105,7 @@ resource "aws_backup_framework" "main" {
     scope {
       compliance_resource_types = var.backup_plan_config.compliance_resource_types
       tags = {
-        (var.backup_plan_config.selection_tag) = "True"
+        (var.backup_plan_config.selection_tag) = (var.backup_plan_config.selection_tag_value)
       }
     }
   }
@@ -124,7 +124,7 @@ resource "aws_backup_framework" "dynamodb" {
     scope {
       compliance_resource_types = var.backup_plan_config_dynamodb.compliance_resource_types
       tags = {
-        (var.backup_plan_config_dynamodb.selection_tag) = "True"
+        (var.backup_plan_config_dynamodb.selection_tag) = (var.backup_plan_config_dynamodb.selection_tag_value)
       }
     }
   }
@@ -146,7 +146,7 @@ resource "aws_backup_framework" "dynamodb" {
     scope {
       compliance_resource_types = var.backup_plan_config_dynamodb.compliance_resource_types
       tags = {
-        (var.backup_plan_config_dynamodb.selection_tag) = "True"
+        (var.backup_plan_config_dynamodb.selection_tag) = (var.backup_plan_config_dynamodb.selection_tag_value)
       }
     }
   }
