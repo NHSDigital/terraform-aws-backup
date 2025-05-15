@@ -31,4 +31,21 @@ data "aws_iam_policy_document" "backup_key_policy" {
     actions   = ["kms:*"]
     resources = ["*"]
   }
+  statement {
+    sid = "Allow attachment of persistent resources"
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${var.backup_copy_vault_account_id}:root"]
+    }
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:CreateGrant",
+      "kms:ListGrants",
+      "kms:DescribeKey"
+    ]
+    resources = ["arn:aws:kms:*"]
+  }
 }
