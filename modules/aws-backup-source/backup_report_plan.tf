@@ -48,7 +48,7 @@ resource "aws_backup_report_plan" "resource_compliance" {
 
   report_setting {
     framework_arns       = local.framework_arn_list
-    number_of_frameworks = 2
+    number_of_frameworks = length(local.framework_arn_list)
     report_template      = "RESOURCE_COMPLIANCE_REPORT"
   }
 }
