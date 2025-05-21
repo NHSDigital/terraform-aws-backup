@@ -33,8 +33,4 @@ module "eventbridge" {
       }
     ]
   }
-
-  tags = {
-    Service = "texas"
-  }
 }
