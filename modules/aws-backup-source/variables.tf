@@ -215,8 +215,13 @@ variable "backup_plan_config_dynamodb" {
 variable "backup_plan_config_ebsvol" {
   description = "Configuration for backup plans with EBS"
   type = object({
-    enable                    = bool
-    selection_tag             = string
+    enable              = bool
+    selection_tag       = string
+    selection_tag_value = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
     compliance_resource_types = list(string)
     rules = optional(list(object({
       name                     = string

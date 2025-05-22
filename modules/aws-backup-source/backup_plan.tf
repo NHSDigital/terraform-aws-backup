@@ -141,6 +141,15 @@ resource "aws_backup_selection" "ebsvol" {
   selection_tag {
     key   = var.backup_plan_config_ebsvol.selection_tag
     type  = "STRINGEQUALS"
-    value = "True"
+    value = (var.backup_plan_config_ebsvol.selection_tag_value == null) ? "True" : var.backup_plan_config_ebsvol.selection_tag_value
+  }
+  condition {
+    dynamic "string_equals" {
+      for_each = local.selection_tags_ebsvol_null_checked
+      content {
+        key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
+        value = try(string_equals.value.value, null)
+      }
+    }
   }
 }
