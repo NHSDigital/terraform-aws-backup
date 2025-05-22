@@ -73,8 +73,8 @@ resource "aws_backup_plan" "ebsvol" {
       target_vault_name = aws_backup_vault.main.name
       schedule          = rule.value.schedule
       lifecycle {
-        delete_after       = rule.value.lifecycle.delete_after != null ? rule.value.lifecycle.delete_after : null
-        cold_storage_after = rule.value.lifecycle.cold_storage_after != null ? rule.value.lifecycle.cold_storage_after : null
+        delete_after       = rule.value.lifecycle.delete_after
+        cold_storage_after = rule.value.lifecycle.cold_storage_after
       }
       dynamic "copy_action" {
         for_each = var.backup_copy_vault_arn != "" && var.backup_copy_vault_account_id != "" && rule.value.copy_action != null ? rule.value.copy_action : {}
