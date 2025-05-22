@@ -15,6 +15,7 @@ aws_account_id = os.environ.get('aws_account_id')
 backup_account_id = os.environ.get('backup_account_id')
 backup_copy_vault_arn = os.environ.get('backup_copy_vault_arn')
 backup_role_arn = os.environ.get('terraform_role_arn')
+destination_vault_retention_period = os.environ.get('destination_vault_retention_period')
 
 def lambda_handler(event, context):
     # Log the incoming event for debugging purposes
@@ -32,7 +33,7 @@ def lambda_handler(event, context):
         DestinationBackupVaultArn=backup_copy_vault_arn,
         IamRoleArn=backup_role_arn,
         Lifecycle={
-            'DeleteAfterDays': 20
+            'DeleteAfterDays': destination_vault_retention_period
         }
     )
 

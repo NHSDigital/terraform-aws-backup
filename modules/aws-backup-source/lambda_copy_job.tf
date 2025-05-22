@@ -58,10 +58,11 @@ resource "aws_lambda_function" "start_cross_account_copy_job_lambda" {
   runtime          = "python3.12"
   environment {
     variables = {
-      aws_account_id        = data.aws_caller_identity.current.account_id,
-      backup_account_id     = var.backup_copy_vault_account_id,
-      backup_copy_vault_arn = var.backup_copy_vault_arn,
-      backup_role_arn       = aws_iam_role.backup.arn
+      aws_account_id                     = data.aws_caller_identity.current.account_id,
+      backup_account_id                  = var.backup_copy_vault_account_id,
+      backup_copy_vault_arn              = var.backup_copy_vault_arn,
+      backup_role_arn                    = aws_iam_role.backup.arn
+      destination_vault_retention_period = var.destination_vault_retention_period
     }
   }
 }
