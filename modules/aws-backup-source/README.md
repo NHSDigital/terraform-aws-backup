@@ -2,6 +2,73 @@
 
 The AWS Backup Module helps automates the setup of AWS Backup resources in a source account. It streamlines the process of creating, managing, and standardising backup configurations.
 
+## Example
+
+```terraform
+module "test_aws_backup" {
+  source = "./modules/aws-backup"
+
+  environment_name                   = "environment_name"
+  bootstrap_kms_key_arn              = kms_key[0].arn
+  project_name                       = "testproject"
+  reports_bucket                     = "compliance-reports"
+  terraform_role_arn                 = data.aws_iam_role.terraform_role.arn
+}
+```
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.5 |
+| <a name="requirement_archive"></a> [archive](#requirement\_archive) | ~> 2 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5 |
+| <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | ~> 1 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5 |
+| <a name="provider_awscc"></a> [awscc](#provider\_awscc) | ~> 1 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_backup_framework.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_framework) | resource |
+| [aws_backup_framework.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_framework) | resource |
+| [aws_backup_plan.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_plan) | resource |
+| [aws_backup_plan.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_plan) | resource |
+| [aws_backup_selection.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_selection) | resource |
+| [aws_backup_selection.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_selection) | resource |
+| [aws_backup_vault.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_vault) | resource |
+| [aws_backup_vault_notifications.backup_notification](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_vault_notifications) | resource |
+| [aws_backup_vault_policy.vault_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_vault_policy) | resource |
+| [aws_iam_role.backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy_attachment.backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.restore](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.s3_backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.s3_restore](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_kms_alias.backup_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_alias) | resource |
+| [aws_kms_key.aws_backup_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
+| [aws_sns_topic.backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic) | resource |
+| [aws_sns_topic_subscription.aws_backup_notifications_email_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
+| [awscc_backup_restore_testing_plan.backup_restore_testing_plan](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/backup_restore_testing_plan) | resource |
+| [awscc_backup_restore_testing_selection.backup_restore_testing_selection_dynamodb](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/backup_restore_testing_selection) | resource |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_iam_policy_document.allow_backup_to_sns](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.assume_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.backup_key_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.vault_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_roles.roles](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_roles) | data source |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+
 ## Inputs
 
 | Name | Description | Type | Default | Required |
