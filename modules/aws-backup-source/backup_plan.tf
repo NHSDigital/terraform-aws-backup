@@ -82,7 +82,7 @@ resource "aws_backup_plan" "rds" {
           lifecycle {
             delete_after = copy_action.value
           }
-          destination_vault_arn = aws_backup_vault.intermediary-vault.arn
+          destination_vault_arn = aws_backup_vault.intermediary-vault[0].arn
         }
       }
     }

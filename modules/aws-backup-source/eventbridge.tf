@@ -14,7 +14,7 @@ module "eventbridge" {
           "account" : ["${data.aws_caller_identity.current.account_id}"],
           "region" : ["eu-west-2"],
           "detail" : {
-            "eventName" : ["RecoveryPointCreated"]
+            "eventName" : ["RecoveryPointCreated"],
             "serviceEventDetails" : {
               "backupVaultName" : [{ "wildcard" : "*-intermediary-vault" }]
             }
