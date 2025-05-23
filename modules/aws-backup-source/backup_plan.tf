@@ -10,6 +10,7 @@ resource "aws_backup_plan" "default" {
       rule_name                = rule.value.name
       target_vault_name        = aws_backup_vault.main.name
       schedule                 = rule.value.schedule
+      completion_window        = rule.value.completion_window
       enable_continuous_backup = rule.value.enable_continuous_backup != null ? rule.value.enable_continuous_backup : null
       lifecycle {
         delete_after       = rule.value.lifecycle.delete_after != null ? rule.value.lifecycle.delete_after : null
@@ -42,6 +43,7 @@ resource "aws_backup_plan" "dynamodb" {
       rule_name         = rule.value.name
       target_vault_name = aws_backup_vault.main.name
       schedule          = rule.value.schedule
+      completion_window = rule.value.completion_window
       lifecycle {
         delete_after       = rule.value.lifecycle.delete_after != null ? rule.value.lifecycle.delete_after : null
         cold_storage_after = rule.value.lifecycle.cold_storage_after != null ? rule.value.lifecycle.cold_storage_after : null

@@ -84,6 +84,7 @@ variable "backup_plan_config" {
     rules = list(object({
       name                     = string
       schedule                 = string
+      completion_window        = optional(number)
       enable_continuous_backup = optional(bool)
       lifecycle = object({
         delete_after       = optional(number)
@@ -160,6 +161,7 @@ variable "backup_plan_config_dynamodb" {
     rules = optional(list(object({
       name                     = string
       schedule                 = string
+      completion_widow         = optional(number)
       enable_continuous_backup = optional(bool)
       lifecycle = object({
         delete_after       = number
