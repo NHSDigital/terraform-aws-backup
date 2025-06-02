@@ -154,4 +154,14 @@ module "source" {
                                         "enable": false,
                                         "selection_tag": "NHSE-Enable-Backup"
                                       }
+  backup_plan_config_ebsvol =  {
+                                        "compliance_resource_types": [
+                                          "EBS"
+                                        ],
+                                        "rules": [
+                                        ],
+                                        "enable": false,
+                                        "selection_tag": "NHSE-Enable-Backup"
+                                      }
+
 }

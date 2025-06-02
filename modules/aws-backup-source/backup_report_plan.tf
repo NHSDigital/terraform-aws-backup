@@ -47,8 +47,8 @@ resource "aws_backup_report_plan" "resource_compliance" {
   }
 
   report_setting {
-    framework_arns       = var.backup_plan_config_dynamodb.enable ? [aws_backup_framework.main.arn, aws_backup_framework.dynamodb[0].arn] : [aws_backup_framework.main.arn]
-    number_of_frameworks = 2
+    framework_arns       = local.framework_arn_list
+    number_of_frameworks = length(local.framework_arn_list)
     report_template      = "RESOURCE_COMPLIANCE_REPORT"
   }
 }
