@@ -14,25 +14,20 @@ resource "aws_backup_framework" "main" {
     }
   }
 
-  # Evaluates if backup vaults do not allow manual deletion of recovery points with the exception of certain IAM roles.
+  control {
+    name = "BACKUP_RECOVERY_POINT_MANUAL_DELETION_DISABLED"
 
-  ######################################################################
-  # --- COMMENTED OUT DUE TO ISSUES IN USING THE SSO ROLE TO APPLY --- #
-  ######################################################################
-  # control {
-  #   name = "BACKUP_RECOVERY_POINT_MANUAL_DELETION_DISABLED"
+    scope {
+      tags = {
+        "environment_name" = var.environment_name
+      }
+    }
 
-  #   scope {
-  #     tags = {
-  #       "environment_name" = var.environment_name
-  #     }
-  #   }
-
-  #   input_parameter {
-  #     name  = "principalArnList"
-  #     value = var.terraform_role_arn
-  #   }
-  # }
+    input_parameter {
+      name  = "principalArnList"
+      value = var.terraform_role_arn
+    }
+  }
 
   # Evaluates if recovery point retention period is at least 1 month.
   control {
