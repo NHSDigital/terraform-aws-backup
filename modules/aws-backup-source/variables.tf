@@ -286,6 +286,12 @@ variable "backup_plan_config_rds" {
   }
 }
 
+variable "name_prefix" {
+  description = "Optional name prefix for vault resources"
+  type        = string
+  default     = null
+}
+
 variable "backup_plan_config_ebsvol" {
   description = "Configuration for backup plans with EBS"
   type = object({

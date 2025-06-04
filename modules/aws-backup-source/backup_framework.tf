@@ -14,7 +14,6 @@ resource "aws_backup_framework" "main" {
     }
   }
 
-  # Evaluates if backup vaults do not allow manual deletion of recovery points with the exception of certain IAM roles.
   control {
     name = "BACKUP_RECOVERY_POINT_MANUAL_DELETION_DISABLED"
 
