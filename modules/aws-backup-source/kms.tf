@@ -23,7 +23,13 @@ data "aws_iam_policy_document" "backup_key_policy" {
       type        = "Service"
       identifiers = ["backup.amazonaws.com"]
     }
-    actions   = ["kms:GenerateDataKey", "kms:Decrypt", "kms:Encrypt"]
+    actions   = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey",
+      "kms:CreateGrant"
+    ]
     resources = ["*"]
   }
   statement {
