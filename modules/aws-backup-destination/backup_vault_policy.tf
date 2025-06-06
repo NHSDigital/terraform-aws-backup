@@ -32,34 +32,13 @@ data "aws_iam_policy_document" "vault_policy" {
       }
       actions = [
         "backup:DeleteRecoveryPoint",
+        "backup:PutBackupVaultAccessPolicy",
         "backup:UpdateRecoveryPointLifecycle",
         "backup:DeleteBackupVault",
         "backup:StartRestoreJob",
         "backup:DeleteBackupVaultLockConfiguration",
       ]
       resources = ["*"]
-    }
-  }
-
-  dynamic "statement" {
-    for_each = var.enable_vault_protection ? [1] : []
-    content {
-      sid    = "DenyBackupVaultPolicyExceptTerraform"
-      effect = "Deny"
-
-      principals {
-        type        = "AWS"
-        identifiers = ["*"]
-      }
-      actions = [
-        "backup:PutBackupVaultAccessPolicy",
-      ]
-      resources = ["*"]
-      condition {
-        test     = "ArnNotEquals"
-        values   = [var.terraform_role_arn]
-        variable = "aws:PrincipalArn"
-      }
     }
   }
 

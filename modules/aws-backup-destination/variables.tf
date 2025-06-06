@@ -65,8 +65,3 @@ variable "changeable_for_days" {
   type        = number
   default     = 14
 }
-
-variable "terraform_role_arn" {
-  description = "ARN of Terraform role used to deploy to account"
-  type        = string
-}
