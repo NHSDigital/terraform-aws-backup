@@ -45,24 +45,46 @@ data "aws_iam_policy_document" "vault_policy" {
   dynamic "statement" {
     for_each = var.enable_vault_protection ? [1] : []
     content {
-      sid    = "DenyBackupCopyExceptToSourceAccount"
+      sid    = "DenyBackupVaultPolicyExceptTerraform"
       effect = "Deny"
 
       principals {
         type        = "AWS"
-        identifiers = ["arn:aws:iam::${var.account_id}:root"]
+        identifiers = ["*"]
       }
       actions = [
-        "backup:CopyFromBackupVault"
+        "backup:PutBackupVaultAccessPolicy",
       ]
       resources = ["*"]
       condition {
-        test     = "StringNotEquals"
-        variable = "backup:CopyTargets"
-        values = [
-          "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:${var.region}-${var.source_account_id}-backup-vault"
-        ]
+        test     = "ArnNotEquals"
+        values   = [var.terraform_role_arn]
+        variable = "aws:PrincipalArn"
       }
     }
   }
+
+  # dynamic "statement" {
+  #   for_each = var.enable_vault_protection ? [1] : []
+  #   content {
+  #     sid    = "DenyBackupCopyExceptToSourceAccount"
+  #     effect = "Deny"
+
+  #     principals {
+  #       type        = "AWS"
+  #       identifiers = ["arn:aws:iam::${var.account_id}:root"]
+  #     }
+  #     actions = [
+  #       "backup:CopyFromBackupVault"
+  #     ]
+  #     resources = ["*"]
+  #     condition {
+  #       test     = "StringNotEquals"
+  #       variable = "backup:CopyTargets"
+  #       values = [
+  #         "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:${var.region}-${var.source_account_id}-backup-vault"
+  #       ]
+  #     }
+  #   }
+  # }
 }
