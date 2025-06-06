@@ -32,7 +32,6 @@ data "aws_iam_policy_document" "vault_policy" {
       }
       actions = [
         "backup:DeleteRecoveryPoint",
-        "backup:PutBackupVaultAccessPolicy",
         "backup:UpdateRecoveryPointLifecycle",
         "backup:DeleteBackupVault",
         "backup:StartRestoreJob",
