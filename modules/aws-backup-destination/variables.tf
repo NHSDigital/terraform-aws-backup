@@ -65,3 +65,9 @@ variable "changeable_for_days" {
   type        = number
   default     = 14
 }
+
+variable "name_prefix" {
+  description = "Optional name prefix for vault resources"
+  type        = string
+  default     = null
+}
