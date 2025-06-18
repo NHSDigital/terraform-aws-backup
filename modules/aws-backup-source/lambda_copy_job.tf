@@ -10,7 +10,7 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 }
 
 resource "aws_iam_role" "iam_for_lambda_copy_job" {
-  count       = var.backup_plan_config_rds.enable ? 1 : 0
+  count              = var.backup_plan_config_rds.enable ? 1 : 0
   name               = "iam_for_cross_account_copy_job_lambda"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
@@ -38,8 +38,14 @@ data "aws_iam_policy_document" "lambda_copy_job_permissions" {
   }
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_role_policy_attachment" {
+  count      = var.backup_plan_config_rds.enable ? 1 : 0
+  role       = aws_iam_role.iam_for_lambda_copy_job[0].name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
 resource "aws_iam_role_policy" "cross_account_iam_permissions" {
-  count       = var.backup_plan_config_rds.enable ? 1 : 0
+  count  = var.backup_plan_config_rds.enable ? 1 : 0
   name   = "cross_account_iam_permissions_policy"
   role   = aws_iam_role.iam_for_lambda_copy_job[0].id
   policy = data.aws_iam_policy_document.lambda_copy_job_permissions.json
@@ -52,7 +58,7 @@ data "archive_file" "start_cross_account_copy_job_lambda_zip" {
 }
 
 resource "aws_lambda_function" "start_cross_account_copy_job_lambda" {
-  count       = var.backup_plan_config_rds.enable ? 1 : 0
+  count            = var.backup_plan_config_rds.enable ? 1 : 0
   filename         = data.archive_file.start_cross_account_copy_job_lambda_zip.output_path
   source_code_hash = data.archive_file.start_cross_account_copy_job_lambda_zip.output_base64sha256
   function_name    = "start_cross_account_copy_job"
