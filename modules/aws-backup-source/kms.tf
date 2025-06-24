@@ -31,7 +31,7 @@ data "aws_iam_policy_document" "backup_key_policy" {
     sid = "EnableIAMUserPermissions"
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root", data.aws_caller_identity.current.arn]
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root", var.terraform_role_arn]
     }
     actions   = ["kms:*"]
     resources = ["*"]
