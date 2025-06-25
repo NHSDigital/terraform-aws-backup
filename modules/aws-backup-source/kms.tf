@@ -51,6 +51,6 @@ data "aws_iam_policy_document" "backup_key_policy" {
       "kms:ListGrants",
       "kms:DescribeKey"
     ]
-    resources = [aws_kms_key.aws_backup_key.arn]
+    resources = ["*"]
   }
 }
