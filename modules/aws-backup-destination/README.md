@@ -16,6 +16,7 @@ The AWS Backup Module helps automates the setup of AWS Backup resources in a des
 | <a name="input_vault_lock_max_retention_days"></a> [vault\_lock\_max\_retention\_days](#input\_vault\_lock\_max\_retention\_days) | The maximum retention period that the vault retains its recovery points | `number` | `365` | no |
 | <a name="input_vault_lock_min_retention_days"></a> [vault\_lock\_min\_retention\_days](#input\_vault\_lock\_min\_retention\_days) | The minimum retention period that the vault retains its recovery points | `number` | `365` | no |
 | <a name="input_vault_lock_type"></a> [vault\_lock\_type](#input\_vault\_lock\_type) | The type of lock that the vault should be, will default to governance | `string` | `"governance"` | no |
+| <a name="input_copy_target_arn_list"></a> [copy\_target\_arn\_list](#input\_copy\_target\_arn\_list) | A list of target ARNs to which restore points are allowed to be copied | `list(string)` | `null` | no |
 
 ## Example
 
