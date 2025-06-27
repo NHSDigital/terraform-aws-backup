@@ -65,3 +65,9 @@ variable "changeable_for_days" {
   type        = number
   default     = 14
 }
+
+variable "copy_target_arn_list" {
+  description = "A list of target ARNs to which restore points are allowed to be copied"
+  type        = list(string)
+  default     = null
+}
