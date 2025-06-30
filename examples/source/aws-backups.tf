@@ -100,6 +100,14 @@ resource "aws_kms_key" "backup_notifications" {
         Action    = ["kms:GenerateDataKey*", "kms:Decrypt"]
         Resource  = "*"
       },
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "backup.amazonaws.com"
+        }
+        Action   = ["kms:GenerateDataKey*", "kms:Decrypt"]
+        Resource = "*"
+      },
     ]
   })
 }
