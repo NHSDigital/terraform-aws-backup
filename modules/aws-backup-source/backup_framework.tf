@@ -25,7 +25,7 @@ resource "aws_backup_framework" "main" {
 
     input_parameter {
       name  = "principalArnList"
-      value = var.terraform_role_arn
+      value = join(",", var.deletion_allowed_principal_arns)
     }
   }
 
