@@ -26,7 +26,7 @@ resource "aws_backup_framework" "main" {
 
     input_parameter {
       name  = "principalArnList"
-      value = join(",", var.deletion_allowed_principal_arns)
+      value = join(",", local.deletion_allowed_principal_arns)
     }
   }
 
