@@ -24,7 +24,7 @@ resource "aws_backup_framework" "main" {
       }
     }
 
-    dynamic "deletion" {
+    dynamic "setting" {
       for_each = length(local.deletion_allowed_principal_arns) > 0 ? [1] : []
       input_parameter {
         name  = "principalArnList"
