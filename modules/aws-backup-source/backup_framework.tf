@@ -24,12 +24,9 @@ resource "aws_backup_framework" "main" {
       }
     }
 
-    dynamic "setting" {
-      for_each = length(local.deletion_allowed_principal_arns) > 0 ? [1] : []
-      input_parameter {
-        name  = "principalArnList"
-        value = join(",", local.deletion_allowed_principal_arns)
-      }
+    input_parameter {
+      name  = "principalArnList"
+      value = length(local.deletion_allowed_principal_arns) > 0 ? join(",", local.deletion_allowed_principal_arns) : null
     }
   }
 
