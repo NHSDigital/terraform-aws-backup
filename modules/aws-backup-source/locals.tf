@@ -10,7 +10,7 @@ locals {
     [aws_backup_framework.main.arn],
     var.backup_plan_config_ebsvol.enable ? [aws_backup_framework.ebsvol[0].arn] : [],
     var.backup_plan_config_dynamodb.enable ? [aws_backup_framework.dynamodb[0].arn] : [],
-    var.backup_plan_config_aurora.enable ? aws_backup_framework.aurora[0].arn : ""
+    var.backup_plan_config_aurora.enable ? [aws_backup_framework.aurora[0].arn] : []
   ))
   aurora_overrides     = jsondecode(var.backup_plan_config_aurora.restore_testing_overrides)
 }
