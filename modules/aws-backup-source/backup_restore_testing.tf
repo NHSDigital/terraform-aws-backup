@@ -1,5 +1,5 @@
 resource "awscc_backup_restore_testing_plan" "backup_restore_testing_plan" {
-  restore_testing_plan_name = "backup_restore_testing_plan"
+  restore_testing_plan_name = "${local.resource_name_prefix}_backup_restore_testing_plan"
   schedule_expression       = var.restore_testing_plan_scheduled_expression
   start_window_hours        = var.restore_testing_plan_start_window
   recovery_point_selection = {
@@ -39,4 +39,19 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
     }]
   }
   restore_metadata_overrides = local.aurora_overrides
+}
+
+resource "awscc_backup_restore_testing_selection" "backup_restore_testing_selection_ebsvol" {
+  count                          = var.backup_plan_config_ebsvol.enable ? 1 : 0
+  iam_role_arn                   = aws_iam_role.backup.arn
+  protected_resource_type        = "EBS"
+  restore_testing_plan_name      = awscc_backup_restore_testing_plan.backup_restore_testing_plan.restore_testing_plan_name
+  restore_testing_selection_name = "backup_restore_testing_selection_ebsvol"
+  protected_resource_arns        = ["*"]
+  protected_resource_conditions = {
+    string_equals = [{
+      key   = "aws:ResourceTag/${var.backup_plan_config_ebsvol.selection_tag}"
+      value = "True"
+    }]
+  }
 }
