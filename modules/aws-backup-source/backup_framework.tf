@@ -1,3 +1,12 @@
+locals {
+  principal_arn_list_value = length(local.deletion_allowed_principal_arns) > 0 ? join(",", local.deletion_allowed_principal_arns) : null
+
+}
+
+output "backup_framework_principal_arn_list_value" {
+  value = local.principal_arn_list_value
+}
+
 resource "aws_backup_framework" "main" {
   # must be underscores instead of dashes
   name        = replace("${local.resource_name_prefix}-framework", "-", "_")
@@ -26,7 +35,7 @@ resource "aws_backup_framework" "main" {
 
     input_parameter {
       name  = "principalArnList"
-      value = length(local.deletion_allowed_principal_arns) > 0 ? join(",", local.deletion_allowed_principal_arns) : null
+      value = local.principal_arn_list_value
     }
   }
 
