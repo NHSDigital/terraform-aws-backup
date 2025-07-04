@@ -57,11 +57,9 @@ data "aws_iam_policy_document" "vault_policy" {
       ]
       resources = ["*"]
       condition {
-        test     = "StringNotEquals"
+        test     = "ArnNotEquals"
         variable = "backup:CopyTargets"
-        values = [
-          "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:${var.region}-${var.source_account_id}-backup-vault"
-        ]
+        values   = local.copy_targets
       }
     }
   }
