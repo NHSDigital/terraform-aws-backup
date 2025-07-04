@@ -21,7 +21,7 @@ data "aws_iam_policy_document" "vault_policy" {
   }
 
   dynamic "statement" {
-    for_each = var.enable_vault_protection ? [1] : []
+    for_each = var.enable_iam_protection ? [1] : []
     content {
       sid    = "DenyBackupVaultAccess"
       effect = "Deny"
@@ -43,7 +43,7 @@ data "aws_iam_policy_document" "vault_policy" {
   }
 
   dynamic "statement" {
-    for_each = var.enable_vault_protection ? [1] : []
+    for_each = var.enable_vault_protection && var.source_vault_arn != "" ? [1] : []
     content {
       sid    = "DenyBackupCopyExceptToSourceAccount"
       effect = "Deny"
@@ -60,7 +60,7 @@ data "aws_iam_policy_document" "vault_policy" {
         test     = "StringNotEquals"
         variable = "backup:CopyTargets"
         values = [
-          "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:${var.region}-${var.source_account_id}-backup-vault"
+          var.source_vault_arn
         ]
       }
     }
