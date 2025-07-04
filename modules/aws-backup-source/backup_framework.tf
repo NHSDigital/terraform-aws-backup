@@ -1,6 +1,5 @@
 locals {
-  principal_arn_list_value = length(local.deletion_allowed_principal_arns) > 0 ? join(",", local.deletion_allowed_principal_arns) : null
-
+  principal_arn_list_value = local.deletion_allowed_principal_arns == null || length(local.deletion_allowed_principal_arns) == 0 ? [] : join(",", local.deletion_allowed_principal_arns)
 }
 resource "null_resource" "principal_arn_list_output" {
   triggers = {
