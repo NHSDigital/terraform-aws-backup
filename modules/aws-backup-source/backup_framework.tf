@@ -2,9 +2,13 @@ locals {
   principal_arn_list_value = length(local.deletion_allowed_principal_arns) > 0 ? join(",", local.deletion_allowed_principal_arns) : null
 
 }
-
-output "backup_framework_principal_arn_list_value" {
-  value = local.principal_arn_list_value
+resource "null_resource" "principal_arn_list_output" {
+  triggers = {
+    always_run = timestamp()
+  }
+  provisioner "local-exec" {
+    command = "echo 'principalArnListValue = \"${local.principal_arn_list_value}\"'"
+  }
 }
 
 resource "aws_backup_framework" "main" {
