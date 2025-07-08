@@ -32,7 +32,8 @@ variable "terraform_role_arn" {
 variable "deletion_allowed_principal_arns" {
   description = "List of ARNs of principals allowed to delete backups."
   type        = list(string)
-  default     = []
+  default     = null
+  nullable    = true
 }
 
 variable "restore_testing_plan_algorithm" {
