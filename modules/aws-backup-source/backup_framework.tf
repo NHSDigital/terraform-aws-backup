@@ -23,8 +23,27 @@ resource "aws_backup_framework" "main" {
     }
   }
 
+  /* Some explanation of BACKUP_RECOVERY_POINT_MANUAL_DELETION_DISABLED:
+
+  The `principalArnList` input parameter is used to specify the IAM principals
+  that are allowed to delete backups.  Creating the control without this input
+  parameter gives you a control that says nobody is allowed to delete backups.
+  But if you just pass in an empty list to the input_parameter, it will gets
+  rejected as invalid.
+
+  That means we need a dynamic block around the input parameter itself to do
+  the right thing if the user genuinely wants the set of principals allowed to
+  delete backups to be empty, and to specify that by passing in the empty list
+  as the `deletion_enabled_arn_list` variable.
+
+  If the user does not want any principals to be blocked from deleting backups,
+  they can not set the `deletion_enabled_arn_list` variable at all.  So we need
+  a dynamic block around the control itself.  That matches what's currently
+  deployed in teams, so we can publish the change without breaking
+  existing deployments.
+  */
   dynamic "control" {
-    for_each = length(var.deletion_allowed_principal_arns) > 0 ? [1] : []
+    for_each = var.deletion_allowed_principal_arns != null ? [1] : []
     content {
       name = "BACKUP_RECOVERY_POINT_MANUAL_DELETION_DISABLED"
 
@@ -34,9 +53,12 @@ resource "aws_backup_framework" "main" {
         }
       }
 
-      input_parameter {
-        name  = "principalArnList"
-        value = join(",", var.deletion_allowed_principal_arns)
+      dynamic "input_parameter" {
+        for_each = length(var.deletion_allowed_principal_arns) > 0 ? [1] : []
+        content {
+          name  = "principalArnList"
+          value = join(",", var.deletion_allowed_principal_arns)
+        }
       }
     }
   }
