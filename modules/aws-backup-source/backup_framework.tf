@@ -1,6 +1,3 @@
-locals {
-  principal_arn_list_value = local.deletion_allowed_principal_arns == null || length(local.deletion_allowed_principal_arns) == 0 ? "" : join(",", local.deletion_allowed_principal_arns)
-}
 resource "null_resource" "principal_arn_list_output" {
   triggers = {
     always_run = timestamp()
@@ -26,19 +23,21 @@ resource "aws_backup_framework" "main" {
     }
   }
 
-  # Evaluates if backup vaults do not allow manual deletion of recovery points with the exception of certain IAM roles.
-  control {
-    name = "BACKUP_RECOVERY_POINT_MANUAL_DELETION_DISABLED"
+  dynamic "control" {
+    for_each = length(var.deletion_allowed_principal_arns) > 0 ? [1] : []
+    content {
+      name = "BACKUP_RECOVERY_POINT_MANUAL_DELETION_DISABLED"
 
-    scope {
-      tags = {
-        "environment_name" = var.environment_name
+      scope {
+        tags = {
+          "environment_name" = var.environment_name
+        }
       }
-    }
 
-    input_parameter {
-      name  = "principalArnList"
-      value = local.principal_arn_list_value
+      input_parameter {
+        name  = "principalArnList"
+        value = join(",", var.deletion_allowed_principal_arns)
+      }
     }
   }
 
