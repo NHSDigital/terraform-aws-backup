@@ -1,12 +1,3 @@
-resource "null_resource" "principal_arn_list_output" {
-  triggers = {
-    always_run = timestamp()
-  }
-  provisioner "local-exec" {
-    command = "echo 'principalArnListValue = \"${local.principal_arn_list_value}\"'"
-  }
-}
-
 resource "aws_backup_framework" "main" {
   # must be underscores instead of dashes
   name        = replace("${local.resource_name_prefix}-framework", "-", "_")
