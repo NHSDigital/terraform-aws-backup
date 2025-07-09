@@ -44,6 +44,29 @@ resource "aws_s3_bucket_acl" "backup_reports" {
   acl    = "private"
 }
 
+resource "aws_s3_bucket_policy" "backup_reports_policy" {
+  bucket = aws_s3_bucket.backup_reports.id
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          AWS = "arn:aws:iam::${local.source_account_id}:role/aws-service-role/reports.backup.amazonaws.com/AWSServiceRoleForBackupReports"
+        },
+        Action = "s3:PutObject",
+        Resource = "${aws_s3_bucket.backup_reports.arn}/*",
+        Condition = {
+          StringEquals = {
+            "s3:x-amz-acl" = "bucket-owner-full-control"
+          }
+        }
+      }
+    ]
+  })
+}
+
+
 # We need a key for the SNS topic that will be used for notifications from AWS Backup. This key
 # will be used to encrypt the messages sent to the topic before they are sent to the subscribers,
 # but isn't needed by the recipients of the messages.
@@ -87,7 +110,7 @@ module "source" {
   source = "../../modules/aws-backup-source"
 
   backup_copy_vault_account_id       = local.destination_account_id
-  backup_copy_vault_arn              = var.destination_vault_arn.arn
+  backup_copy_vault_arn              = data.aws_arn.destination_vault_arn.arn
   environment_name                   = local.environment_name
   bootstrap_kms_key_arn              = aws_kms_key.backup_notifications.arn
   project_name                       = local.project_name
@@ -111,6 +134,14 @@ module "source" {
                                           }
                                         ],
                                         "selection_tag": "NHSE-Enable-Backup"
+                                        # The selection_tags are optional and can be used to
+                                        # provide fine grained resource selection with existing tagging
+                                        "selection_tags": [
+                                          {
+                                            "key": "Environment"
+                                            "value": "myenvironment"
+                                          }
+                                        ]
                                       }
   # Note here that we need to explicitly disable DynamoDB backups in the source account.
   # The default config in the module enables backups for all resource types.
@@ -123,4 +154,14 @@ module "source" {
                                         "enable": false,
                                         "selection_tag": "NHSE-Enable-Backup"
                                       }
+  backup_plan_config_ebsvol =  {
+                                        "compliance_resource_types": [
+                                          "EBS"
+                                        ],
+                                        "rules": [
+                                        ],
+                                        "enable": false,
+                                        "selection_tag": "NHSE-Enable-Backup"
+                                      }
+
 }

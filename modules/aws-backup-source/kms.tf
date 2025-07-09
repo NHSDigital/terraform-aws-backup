@@ -6,8 +6,13 @@ resource "aws_kms_key" "aws_backup_key" {
 }
 
 resource "aws_kms_alias" "backup_key" {
-  name          = "alias/${var.environment_name}/backup-key"
+  name          = "alias/${local.resource_name_prefix}/backup-key"
   target_key_id = aws_kms_key.aws_backup_key.key_id
+}
+
+resource "aws_kms_key_policy" "backup_key_policy" {
+  key_id = aws_kms_key.aws_backup_key.id
+  policy = data.aws_iam_policy_document.backup_key_policy.json
 }
 
 data "aws_iam_policy_document" "backup_key_policy" {
@@ -29,6 +34,23 @@ data "aws_iam_policy_document" "backup_key_policy" {
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root", data.aws_caller_identity.current.arn]
     }
     actions   = ["kms:*"]
+    resources = ["*"]
+  }
+  statement {
+    sid = "Allow attachment of persistent resources"
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${var.backup_copy_vault_account_id}:root"]
+    }
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:CreateGrant",
+      "kms:ListGrants",
+      "kms:DescribeKey"
+    ]
     resources = ["*"]
   }
 }

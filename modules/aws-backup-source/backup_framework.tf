@@ -103,7 +103,7 @@ resource "aws_backup_framework" "main" {
     scope {
       compliance_resource_types = var.backup_plan_config.compliance_resource_types
       tags = {
-        (var.backup_plan_config.selection_tag) = "True"
+        (var.backup_plan_config.selection_tag) = (var.backup_plan_config.selection_tag_value)
       }
     }
   }
@@ -125,7 +125,7 @@ resource "aws_backup_framework" "main" {
     scope {
       compliance_resource_types = var.backup_plan_config.compliance_resource_types
       tags = {
-        (var.backup_plan_config.selection_tag) = "True"
+        (var.backup_plan_config.selection_tag) = (var.backup_plan_config.selection_tag_value)
       }
     }
   }
@@ -144,7 +144,7 @@ resource "aws_backup_framework" "dynamodb" {
     scope {
       compliance_resource_types = var.backup_plan_config_dynamodb.compliance_resource_types
       tags = {
-        (var.backup_plan_config_dynamodb.selection_tag) = "True"
+        (var.backup_plan_config_dynamodb.selection_tag) = (var.backup_plan_config_dynamodb.selection_tag_value)
       }
     }
   }
@@ -166,7 +166,48 @@ resource "aws_backup_framework" "dynamodb" {
     scope {
       compliance_resource_types = var.backup_plan_config_dynamodb.compliance_resource_types
       tags = {
-        (var.backup_plan_config_dynamodb.selection_tag) = "True"
+        (var.backup_plan_config_dynamodb.selection_tag) = (var.backup_plan_config_dynamodb.selection_tag_value)
+      }
+    }
+  }
+}
+
+resource "aws_backup_framework" "ebsvol" {
+  count = var.backup_plan_config_ebsvol.enable ? 1 : 0
+  # must be underscores instead of dashes
+  name        = replace("${local.resource_name_prefix}-ebsvol-framework", "-", "_")
+  description = "${var.project_name} EBS Backup Framework"
+
+  # Evaluates if resources are protected by a backup plan.
+  control {
+    name = "BACKUP_RESOURCES_PROTECTED_BY_BACKUP_PLAN"
+
+    scope {
+      compliance_resource_types = var.backup_plan_config_ebsvol.compliance_resource_types
+      tags = {
+        (var.backup_plan_config_ebsvol.selection_tag) = "True"
+      }
+    }
+  }
+
+  # Evaluates if resources have at least one recovery point created within the past 1 day.
+  control {
+    name = "BACKUP_LAST_RECOVERY_POINT_CREATED"
+
+    input_parameter {
+      name  = "recoveryPointAgeUnit"
+      value = "days"
+    }
+
+    input_parameter {
+      name  = "recoveryPointAgeValue"
+      value = "1"
+    }
+
+    scope {
+      compliance_resource_types = var.backup_plan_config_ebsvol.compliance_resource_types
+      tags = {
+        (var.backup_plan_config_ebsvol.selection_tag) = "True"
       }
     }
   }

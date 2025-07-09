@@ -1,6 +1,6 @@
 # Create the reports
 resource "aws_backup_report_plan" "backup_jobs" {
-  name        = "backup_jobs"
+  name        = "${local.resource_name_prefix}_backup_jobs"
   description = "Report for showing whether backups ran successfully in the last 24 hours"
 
   report_delivery_channel {
@@ -18,7 +18,7 @@ resource "aws_backup_report_plan" "backup_jobs" {
 
 # Create the restore testing completion reports
 resource "aws_backup_report_plan" "backup_restore_testing_jobs" {
-  name        = "backup_restore_testing_jobs"
+  name        = "${local.resource_name_prefix}_backup_restore_testing_jobs"
   description = "Report for showing whether backup restore test ran successfully in the last 24 hours"
 
   report_delivery_channel {
@@ -35,7 +35,7 @@ resource "aws_backup_report_plan" "backup_restore_testing_jobs" {
 }
 
 resource "aws_backup_report_plan" "resource_compliance" {
-  name        = "resource_compliance"
+  name        = "${local.resource_name_prefix}_resource_compliance"
   description = "Report for showing whether resources are compliant with the framework"
 
   report_delivery_channel {
@@ -47,15 +47,15 @@ resource "aws_backup_report_plan" "resource_compliance" {
   }
 
   report_setting {
-    framework_arns       = var.backup_plan_config_dynamodb.enable ? [aws_backup_framework.main.arn, aws_backup_framework.dynamodb[0].arn] : [aws_backup_framework.main.arn]
-    number_of_frameworks = 2
+    framework_arns       = local.framework_arn_list
+    number_of_frameworks = length(local.framework_arn_list)
     report_template      = "RESOURCE_COMPLIANCE_REPORT"
   }
 }
 
 resource "aws_backup_report_plan" "copy_jobs" {
   count       = var.backup_copy_vault_arn != "" && var.backup_copy_vault_account_id != "" ? 1 : 0
-  name        = "copy_jobs"
+  name        = "${local.resource_name_prefix}_copy_jobs"
   description = "Report for showing whether copies ran successfully in the last 24 hours"
 
   report_delivery_channel {

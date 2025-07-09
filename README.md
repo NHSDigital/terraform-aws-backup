@@ -128,6 +128,19 @@ Note that in the last step the `ASSUME_ROLE_ARN` is the ARN of the role in the *
 
 This means that the destination configuration needs to be applied *before* the source configuration.  If you are using the above configuration, insert it before the OIDC authentication step for the source configuration.
 
+In case the terraform state S3 bucket and DynamoDB lock table information are required then please add the following
+in the file `infrastructure/environments/dev-backup/aws-backups.tf` as appropriate:
+
+```terraform
+terraform {
+  backend "s3" {
+    bucket         = "project-env-backup-tf-bucket"  # change this to the destination account terraform state s3 bucket name
+    key            = "project-env-backup.tfstate"  # change this to the destination account terraform state s3 key name
+    dynamodb_table = "project-env-backup-lock-table"  # change this to the destination account terraform state dynamodb table name
+    region = "eu-west-2"
+  }
+}
+```
 To choose which resources will be backed up by AWS Backup, you need to tag them with the tag `NHSE-Enable-Backup`.  So do that now: in your *existing* terraform configuration, add the tag to the resources that you want to back up, and apply it.  For example, if you want to back up an S3 bucket, you would add the tag to the bucket resource:
 
 ```terraform
@@ -233,7 +246,7 @@ The `aws-backup-source` module requires the ARN of the role in the destination a
           terraform apply -auto-approve -input=false
 ```
 
-When the earlier step wrote to the `$GITHUB_ENV` file, it wrote the `destination_vault_arn` output from the destination configuration.  This is passed in as the `destination_vault_arn` variable to the source configuration, so we don't need to explicitly configure it here.  Your CI/CD pipeline will need to ensure that the destination configuration is applied before the source configuration and that the `destination_vault_arn` output is passed along, and probably has a similar mechnaisim to the above.
+When the earlier step wrote to the `$GITHUB_ENV` file, it wrote the `destination_vault_arn` output from the destination configuration.  This is passed in as the `destination_vault_arn` variable to the source configuration, so we don't need to explicitly configure it here.  Your CI/CD pipeline will need to ensure that the destination configuration is applied before the source configuration and that the `destination_vault_arn` output is passed along, and probably has a similar mechanism to the above.
 
 ## Next steps
 

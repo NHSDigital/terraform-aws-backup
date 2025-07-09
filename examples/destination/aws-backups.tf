@@ -12,6 +12,8 @@ data "aws_arn" "source_terraform_role" {
   arn = var.source_terraform_role_arn
 }
 
+data "aws_caller_identity" "current" {}
+
 locals {
   # Adjust these as required
   project_name = "my-shiny-project"
@@ -47,7 +49,7 @@ resource "aws_kms_key" "destination_backup_key" {
 module "destination" {
   source = "../../modules/aws-backup-destination"
 
-  source_account_name     = "source"
+  source_account_name     = "source" # please note that the assigned value would be the prefix in aws_backup_vault.vault.name
   account_id              = local.destination_account_id
   source_account_id       = local.source_account_id
   kms_key                 = aws_kms_key.destination_backup_key.arn
