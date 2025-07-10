@@ -19,7 +19,7 @@ resource "aws_backup_framework" "main" {
   The `principalArnList` input parameter is used to specify the IAM principals
   that are allowed to delete backups.  Creating the control without this input
   parameter gives you a control that says nobody is allowed to delete backups.
-  But if you just pass in an empty list to the input_parameter, it will gets
+  But if you just pass in an empty list to the input_parameter, it will get
   rejected as invalid.
 
   That means we need a dynamic block around the input parameter itself to do
