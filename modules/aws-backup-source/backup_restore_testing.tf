@@ -1,5 +1,5 @@
 resource "awscc_backup_restore_testing_plan" "backup_restore_testing_plan" {
-  restore_testing_plan_name = "${local.resource_name_prefix}_backup_restore_testing_plan"
+  restore_testing_plan_name = replace("${local.resource_name_prefix}_backup_restore_testing_plan", "-", "_")
   schedule_expression       = var.restore_testing_plan_scheduled_expression
   start_window_hours        = var.restore_testing_plan_start_window
   recovery_point_selection = {
