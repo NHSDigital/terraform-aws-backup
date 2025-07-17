@@ -78,3 +78,9 @@ variable "source_vault_arn" {
   description = "Source account vault arn, if set copies back are restricted to only this vault"
   default     = ""
 }
+
+variable "name_prefix" {
+  description = "Optional name prefix for vault resources"
+  type        = string
+  default     = null
+}
