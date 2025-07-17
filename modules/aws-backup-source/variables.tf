@@ -25,8 +25,15 @@ variable "reports_bucket" {
 }
 
 variable "terraform_role_arn" {
-  description = "ARN of Terraform role used to deploy to account"
+  description = "ARN of Terraform role used to deploy to account (deprecated, please swap to terraform_role_arns)"
   type        = string
+  default     = ""
+}
+
+variable "terraform_role_arns" {
+  description = "ARN of Terraform roles used to deploy to account, defaults to caller arn if list is empty"
+  type        = list(string)
+  default     = []
 }
 
 variable "restore_testing_plan_algorithm" {
@@ -214,11 +221,9 @@ variable "backup_plan_config_dynamodb" {
   }
 }
 
-
 variable "name_prefix" {
-  description = "Optional name prefix for vault resources"
+  description = "Name prefix for vault resources, can't contain numbers"
   type        = string
-  default     = null
 }
 
 variable "backup_plan_config_ebsvol" {

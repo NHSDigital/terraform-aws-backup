@@ -32,8 +32,15 @@ variable "kms_key" {
 }
 
 variable "enable_vault_protection" {
+  # With this set to true, the minimum and maximum retention periods are also set only if this is true.
+  description = "Flag which controls if the vault lock is enabled"
+  type        = bool
+  default     = false
+}
+
+variable "enable_iam_protection" {
   # With this set to true, privileges are locked down so that the vault can't be deleted or
-  # have its policy changed. The minimum and maximum retention periods are also set only if this is true.
+  # have its policy changed.
   description = "Flag which controls if the vault lock is enabled"
   type        = bool
   default     = false
@@ -64,6 +71,12 @@ variable "changeable_for_days" {
   description = "How long you want the vault lock to be changeable for, only applies to compliance mode. This value is expressed in days no less than 3 and no greater than 36,500; otherwise, an error will return."
   type        = number
   default     = 14
+}
+
+variable "source_vault_arn" {
+  type        = string
+  description = "Source account vault arn, if set copies back are restricted to only this vault"
+  default     = ""
 }
 
 variable "name_prefix" {
