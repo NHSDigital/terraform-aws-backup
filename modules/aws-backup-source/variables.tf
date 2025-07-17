@@ -25,8 +25,15 @@ variable "reports_bucket" {
 }
 
 variable "terraform_role_arn" {
-  description = "ARN of Terraform role used to deploy to account"
+  description = "ARN of Terraform role used to deploy to account (deprecated, please swap to terraform_role_arns)"
   type        = string
+  default     = ""
+}
+
+variable "terraform_role_arns" {
+  description = "ARN of Terraform roles used to deploy to account, defaults to caller arn if list is empty"
+  type        = list(string)
+  default     = []
 }
 
 variable "deletion_allowed_principal_arns" {
@@ -168,7 +175,7 @@ variable "backup_plan_config_dynamodb" {
     rules = optional(list(object({
       name                     = string
       schedule                 = string
-      completion_widow         = optional(number)
+      completion_window        = optional(number)
       enable_continuous_backup = optional(bool)
       lifecycle = object({
         delete_after       = number
@@ -221,11 +228,9 @@ variable "backup_plan_config_dynamodb" {
   }
 }
 
-
 variable "name_prefix" {
-  description = "Optional name prefix for vault resources"
+  description = "Name prefix for vault resources, can't contain numbers"
   type        = string
-  default     = null
 }
 
 variable "backup_plan_config_ebsvol" {

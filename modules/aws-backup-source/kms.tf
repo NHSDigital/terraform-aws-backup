@@ -6,7 +6,7 @@ resource "aws_kms_key" "aws_backup_key" {
 }
 
 resource "aws_kms_alias" "backup_key" {
-  name          = "alias/${local.resource_name_prefix}/backup-key"
+  name          = "alias/${var.name_prefix}/backup-key"
   target_key_id = aws_kms_key.aws_backup_key.key_id
 }
 
@@ -31,7 +31,7 @@ data "aws_iam_policy_document" "backup_key_policy" {
     sid = "EnableIAMUserPermissions"
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root", data.aws_caller_identity.current.arn]
+      identifiers = concat(["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"], local.terraform_role_arns)
     }
     actions   = ["kms:*"]
     resources = ["*"]
