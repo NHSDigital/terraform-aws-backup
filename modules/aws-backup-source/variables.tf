@@ -292,6 +292,76 @@ variable "backup_plan_config_ebsvol" {
   }
 }
 
+variable "backup_plan_config_rds" {
+  description = "Configuration for backup plans with RDS"
+  type = object({
+    enable              = bool
+    selection_tag       = string
+    selection_tag_value = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
+    compliance_resource_types = list(string)
+    rules = optional(list(object({
+      name                     = string
+      schedule                 = string
+      completion_window        = optional(number)
+      enable_continuous_backup = optional(bool)
+      lifecycle = object({
+        delete_after       = number
+        cold_storage_after = optional(number)
+      })
+      copy_action = optional(object({
+        delete_after = optional(number)
+      }))
+    })))
+  })
+  default = {
+    enable                    = true
+    selection_tag             = "BackupRDS"
+    selection_tag_value       = "True"
+    selection_tags            = []
+    compliance_resource_types = ["RDS"]
+    rules = [
+      {
+        name     = "rds_daily_kept_5_weeks"
+        schedule = "cron(0 0 * * ? *)"
+        completion_window = 24
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "rds_weekly_kept_3_months"
+        schedule = "cron(0 1 ? * SUN *)"
+        completion_window = 48
+        lifecycle = {
+          delete_after = 90
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "rds_monthly_kept_7_years"
+        schedule = "cron(0 2 1  * ? *)"
+        completion_window = 72
+        lifecycle = {
+          cold_storage_after = 30
+          delete_after       = 2555
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      }
+    ]
+  }
+}
+
 variable "name_prefix" {
   description = "Name prefix for vault resources, can't contain numbers"
   type        = string
