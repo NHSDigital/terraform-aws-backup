@@ -39,6 +39,7 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
       value = "True"
     }]
   }
+}
 
 resource "awscc_backup_restore_testing_selection" "backup_restore_testing_selection_aurora" {
   count                          = var.backup_plan_config_aurora.enable ? 1 : 0
