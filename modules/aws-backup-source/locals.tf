@@ -19,4 +19,5 @@ locals {
     var.backup_plan_config_rds.enable ? [aws_backup_framework.rds[0].arn] : []
   ))
   aurora_overrides = jsondecode(var.backup_plan_config_aurora.restore_testing_overrides)
+  terraform_role_arns = var.terraform_role_arns != null ? var.terraform_role_arns : [var.terraform_role_arn]
 }
