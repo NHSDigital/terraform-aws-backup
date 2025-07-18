@@ -83,4 +83,8 @@ variable "name_prefix" {
   description = "Optional name prefix for vault resources"
   type        = string
   default     = null
+  validation {
+    condition     = can(regex("^[^0-9]*$", var.name_prefix))
+    error_message = "The name_prefix must not contain any numbers."
+  }
 }
