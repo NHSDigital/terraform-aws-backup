@@ -93,7 +93,7 @@ resource "aws_backup_plan" "ebsvol" {
 
 resource "aws_backup_plan" "rds" {
   count = var.backup_plan_config_rds.enable ? 1 : 0
-  name  = "${local.resource_name_prefix}-rds-plan"
+  name  = "${var.name_prefix}-rds-plan"
 
   dynamic "rule" {
     for_each = var.backup_plan_config_rds.rules
@@ -167,7 +167,7 @@ resource "aws_backup_selection" "dynamodb" {
 resource "aws_backup_selection" "rds" {
   count        = var.backup_plan_config_rds.enable ? 1 : 0
   iam_role_arn = aws_iam_role.backup.arn
-  name         = "${local.resource_name_prefix}-rds-selection"
+  name         = "${var.name_prefix}-rds-selection"
   plan_id      = aws_backup_plan.rds[0].id
 
   selection_tag {
