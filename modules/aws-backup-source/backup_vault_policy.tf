@@ -17,7 +17,7 @@ data "aws_iam_policy_document" "vault_policy" {
 
     condition {
       test     = "ArnNotEquals"
-      values   = [var.terraform_role_arn]
+      values   = local.terraform_role_arns
       variable = "aws:PrincipalArn"
     }
 

@@ -1,6 +1,6 @@
 resource "aws_sns_topic" "backup" {
   count             = var.notifications_target_email_address != "" ? 1 : 0
-  name              = "${local.resource_name_prefix}-notifications"
+  name              = "${var.name_prefix}-notifications"
   kms_master_key_id = var.bootstrap_kms_key_arn
   policy            = data.aws_iam_policy_document.allow_backup_to_sns.json
 }
