@@ -12,8 +12,9 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 resource "aws_iam_role" "backup" {
-  name               = "${var.project_name}BackupRole"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+  name                 = "${var.project_name}BackupRole"
+  assume_role_policy   = data.aws_iam_policy_document.assume_role.json
+  permissions_boundary = length(var.iam_role_permissions_boundary) > 0 ? var.iam_role_permissions_boundary : null
 }
 
 resource "aws_iam_role_policy_attachment" "backup" {

@@ -28,6 +28,11 @@ variable "terraform_role_arn" {
   description = "ARN of Terraform role used to deploy to account (deprecated, please swap to terraform_role_arns)"
   type        = string
   default     = ""
+
+  validation {
+    condition     =  var.terraform_role_arn == null
+    error_message = "Warning: 'terraform_role_arn' is deprecated and should not be used."
+  }
 }
 
 variable "terraform_role_arns" {
@@ -301,8 +306,12 @@ variable "backup_plan_config_rds" {
 }
 
 variable "name_prefix" {
-  description = "Name prefix for vault resources, can't contain numbers"
+  description = "Name prefix for vault resources"
   type        = string
+  validation {
+    condition     = can(regex("^[^0-9]*$", var.name_prefix))
+    error_message = "The name_prefix must not contain any numbers."
+  }
 }
 
 variable "backup_plan_config_ebsvol" {
@@ -367,4 +376,71 @@ variable "backup_plan_config_ebsvol" {
       }
     ]
   }
+
+}
+
+variable "backup_plan_config_aurora" {
+  description = "Configuration for backup plans with aurora"
+  type = object({
+    enable                    = bool
+    selection_tag             = string
+    compliance_resource_types = list(string)
+    restore_testing_overrides = optional(string)
+    rules = optional(list(object({
+      name                     = string
+      schedule                 = string
+      enable_continuous_backup = optional(bool)
+      lifecycle = object({
+        delete_after       = number
+        cold_storage_after = optional(number)
+      })
+      copy_action = optional(object({
+        delete_after = optional(number)
+      }))
+    })))
+  })
+  default = {
+    enable                    = true
+    selection_tag             = "BackupAurora"
+    compliance_resource_types = ["Aurora"]
+    rules = [
+      {
+        name     = "aurora_daily_kept_5_weeks"
+        schedule = "cron(0 0 * * ? *)"
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "aurora_weekly_kept_3_months"
+        schedule = "cron(0 1 ? * SUN *)"
+        lifecycle = {
+          delete_after = 90
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "aurora_monthly_kept_7_years"
+        schedule = "cron(0 2 1  * ? *)"
+        lifecycle = {
+          cold_storage_after = 30
+          delete_after       = 2555
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      }
+    ]
+  }
+}
+
+variable "iam_role_permissions_boundary" {
+  description = "Optional permissions boundary ARN for backup role"
+  type        = string
+  default     = "" # Empty by default
 }
