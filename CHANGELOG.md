@@ -1,5 +1,20 @@
 # Changelog
 
+## [v1.3.0] (2025-07-24)
+
+### Features
+
+- Allow multiple destination vaults per account (#49)
+- Allow multiple terraform roles to update the backup vault policy (#51)
+- Configure the manual deletion control (#57)
+- Consume directly from github (#57)
+- Allow recent hashicorp/aws provider versions (#58)
+- Add validation for destination and source name prefix variables (#62)
+
+### Bug Fixes
+
+- Correct completion_widow typo (#45)
+
 ## [v1.2.0] (2025-07-10)
 
 ### Features
