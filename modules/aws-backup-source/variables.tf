@@ -30,7 +30,7 @@ variable "terraform_role_arn" {
   default     = ""
 
   validation {
-    condition     =  var.terraform_role_arn == null
+    condition     =  var.terraform_role_arn == ""
     error_message = "Warning: 'terraform_role_arn' is deprecated and should not be used."
   }
 }
