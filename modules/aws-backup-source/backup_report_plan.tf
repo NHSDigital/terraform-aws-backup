@@ -35,7 +35,7 @@ resource "aws_backup_report_plan" "backup_restore_testing_jobs" {
 }
 
 resource "aws_backup_report_plan" "resource_compliance" {
-  name        = "${local.resource_name_prefix}_resource_compliance"
+  name        = replace("${local.resource_name_prefix}_resource_compliance", "-", "_")
   description = "Report for showing whether resources are compliant with the framework"
 
   report_delivery_channel {
@@ -55,7 +55,7 @@ resource "aws_backup_report_plan" "resource_compliance" {
 
 resource "aws_backup_report_plan" "copy_jobs" {
   count       = var.backup_copy_vault_arn != "" && var.backup_copy_vault_account_id != "" ? 1 : 0
-  name        = "${local.resource_name_prefix}_copy_jobs"
+  name        = replace("${local.resource_name_prefix}_copy_jobs", "-", "_")
   description = "Report for showing whether copies ran successfully in the last 24 hours"
 
   report_delivery_channel {
