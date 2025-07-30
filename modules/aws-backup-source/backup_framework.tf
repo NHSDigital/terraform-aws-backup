@@ -1,6 +1,5 @@
 resource "aws_backup_framework" "main" {
-  # must be underscores instead of dashes
-  name        = replace("${local.resource_name_prefix}-framework", "-", "_")
+  name        = "${local.resource_name_prefix}-framework"
   description = "${var.project_name} Backup Framework"
 
   # Evaluates if recovery points are encrypted.
@@ -173,9 +172,8 @@ resource "aws_backup_framework" "dynamodb" {
 }
 
 resource "aws_backup_framework" "ebsvol" {
-  count = var.backup_plan_config_ebsvol.enable ? 1 : 0
-  # must be underscores instead of dashes
-  name        = replace("${local.resource_name_prefix}-ebsvol-framework", "-", "_")
+  count       = var.backup_plan_config_ebsvol.enable ? 1 : 0
+  name        = "${local.resource_name_prefix}-ebsvol-framework"
   description = "${var.project_name} EBS Backup Framework"
 
   # Evaluates if resources are protected by a backup plan.
@@ -214,9 +212,8 @@ resource "aws_backup_framework" "ebsvol" {
 }
 
 resource "aws_backup_framework" "aurora" {
-  count = var.backup_plan_config_aurora.enable ? 1 : 0
-  # must be underscores instead of dashes
-  name        = replace("${local.resource_name_prefix}-aurora-framework", "-", "_")
+  count       = var.backup_plan_config_aurora.enable ? 1 : 0
+  name        = "${local.resource_name_prefix}-aurora-framework"
   description = "${var.project_name} Aurora Backup Framework"
 
   # Evaluates if resources are protected by a backup plan.
