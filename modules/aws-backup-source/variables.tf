@@ -28,11 +28,11 @@ variable "terraform_role_arn" {
   description = "ARN of Terraform role used to deploy to account (deprecated, please swap to terraform_role_arns)"
   type        = string
   default     = ""
+}
 
-  validation {
-    condition     =  var.terraform_role_arn == ""
-    error_message = "Warning: 'terraform_role_arn' is deprecated and should not be used."
-  }
+resource "validation_warning" "terraform_role_arn_deprecated" {
+  summary   = "The 'terraform_role_arn' variable is deprecated. Please use 'terraform_role_arns' instead."
+  condition = var.terraform_role_arn != ""
 }
 
 variable "terraform_role_arns" {
