@@ -12,6 +12,6 @@ locals {
     var.backup_plan_config_dynamodb.enable ? [aws_backup_framework.dynamodb[0].arn] : [],
     var.backup_plan_config_aurora.enable ? [aws_backup_framework.aurora[0].arn] : []
   ))
-  aurora_overrides = jsondecode(var.backup_plan_config_aurora.restore_testing_overrides || "null")
+  aurora_overrides = var.backup_plan_config_aurora.restore_testing_overrides == null ? null : jsondecode(var.backup_plan_config_aurora.restore_testing_overrides)
   terraform_role_arns = var.terraform_role_arns != null ? var.terraform_role_arns : [var.terraform_role_arn]
 }
