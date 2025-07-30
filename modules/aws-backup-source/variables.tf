@@ -30,11 +30,6 @@ variable "terraform_role_arn" {
   default     = ""
 }
 
-resource "validation_warning" "terraform_role_arn_deprecated" {
-  summary   = "The 'terraform_role_arn' variable is deprecated. Please use 'terraform_role_arns' instead."
-  condition = var.terraform_role_arn != ""
-}
-
 variable "terraform_role_arns" {
   description = "ARN of Terraform roles used to deploy to account, defaults to caller arn if list is empty"
   type        = list(string)

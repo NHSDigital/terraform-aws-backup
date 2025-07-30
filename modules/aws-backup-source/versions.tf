@@ -14,11 +14,6 @@ terraform {
       source  = "hashicorp/awscc"
       version = "~> 1"
     }
-
-    validation = {
-      source  = "hashicorp/validation"
-      version = "~>1"
-    }
   }
 
   required_version = ">= 1.9.5"
