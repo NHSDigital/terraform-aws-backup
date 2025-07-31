@@ -1,5 +1,5 @@
 resource "aws_backup_framework" "main" {
-  name        = "${local.resource_name_prefix}-framework"
+  name        = "${local.resource_name_prefix}_framework"
   description = "${var.project_name} Backup Framework"
 
   # Evaluates if recovery points are encrypted.
@@ -173,7 +173,7 @@ resource "aws_backup_framework" "dynamodb" {
 
 resource "aws_backup_framework" "ebsvol" {
   count       = var.backup_plan_config_ebsvol.enable ? 1 : 0
-  name        = "${local.resource_name_prefix}-ebsvol-framework"
+  name        = "${local.resource_name_prefix}_ebsvol_framework"
   description = "${var.project_name} EBS Backup Framework"
 
   # Evaluates if resources are protected by a backup plan.
@@ -213,7 +213,7 @@ resource "aws_backup_framework" "ebsvol" {
 
 resource "aws_backup_framework" "aurora" {
   count       = var.backup_plan_config_aurora.enable ? 1 : 0
-  name        = "${local.resource_name_prefix}-aurora-framework"
+  name        = "${local.resource_name_prefix}_aurora_framework"
   description = "${var.project_name} Aurora Backup Framework"
 
   # Evaluates if resources are protected by a backup plan.
