@@ -28,11 +28,6 @@ variable "terraform_role_arn" {
   description = "ARN of Terraform role used to deploy to account (deprecated, please swap to terraform_role_arns)"
   type        = string
   default     = ""
-
-  validation {
-    condition     =  var.terraform_role_arn == ""
-    error_message = "Warning: 'terraform_role_arn' is deprecated and should not be used."
-  }
 }
 
 variable "terraform_role_arns" {
@@ -236,8 +231,9 @@ variable "backup_plan_config_dynamodb" {
 variable "name_prefix" {
   description = "Name prefix for vault resources"
   type        = string
+  default     = null
   validation {
-    condition     = can(regex("^[^0-9]*$", var.name_prefix))
+    condition     = var.name_prefix == null || can(regex("^[^0-9]*$", var.name_prefix))
     error_message = "The name_prefix must not contain any numbers."
   }
 }
