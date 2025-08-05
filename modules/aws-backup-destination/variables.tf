@@ -52,7 +52,7 @@ variable "vault_lock_type" {
   # See toplevel README.md:
   #   DO NOT SET THIS TO compliance UNTIL YOU ARE SURE THAT YOU WANT TO LOCK THE VAULT PERMANENTLY
   # When you do, you will also need to set "enable_vault_protection" to true for it to take effect.
-  default     = "governance"
+  default = "governance"
 }
 
 variable "vault_lock_min_retention_days" {
@@ -84,7 +84,7 @@ variable "name_prefix" {
   type        = string
   default     = null
   validation {
-    condition     = can(regex("^[^0-9]*$", var.name_prefix))
+    condition     = var.name_prefix == null || can(regex("^[^0-9]*$", var.name_prefix))
     error_message = "The name_prefix must not contain any numbers."
   }
 }
