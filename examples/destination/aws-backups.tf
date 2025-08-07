@@ -1,4 +1,5 @@
-provider  "aws" {
+
+provider "aws" {
   alias  = "source"
   region = "eu-west-2"
 }
@@ -16,10 +17,8 @@ data "aws_caller_identity" "current" {}
 
 locals {
   # Adjust these as required
-  project_name = "my-shiny-project"
-  environment_name = "dev"
-
-  source_account_id = data.aws_arn.source_terraform_role.account
+  project_name           = "my-shiny-project"
+  source_account_id      = data.aws_arn.source_terraform_role.account
   destination_account_id = data.aws_caller_identity.current.account_id
 }
 
@@ -39,11 +38,16 @@ resource "aws_kms_key" "destination_backup_key" {
         Principal = {
           AWS = "arn:aws:iam::${local.destination_account_id}:root"
         }
-        Action = "kms:*"
+        Action   = "kms:*"
         Resource = "*"
       }
     ]
   })
+}
+
+resource "aws_kms_alias" "destination_backup" {
+  target_key_id = aws_kms_key.destination_backup_key.id
+  name          = "alias/${local.project_name}-backup-destination"
 }
 
 module "destination" {

@@ -54,3 +54,48 @@ data "aws_iam_policy_document" "backup_key_policy" {
     resources = ["*"]
   }
 }
+
+
+# Now we can define the key itself
+resource "aws_kms_key" "backup_notifications" {
+  count                   = var.backup_notifications_kms_key_arn == null ? 1 : 0
+  description             = "KMS key for AWS Backup notifications"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Sid    = "Enable IAM User Permissions"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "sns.amazonaws.com"
+        }
+        Action   = ["kms:GenerateDataKey*", "kms:Decrypt"]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "backup.amazonaws.com"
+        }
+        Action   = ["kms:GenerateDataKey*", "kms:Decrypt"]
+        Resource = "*"
+      },
+    ]
+  })
+}
+
+resource "aws_kms_alias" "backup_notifications" {
+  count         = var.backup_notifications_kms_key_arn == null ? 1 : 0
+  target_key_id = aws_kms_key.backup_notifications.id
+  name          = var.name_prefix != null ? "alias/${var.name_prefix}/backup-notifications" : "alias/${var.environment_name}/backup-notifications"
+}
