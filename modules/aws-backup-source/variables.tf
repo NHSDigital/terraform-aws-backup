@@ -14,9 +14,10 @@ variable "notifications_target_email_address" {
   default     = ""
 }
 
-variable "bootstrap_kms_key_arn" {
+variable "backup_notifications_kms_key_arn" {
   description = "The ARN of the bootstrap KMS key used for encryption at rest of the SNS topic."
   type        = string
+  default     = null
 }
 
 variable "reports_bucket" {
