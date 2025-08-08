@@ -19,6 +19,12 @@ jobs:
       - name: common build setup
         uses: ./.github/actions/build-common
 
+      - name: tflint --init
+        if: ${{ hashFiles('.tflint.hcl') }}
+        run: |
+          tflint --init
+        shell: bash
+
       - name: run lint checks
         shell: bash
         run: |
