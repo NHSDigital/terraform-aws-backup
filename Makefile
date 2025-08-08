@@ -41,6 +41,7 @@ shellcheck:
 	@docker run --rm -i -v ${PWD}:/mnt:ro koalaman/shellcheck -f gcc -e SC1090,SC1091 `find . \( -path "*/.venv/*" -prune -o -path "*/build/*" -prune -o -path "*/dist/*" -prune  -o -path "*/.tox/*" -prune \) -o -type f -name '*.sh' -print`
 
 lint: tf-lint tf-trivy shellcheck
+lint-ci: lint
 
 check-secrets:
 	scripts/check-secrets.sh
