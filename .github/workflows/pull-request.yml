@@ -1,0 +1,25 @@
+name: pull-request
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: checkout the calling repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: common build setup
+        uses: ./.github/actions/build-common
+
+      - name: run lint checks
+        shell: bash
+        run: |
+          make lint-ci
