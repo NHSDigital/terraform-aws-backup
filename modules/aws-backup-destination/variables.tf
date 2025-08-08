@@ -20,12 +20,6 @@ variable "account_id" {
   type        = string
 }
 
-variable "region" {
-  description = "The region we should be operating in"
-  type        = string
-  default     = "eu-west-2"
-}
-
 variable "kms_key" {
   description = "The KMS key used to secure the vault"
   type        = string

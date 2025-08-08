@@ -1,7 +1,9 @@
 # This file is for you! Please, updated to the versions agreed by your team.
 
-terraform 1.7.0
 pre-commit 3.6.0
+terraform 1.7.0
+trivy 0.64.1
+tflint 0.58.1
 
 # ==============================================================================
 # The section below is reserved for Docker image versions.
