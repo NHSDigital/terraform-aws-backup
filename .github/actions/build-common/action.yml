@@ -1,0 +1,90 @@
+name: "common-build-steps"
+description: "regular build steps"
+inputs:
+  python-version:
+    description: "If set, will use a system python version rather than asdf. Eg. a value of 3.11 would use the latest 3.11.x version. Set to empty string to use asdf versions."
+    default: "3.11"
+    required: false
+  fetch-depth:
+    description: "git fetch depth"
+    default: "0"
+    required: false
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: checkout the calling repo
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: ${{ inputs.fetch-depth }}
+
+    - name: setup python
+      if: ${{ inputs.python-version != '' }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: print branch info
+      shell: bash
+      run: |
+        git branch
+        echo "GITHUB_HEAD_REF=${GITHUB_HEAD_REF}"
+        echo "GITHUB_BASE_REF=${GITHUB_BASE_REF}"
+        git log --oneline -n 10
+
+    - name: clean
+      shell: bash
+      run: |
+        git clean -fdx
+
+    - name: check secrets
+      uses: ./.github/actions/check-secrets
+
+    - name: merge into base_branch
+      if: ${{ github.event_name == 'pull_request' }}
+      shell: bash
+      run: |
+        echo base branch "${{ github.base_ref }}"
+        echo pr branch "${{ github.head_ref }}"
+        git checkout "${{ github.base_ref }}"
+        git checkout -b "merging-${{ github.event.number }}"
+        git merge --ff-only "${{ github.event.pull_request.head.sha }}"
+
+    - name: git reset
+      shell: bash
+      run: git reset --hard
+
+    - name: replace asdf python version
+      if: ${{ inputs.python-version != '' }}
+      shell: bash
+      run: sed -i -E 's#^python .*##g' .tool-versions
+
+    - name: Install tools from asdf config
+      if: ${{ hashFiles('**/.tool-versions') }}
+      uses: ./.github/actions/asdf-cache
+
+    - name: cache virtualenv
+      uses: actions/cache@v4
+      with:
+        path: |
+          .venv
+          **/.lock-hash
+          **/requirements.txt
+        key: ${{ runner.os }}-py-${{ inputs.python-version }}-poetry-${{ hashFiles('./poetry.lock') }}
+
+    - name: fix virtualenv
+      shell: bash
+      run: |
+        if [ -d .venv/bin ]; then
+          echo fixing .venv
+          unlink .venv/bin/python3
+          py_version="$(ls /opt/hostedtoolcache/Python --color=no | sed 's#/##g' | grep -E '^3.11' | sort -t\. -k3 --numeric | tail -n 1)"
+          if [ -z "${py_version}" ]; then
+            ls /opt/hostedtoolcache/Python
+            echo "could not find a compatible python version for ${py_version}"
+            exit -1
+          fi
+          ln -s -t .venv/bin "/opt/hostedtoolcache/Python/${py_version}/x64/bin/python3"
+          find .venv/bin -type f -exec file {} + | awk -F: '/ASCII text/ {print $1}' | xargs grep -lr '.venv' | xargs sed -i -E "s#/.*?/.venv#${GITHUB_WORKSPACE}/.venv#"
+        fi

@@ -1,0 +1,61 @@
+name: "asdf-cache"
+description: "asdf cache action from https://github.com/ai/asdf-cache-action/blob/main/action.yml"
+inputs:
+  asdf-version:
+    description: "asdf version to install"
+    default: ""
+    required: false
+  os:
+    description: "target os"
+    default: "linux"
+    required: false
+  architecture:
+    description: "target architecture"
+    default: "amd64"
+    required: false
+runs:
+  using: "composite"
+  steps:
+
+    - name: install asdf
+      shell: bash
+      run: |
+        set -o pipefail
+        asdf_version="${{ inputs.asdf-version }}"
+        asdf_version="$(echo "${asdf_version}" | sed 's#v##g')"
+        if which asdf &&  [[ "${asdf_version}" == "" || "$(asdf --version | cut -d' ' -f3)" == "v${asdf_version}" ]]; then
+          echo "asdf: $(asdf --version | cut -d' ' -f3) detected"
+        else
+          if [[ "${asdf_version}" == "" ]]; then
+            asdf_version="$(curl --fail -s "${GITHUB_API_URL}/repos/asdf-vm/asdf/releases/latest" | jq -r '.name')"
+          fi
+          asdf_version="$(echo "${asdf_version}" | sed 's#v##g')"
+          echo "installing asdf ${asdf_version}"
+          wget -q -O - "https://github.com/asdf-vm/asdf/releases/download/v${asdf_version}/asdf-v${asdf_version}-${{ inputs.os }}-${{ inputs.architecture }}.tar.gz" | tar -zxf - -C /usr/local/bin asdf
+        fi
+
+    - name: Cache asdf
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.asdf
+        key: asdf-${{ hashFiles('**/.tool-versions') }}
+
+    - name: install asdf plugins
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        for plugin in $(cat .tool-versions | grep -Ev '^#' | cut -d' ' -f1 | uniq); do
+          asdf plugin add $plugin
+        done
+
+    - name: asdf install
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        asdf install
+
+    - name: update path
+      shell: bash
+      run: |
+        echo "${HOME}/.asdf/shims" >> $GITHUB_PATH

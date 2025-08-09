@@ -85,5 +85,5 @@ resource "aws_iam_policy" "source_account_backup_permissions" {
 
 resource "aws_iam_role_policy_attachment" "source_account_backup_permissions" {
   policy_arn = aws_iam_policy.source_account_backup_permissions.arn
-  role = var.terraform_apply_role_name
+  role       = var.terraform_apply_role_name
 }
