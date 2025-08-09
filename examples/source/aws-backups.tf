@@ -183,4 +183,14 @@ module "source" {
                                         "selection_tag": "NHSE-Enable-Backup"
                                       }
 
+  backup_plan_config_efs =  {
+                                        "compliance_resource_types": [
+                                          "EFS"
+                                        ],
+                                        "rules": [
+                                        ],
+                                        "enable": false,
+                                        "selection_tag": "NHSE-Enable-Backup"
+                                      }
+
 }

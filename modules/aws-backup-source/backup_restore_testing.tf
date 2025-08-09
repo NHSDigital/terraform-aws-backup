@@ -56,3 +56,19 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   }
   restore_metadata_overrides = local.aurora_overrides
 }
+
+
+resource "awscc_backup_restore_testing_selection" "backup_restore_testing_selection_efs" {
+  count                          = var.backup_plan_config_efs.enable ? 1 : 0
+  iam_role_arn                   = aws_iam_role.backup.arn
+  protected_resource_type        = "EFS"
+  restore_testing_plan_name      = awscc_backup_restore_testing_plan.backup_restore_testing_plan.restore_testing_plan_name
+  restore_testing_selection_name = "backup_restore_testing_selection_efs"
+  protected_resource_arns        = ["*"]
+  protected_resource_conditions = {
+    string_equals = [{
+      key   = "aws:ResourceTag/${var.backup_plan_config_efs.selection_tag}"
+      value = "True"
+    }]
+  }
+}
