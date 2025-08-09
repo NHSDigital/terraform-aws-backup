@@ -20,6 +20,13 @@ variable "account_id" {
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
+variable "region" {
+  description = "not currently used (deprecated)"
+  type        = string
+  default     = "eu-west-2"
+}
+
 variable "kms_key" {
   description = "The KMS key used to secure the vault"
   type        = string
