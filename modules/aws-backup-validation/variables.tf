@@ -30,7 +30,7 @@ variable "validation_config_json" {
 variable "lambda_runtime" {
   description = "Runtime for validator lambda."
   type        = string
-  default     = "python3.11"
+  default     = "nodejs20.x"
 }
 
 variable "lambda_timeout" {
