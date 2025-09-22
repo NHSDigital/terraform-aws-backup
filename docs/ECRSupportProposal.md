@@ -40,3 +40,19 @@ Immutability: The AWS Backup Vault Lock in Compliance mode ensures your backups 
 Air-Gapped Security: Backups are stored in a separate AWS account, isolating them from any compromise of your production environment.
 Centralized Management: AWS Backup handles the scheduling, retention, and lifecycle management of your S3 backups.
 Cost-Effective: Only the objects in the S3 bucket are backed up, and AWS Backup automatically transitions older recovery points to a more cost-effective cold storage tier.
+
+
+## Alternative Solution
+
+ECR does provide cross-account replication, which can be used as a simpler alternative to this solution. However, it does not provide the same level of immutability and air-gapped security as the proposed solution. If you choose to use ECR replication, ensure that you have appropriate lifecycle policies and access controls in place to protect your images.
+
+### Steps to set up ECR replication:
+
+1. In the source account, create a replication rule to publish to the vault account.
+2. In the destination account, create a repository to receive the replicated images.
+3. Ensure that the IAM roles and policies are correctly configured to allow replication between accounts.
+4. Implement lifecycle policies to manage the retention and deletion of images in the destination account.
+
+### Considerations
+
+* ECR replication does not provide immutability; images can be deleted or overwritten.
