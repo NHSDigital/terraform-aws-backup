@@ -1,65 +1,62 @@
-# Restoration design for the blueprint
+# Restoration Design for the Blueprint
 
 ## Problem
 
-The blueprint is used in different resources s3, rds, dynamodb. It would be good to have the ability from the blueprint to run an automated test to validate that the restoration would work. Effectively we're testing a restoration process.
+The blueprint is used to protect different AWS resource types (Amazon S3, Amazon RDS, Amazon DynamoDB). We want the ability to run an automated test to validate that restoration works—effectively testing the full restore process.
 
-We want to add the ability to check the integrity of the restored resource that would be specific for the blueprint implementer. Eg. For an rds instance can we define an sql query that would test the integrity of the customers data. The customer would be responsible for defining that check and validating it is correct.
-The step function would just allow this functionality to be defined and added by the user.
+We also want to allow a blueprint implementer to define a custom integrity check for a restored resource. For example, for an RDS instance the user might provide an SQL query that validates the integrity of customer data. The customer is responsible for defining and maintaining the correctness of that check. The Step Function simply orchestrates invocation of the optional validation Lambda.
 
-## Proposed solution - Step Function
+## Step Function
 
-We're making the assumption that we are restoring from the **destination** account to the **source** account. Following are the steps for each resource type.
+We assume we are copying from the **destination** account back to the **source** account and then restoring and testing within the **source** account. The high‑level steps are outlined per resource type.
 
-This implementation will make use of Step Functions and Lambdas to achieve the outcome. There is an option validation Lambda provided by the customer.
+This implementation uses AWS Step Functions and AWS Lambda. A customer-supplied (optional) validation Lambda may be invoked.
 
-### Restoration steps with Lambda validation
+### Restoration Steps with Optional Validation Lambda
 
-1. Copy the restoration point from the **destination** to the **source**
-2. Kick off a restore on the restoration point, restoring to the **source** S3 bucket
-3. Run the customer's validation lambda, if provided
+1. Copy the recovery point from the **destination** account to the **source** account (if required for cross‑account restore)
+2. Initiate the restore from that recovery point (e.g. restoring to the **source** S3 bucket / RDS instance configuration / DynamoDB table)
+3. Invoke the customer's validation Lambda, if provided
 
-## Resource Solution 1 - customer managed resources
+## Solution 1 – Customer-Managed Resources
 
-Resources live in the customer space and access is provided by the customer and the security groups are provided as input to the step function.
+Resources live in the customer's account. Access (e.g. security groups, networking details) is provided by the customer as input to the Step Function.
 
-### S3 requirements
+### S3 Requirements
 
-* Customer should optionally provide the ARN to a Lambda for validation
-* Customer should define where we are pushing the restoration to as an input to the step function
-* Customer's S3 bucket ARN provided as input to Step Function
+* (Optional) Customer provides the ARN of a validation Lambda
+* Customer defines the target bucket / prefix for the restored data (input to the Step Function)
+* Customer provides the destination S3 bucket ARN as input
 
-### RDS requirements
+### RDS Requirements
 
-* Customer should optionally provide the ARN to a Lambda for validation
-* Customer should define where the RDS instance will be located
-* The input provided will be everything required to restore an RDS instance (e.g. subnet, security group, VPC, region)
+* (Optional) Customer provides the ARN of a validation Lambda
+* Customer defines where the restored RDS instance will reside
+* Customer supplies all parameters required for the restore (e.g. subnet group, security groups, VPC, region, instance class, storage settings, engine version as needed)
 
-### DynamoDB requirements
+### DynamoDB Requirements
 
-* Customer should optionally provide the ARN to a Lambda for validation
-* Customer provides the original (source) table name to restore into
-* Customer provides configuration inputs: KMS key ARN if using a customer managed key
+* (Optional) Customer provides the ARN of a validation Lambda
+* Customer provides the original (source) table name and (if different) the target table name
+* Customer provides configuration inputs (as required): encryption (KMS key ARN if using a customer managed key), point‑in‑time recovery requirement
+* Edge considerations: very large tables may require sampling; the validation Lambda should avoid full scans unless explicitly intended (respect 1 MB pagination limits and consistency model)
 
-Edge considerations: very large tables may require sampling; customer-owned Lambda should avoid full table scans unless explicitly intended (note possible 1 MB pagination limits, eventual vs. consistent reads)
+## Solution 2 – Internally Managed VPC Resources
 
-## Resource Solution 2 - VPC internally managed resources
+Resources live within our managed VPC. The customer may provide a validation Lambda ARN; we configure the IAM permissions granting it access only to the restored resources. We supply resource identifiers as input to the validation Lambda.
 
-Resources live within a our configured VPC and the customer must provide their Lambda ARN and we configure the permissions for it to access the resources. We would push details of the resources to validate against as input to the Lambda validation function.
+### S3 Requirements
 
-### S3 requirements
+* (Optional) Customer provides the ARN of a validation Lambda
+* We provide (as Lambda input) the restored S3 bucket ARN (and optionally object key prefix)
 
-* Customer should optionally provide the ARN to a Lambda for validation
-* We will provide, as input to the customer's Lambda, the ARN of the S3 bucket
+### RDS Requirements
 
-### RDS requirements
+* (Optional) Customer provides the ARN of a validation Lambda
+* We provide the restored RDS instance identifiers (endpoint, ARN) as Lambda input and grant required read/connect permissions
 
-* Customer should optionally provide the ARN to a Lambda for validation
-* We will provide access to the RDS to the customer's Lambda.
+### DynamoDB Requirements
 
-### DynamoDB requirements
-
-* Customer should optionally provide the ARN to a Lambda for validation
-* We pass to the validation Lambda as input: restored table name/ARN, region
-
-Edge considerations: very large tables may require sampling; customer-owned Lambda should avoid full table scans unless explicitly intended (note possible 1 MB pagination limits, eventual vs. consistent reads)
+* (Optional) Customer provides the ARN of a validation Lambda
+* We pass (as Lambda input): restored table name/ARN, region
+* Edge considerations: very large tables may require sampling; the validation Lambda should avoid full table scans unless explicitly intended (consider pagination and cost)
