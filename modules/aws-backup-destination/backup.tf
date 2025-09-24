@@ -6,3 +6,8 @@ resource "aws_backup_vault" "vault" {
 output "vault_arn" {
   value = aws_backup_vault.vault.arn
 }
+
+output "vault_name" {
+  description = "The name of the backup vault."
+  value       = aws_backup_vault.vault.name
+}
