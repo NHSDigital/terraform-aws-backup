@@ -1,5 +1,18 @@
 # AWS Backup Blueprint
 
+## Table of Contents
+
+- [Introduction](#introduction)
+  - [Infrastructure](#infrastructure)
+  - [Services included](#services-included)
+- [Developer Guide](#developer-guide)
+  - [IAM roles](#iam-roles)
+  - [Destination account configuration](#destination-account-configuration)
+  - [Source account configuration](#source-account-configuration)
+- [Next steps](#next-steps)
+- [FAQs](#faqs)
+- [Procedural notes](#procedural-notes)
+
 ## Introduction
 
 This module addresses the Engineering Red Line [Cloud-6](https://nhs.sharepoint.com/sites/X26_EngineeringCOE/SitePages/Red-lines.aspx#cloud-infrastructure). It provides both a business-as-usual backup facility and the ability to recover from ransomware attacks with a logically air-gapped backup[^1] in a separate AWS account.
@@ -18,12 +31,6 @@ Similarly there is no mechanism within this solution to ensure that any schema v
 
 Setting retention periods and backup schedules will need the input of your Information Asset Owner. We can't choose a default that will apply to all situations. We must not hold data for longer than we have legal rights to do so, and we must also minimise the storage cost; however we must also ensure that we can restore data to a point in time that is useful to the business. Further, to comply fully with [Cloud-6](https://nhs.sharepoint.com/sites/X26_EngineeringCOE/SitePages/Red-lines.aspx#cloud-infrastructure) you will need to test the restoration process. Ransomware often targets backups and seeks not to be discovered. The immutability of the backups provided by this blueprint is a strong defence against this, but to avoid losing all your uncompromised backups, you will need your restoration testing cycle to be _shorter_ than the retention period. That will guarantee that any ransomware compromise is discovered before all uncompromised backups are deleted. If your retention period was six months, for instance, you might want to test restoration every two months to ensure that even if one restoration test is missed, there is still an opportunity to catch ransomware before your last good backup expires.
 
-Today, the AWS services supported by these modules are:
-
-- S3
-- DynamoDB
-- Aurora
-
 The terraform structure allows any service supported by AWS Backup to be added in the future. If you find that you need to apply this module to a new service, you will find that you can do so but we then need you to contribute those changes back to this repository.
 
 There is some terminology that is important to understand when working with AWS Backup vaults. It uses the terms "governance mode" and "compliance mode". In governance mode, a backup vault can be deleted, and mistakes can be fixed. In compliance mode the backup vault is locked and cannot be deleted. Mistakes persist. The default mode is governance mode.
@@ -35,6 +42,17 @@ A compliance-mode vault that has passed a cooling-off period is intentionally im
 Again: _DO NOT SWITCH TO COMPLIANCE MODE UNTIL YOU ARE CERTAIN THAT YOU WANT TO LOCK THE VAULT._
 
 Please consult the AWS documentation on [vault locks](https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html) for more information.
+
+### Services included
+
+Today, the AWS services supported by these modules are:
+
+- Amazon S3
+- Amazon RDS (including Aurora)
+- Amazon DynamoDB
+- Amazon EBS
+
+For a detailed, maintained breakdown (scope, caveats, roadmap) see: [COVERED_SERVICES.md](./COVERED_SERVICES.md).
 
 ### Infrastructure
 
