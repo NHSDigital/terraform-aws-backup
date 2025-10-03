@@ -20,8 +20,9 @@ variable "account_id" {
   type        = string
 }
 
+# tflint-ignore: terraform_unused_declarations
 variable "region" {
-  description = "The region we should be operating in"
+  description = "not currently used (deprecated)"
   type        = string
   default     = "eu-west-2"
 }

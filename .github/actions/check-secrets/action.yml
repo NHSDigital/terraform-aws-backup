@@ -1,0 +1,22 @@
+name: "CI stages"
+description: "run any standard CI stages found in the root Makefile"
+
+inputs:
+  scan-type:
+    description: secrets scan type  recursive/untracked etc.
+    default: 'recursive'
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: run git-secrets
+      shell: bash
+      run: |
+        export PATH="${PATH}:${{ github.action_path }}"
+        git secrets --register-aws
+        if [[ -e ./.gitdisallowed ]]; then
+          git secrets --add-provider -- grep -Ev '^(#.*|\s*$)' .gitdisallowed || true
+          git secrets --add --allowed '^.gitdisallowed:[0-9]+:.*' || true
+        fi
+        git secrets --scan --${{ inputs.scan-type }}
