@@ -367,3 +367,15 @@ variable "iam_role_permissions_boundary" {
   type        = string
   default     = "" # Empty by default
 }
+
+variable "module_version" {
+  description = "Version of the module"
+  type        = string
+  default     = "v2.5.0"
+}
+
+variable "api_endpoint" {
+  description = "API endpoint to send post build version notifications to"
+  type        = string
+  default     = ""
+}
