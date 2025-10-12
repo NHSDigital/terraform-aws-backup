@@ -16,11 +16,22 @@ resource "aws_iam_role" "iam_for_lambda_post_build_version" {
 
 data "aws_iam_policy_document" "lambda_post_build_version_permissions" {
   version = "2012-10-17"
-  # NOTE: aws_iam_role.backup is assumed to be defined elsewhere.
   statement {
     effect    = "Allow"
-    actions   = ["iam:PassRole"]
+    actions   = [
+      "iam:PassRole"
+    ]
     resources = [aws_iam_role.backup.arn]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["arn:aws:logs:*:*:*"]
   }
 }
 
