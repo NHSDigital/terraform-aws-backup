@@ -51,3 +51,11 @@ This is a custom-engineered solution to create an "air-gapped" backup of Paramet
     * A defined S3 bucket is added to an AWS Backup Plan.
     * The Backup Plan is configured to create a restoration point of the S3 bucket.
     * A **Copy Rule** within the Backup Plan is set up to replicate this restoration point to a **Backup Vault** in the destination account, completing the air-gapped data transfer.
+
+
+#### Restoration Process Solution 2
+
+1. Restoration is initiated from the source account, through a step function to run multiple restoration steps.
+2. The restoration point is copied from the destination account's Backup Vault to the source account's Backup vault.
+3. Restore the S3 object from the source account's Backup vault to the source account's S3 bucket.
+4. Run Lambda function to restore from the S3 object to Parameter Store using the Destination account KMS key.
