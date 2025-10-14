@@ -35,6 +35,10 @@ data "aws_iam_policy_document" "lambda_post_build_version_permissions" {
   }
 }
 
+locals {
+  module_version = file("${path.module}/version")
+}
+
 resource "aws_iam_role_policy" "lambda_post_build_version_iam_permissions" {
   name   = "${var.name_prefix}_lambda_post_build_version_iam_permissions_policy"
   role   = aws_iam_role.iam_for_lambda_post_build_version.id
@@ -57,8 +61,9 @@ resource "aws_lambda_function" "lambda_post_build_version" {
   environment {
     variables = {
       AWS_ACCOUNT_ID = data.aws_caller_identity.current.account_id
-      MODULE_VERSION = var.module_version
+      MODULE_VERSION = local.module_version
       API_ENDPOINT   = var.api_endpoint
+      API_TOKEN      = var.api_token
     }
   }
 }

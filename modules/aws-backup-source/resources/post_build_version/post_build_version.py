@@ -10,6 +10,7 @@ logger.setLevel(logging.INFO)
 API_ENDPOINT = os.environ.get('API_ENDPOINT')
 MODULE_VERSION = os.environ.get('MODULE_VERSION')
 AWS_ACCOUNT_ID = os.environ.get('aws_account_id')
+API_TOKEN = os.environ.get('API_TOKEN')
 
 
 def lambda_handler(event, context):
@@ -38,6 +39,7 @@ def lambda_handler(event, context):
     data = json.dumps(payload).encode('utf-8')
     headers = {
         'Content-Type': 'application/json',
+        'Authorization': API_TOKEN
     }
 
     try:
