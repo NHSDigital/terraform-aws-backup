@@ -1,0 +1,57 @@
+name: "CI/CD pull request"
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  check-version:
+    name: "Check version"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+
+      - name: "Get version"
+        id: get_version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+
+      - name: "Check version"
+        run: |
+          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version format is invalid. It should be in the format X.Y.Z"
+            exit 1
+          fi
+          echo "Version format is valid: $VERSION"
+
+      - name: "Is version file greater than the latest tag?"
+        id: is_greater
+        run: |
+          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "Latest tag: $LATEST_TAG"
+          if [[ -z "$LATEST_TAG" ]]; then
+            echo "No tags found, proceeding with version $VERSION"
+            echo "IS_GREATER=true" >> $GITHUB_ENV
+          elif [[ "$VERSION" == "$LATEST_TAG" ]]; then
+            echo "Version $VERSION is the same as the latest tag $LATEST_TAG"
+            echo "IS_GREATER=false" >> $GITHUB_ENV
+          else
+            IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+            IFS='.' read -r -a TAG_PARTS <<< "$LATEST_TAG"
+            for i in 0 1 2; do
+              if (( VERSION_PARTS[i] > TAG_PARTS[i] )); then
+                echo "Version $VERSION is greater than the latest tag $LATEST_TAG"
+                echo "IS_GREATER=true" >> $GITHUB_ENV
+                exit 0
+              elif (( VERSION_PARTS[i] < TAG_PARTS[i] )); then
+                echo "Version $VERSION is not greater than the latest tag $LATEST_TAG"
+                echo "IS_GREATER=false" >> $GITHUB_ENV
+                exit 0
+              fi
+            done
+            echo "Version $VERSION is the same as the latest tag $LATEST_TAG"
+            echo "IS_GREATER=false" >> $GITHUB_ENV
+          fi
