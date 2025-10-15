@@ -2,16 +2,18 @@
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-  - [Infrastructure](#infrastructure)
-  - [Services included](#services-included)
-- [Developer Guide](#developer-guide)
-  - [IAM roles](#iam-roles)
-  - [Destination account configuration](#destination-account-configuration)
-  - [Source account configuration](#source-account-configuration)
-- [Next steps](#next-steps)
-- [FAQs](#faqs)
-- [Procedural notes](#procedural-notes)
+- [AWS Backup Blueprint](#aws-backup-blueprint)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+    - [Services included](#services-included)
+    - [Infrastructure](#infrastructure)
+  - [Developer Guide](#developer-guide)
+    - [IAM roles](#iam-roles)
+    - [Destination account configuration](#destination-account-configuration)
+    - [Source account configuration](#source-account-configuration)
+  - [Next steps](#next-steps)
+  - [FAQs](#faqs)
+  - [Procedural notes](#procedural-notes)
 
 ## Introduction
 
