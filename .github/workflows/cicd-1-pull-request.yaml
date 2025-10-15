@@ -14,6 +14,9 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v3
+        with:
+          # Fetch all history for all branches and tags
+          fetch-depth: 0
 
       - name: "Get version"
         id: get_version
@@ -22,7 +25,7 @@ jobs:
 
       - name: "Check version"
         run: |
-          if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Version format is invalid. It should be in the format X.Y.Z"
             exit 1
           fi
