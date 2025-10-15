@@ -34,28 +34,39 @@ jobs:
       - name: "Is version file greater than the latest tag?"
         id: is_greater
         run: |
-          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          LATEST_TAG=$(git describe --tags --abbrev=0) # Use --abbrev=0 to get just the tag name
           echo "Latest tag: $LATEST_TAG"
+
           if [[ -z "$LATEST_TAG" ]]; then
-            echo "No tags found, proceeding with version $VERSION"
+            echo "No tags found. Assuming a new project and proceeding with version $VERSION."
             echo "IS_GREATER=true" >> $GITHUB_ENV
-          elif [[ "$VERSION" == "$LATEST_TAG" ]]; then
-            echo "Version $VERSION is the same as the latest tag $LATEST_TAG"
-            echo "IS_GREATER=false" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          if [[ "$VERSION" == "$LATEST_TAG" ]]; then
+            echo "🚨 Error: Version $VERSION is the same as the latest tag $LATEST_TAG. The new version must be greater."
+            exit 1
+          fi
+
+          IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+          IFS='.' read -r -a TAG_PARTS <<< "$LATEST_TAG"
+
+          VERSION_MAJOR=${VERSION_PARTS[0]#v} # Strip leading 'v'
+          VERSION_MINOR=${VERSION_PARTS[1]}
+          VERSION_PATCH=${VERSION_PARTS[2]}
+
+          TAG_MAJOR=${TAG_PARTS[0]#v} # Strip leading 'v'
+          TAG_MINOR=${TAG_PARTS[1]}
+          TAG_PATCH=${TAG_PARTS[2]}
+
+          if (( VERSION_MAJOR > TAG_MAJOR )) || \
+             (( VERSION_MAJOR == TAG_MAJOR && VERSION_MINOR > TAG_MINOR )) || \
+             (( VERSION_MAJOR == TAG_MAJOR && VERSION_MINOR == TAG_MINOR && VERSION_PATCH > TAG_PATCH )); then
+
+            echo "✅ Success: Version $VERSION is greater than the latest tag $LATEST_TAG."
+            echo "IS_GREATER=true" >> $GITHUB_ENV
           else
-            IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
-            IFS='.' read -r -a TAG_PARTS <<< "$LATEST_TAG"
-            for i in 0 1 2; do
-              if (( VERSION_PARTS[i] > TAG_PARTS[i] )); then
-                echo "Version $VERSION is greater than the latest tag $LATEST_TAG"
-                echo "IS_GREATER=true" >> $GITHUB_ENV
-                exit 0
-              elif (( VERSION_PARTS[i] < TAG_PARTS[i] )); then
-                echo "Version $VERSION is not greater than the latest tag $LATEST_TAG"
-                echo "IS_GREATER=false" >> $GITHUB_ENV
-                exit 0
-              fi
-            done
-            echo "Version $VERSION is the same as the latest tag $LATEST_TAG"
-            echo "IS_GREATER=false" >> $GITHUB_ENV
+            echo "❌ Error: Version $VERSION is not greater than the latest tag $LATEST_TAG."
+            echo "IS_GREATER=false" >> $GITHUB_ENV # This is technically redundant, but clear
+            exit 1 # <--- FAIL THE JOB HERE
           fi
