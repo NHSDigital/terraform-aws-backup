@@ -9,7 +9,7 @@ logger.setLevel(logging.INFO)
 
 API_ENDPOINT = os.environ.get('API_ENDPOINT')
 MODULE_VERSION = os.environ.get('MODULE_VERSION')
-AWS_ACCOUNT_ID = os.environ.get('aws_account_id')
+AWS_ACCOUNT_ID = os.environ.get('AWS_ACCOUNT_ID')
 API_TOKEN = os.environ.get('API_TOKEN')
 
 
