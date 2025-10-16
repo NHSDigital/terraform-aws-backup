@@ -5,7 +5,7 @@ import urllib.parse
 import logging
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
 
 API_ENDPOINT = os.environ.get('API_ENDPOINT')
 MODULE_VERSION = os.environ.get('MODULE_VERSION')
