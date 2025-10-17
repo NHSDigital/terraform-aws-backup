@@ -21,10 +21,15 @@ jobs:
       - name: Run Version Check
         run: |
           ./scripts/validate-version-to-latest-tag.sh modules/aws-backup-source/version > version_output.txt
-          while IFS= read -r line; do
-            echo "$line" >> $GITHUB_OUTPUT
-            echo "$line" >> $GITHUB_ENV
-          done < version_output.txt
-
-          echo "🎉 Version check passed! Ready to proceed with version ${{ env.VERSION }}"
-          if [ "${{ env.IS_GREATER }}" = "true" ]; then exit 0; else exit 1; fi
+          CURRENT_VERSION=$(cat version_output.txt | grep CURRENT_VERSION | cut -d'=' -f2)
+          CURRENT_IS_GREATER=$(cat version_output.txt | grep IS_GREATER | cut -d'=' -f2)
+          echo "Version to be set: $CURRENT_VERSION"
+          if [ "$CURRENT_IS_GREATER" = "true" ]; then
+            echo "✅ Final Check Passed: New version ${{ env.VERSION }} is confirmed greater."
+            exit 0
+          else
+            # This handles cases where the script exited 0 but somehow IS_GREATER wasn't true,
+            # though the script's logic should prevent this, it's a robust safeguard.
+            echo "❌ Final Check Failed: The version check result was $CURRENT_IS_GREATER."
+            exit 1
+          fi
