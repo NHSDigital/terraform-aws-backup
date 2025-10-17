@@ -367,3 +367,9 @@ variable "iam_role_permissions_boundary" {
   type        = string
   default     = "" # Empty by default
 }
+
+variable "parameter_store_lambda_backup_cron" {
+  description = "Cron expression for scheduling the parameter store backup Lambda function."
+  type        = string
+  default     = ""
+}
