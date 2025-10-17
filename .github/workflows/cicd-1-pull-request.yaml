@@ -18,55 +18,13 @@ jobs:
           # Fetch all history for all branches and tags
           fetch-depth: 0
 
-      - name: "Get version"
-        id: get_version
+      - name: Run Version Check
         run: |
-          echo "VERSION=$(cat modules/aws-backup-source/version)" >> $GITHUB_ENV
+          ./check_and_get_version.sh modules/aws-backup-source/version > version_output.txt
+          while IFS= read -r line; do
+            echo "$line" >> $GITHUB_OUTPUT
+            echo "$line" >> $GITHUB_ENV
+          done < version_output.txt
 
-      - name: "Check version"
-        run: |
-          if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Version format is invalid. It should be in the format X.Y.Z"
-            exit 1
-          fi
-          echo "Version format is valid: $VERSION"
-
-      - name: "Is version file greater than the latest tag?"
-        id: is_greater
-        run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0) # Use --abbrev=0 to get just the tag name
-          echo "Latest tag: $LATEST_TAG"
-
-          if [[ -z "$LATEST_TAG" ]]; then
-            echo "No tags found. Assuming a new project and proceeding with version $VERSION."
-            echo "IS_GREATER=true" >> $GITHUB_ENV
-            exit 0
-          fi
-
-          if [[ "$VERSION" == "$LATEST_TAG" ]]; then
-            echo "🚨 Error: Version $VERSION is the same as the latest tag $LATEST_TAG. The new version must be greater."
-            exit 1
-          fi
-
-          IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
-          IFS='.' read -r -a TAG_PARTS <<< "$LATEST_TAG"
-
-          VERSION_MAJOR=${VERSION_PARTS[0]#v} # Strip leading 'v'
-          VERSION_MINOR=${VERSION_PARTS[1]}
-          VERSION_PATCH=${VERSION_PARTS[2]}
-
-          TAG_MAJOR=${TAG_PARTS[0]#v} # Strip leading 'v'
-          TAG_MINOR=${TAG_PARTS[1]}
-          TAG_PATCH=${TAG_PARTS[2]}
-
-          if (( VERSION_MAJOR > TAG_MAJOR )) || \
-             (( VERSION_MAJOR == TAG_MAJOR && VERSION_MINOR > TAG_MINOR )) || \
-             (( VERSION_MAJOR == TAG_MAJOR && VERSION_MINOR == TAG_MINOR && VERSION_PATCH > TAG_PATCH )); then
-
-            echo "✅ Success: Version $VERSION is greater than the latest tag $LATEST_TAG."
-            echo "IS_GREATER=true" >> $GITHUB_ENV
-          else
-            echo "❌ Error: Version $VERSION is not greater than the latest tag $LATEST_TAG."
-            echo "IS_GREATER=false" >> $GITHUB_ENV # This is technically redundant, but clear
-            exit 1 # <--- FAIL THE JOB HERE
-          fi
+          echo "🎉 Version check passed! Ready to proceed with version ${{ env.VERSION }}"
+          if [ "${{ env.IS_GREATER }}" = "true" ]; then exit 0; else exit 1; fi

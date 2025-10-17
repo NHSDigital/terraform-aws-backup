@@ -21,7 +21,7 @@ data "aws_iam_policy_document" "lambda_post_build_version_permissions" {
     actions   = [
       "iam:PassRole"
     ]
-    resources = [aws_iam_role.backup.arn]
+    resources = [aws_iam_role.iam_for_lambda_post_build_version.arn]
   }
 
   statement {
@@ -96,7 +96,7 @@ resource "aws_lambda_permission" "allow_eventbridge" {
   source_arn    = aws_cloudwatch_event_rule.aws_backup_event_rule.arn
 }
 
-resource "aws_cloudwatch_log_group" "backup_logs" {
+resource "aws_cloudwatch_log_group" "post_build_version_logs" {
   name              = "/aws/lambda/${var.name_prefix}-post_build_version"
   retention_in_days = 30
 }
