@@ -20,7 +20,7 @@ jobs:
 
       - name: Run Version Check
         run: |
-          ./check_and_get_version.sh modules/aws-backup-source/version > version_output.txt
+          ./scripts/validate-version-to-latest-tag.sh modules/aws-backup-source/version > version_output.txt
           while IFS= read -r line; do
             echo "$line" >> $GITHUB_OUTPUT
             echo "$line" >> $GITHUB_ENV
