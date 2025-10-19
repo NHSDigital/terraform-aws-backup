@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import boto3
 import base64
 from botocore.exceptions import ClientError
@@ -21,15 +22,15 @@ def lambda_handler(event, context):
     """
 
     try:
-        kms_key_id = event['kms_key_id']
-        s3_bucket_name = event['s3_bucket_name']
-        tag_key = event['tag_key']
-        tag_value = event['tag_value']
+        kms_key_id = os.environ['KMS_KEY_ID']
+        s3_bucket_name = os.environ['PARAMETER_STORE_BUCKET_NAME']
+        tag_key = os.environ['TAG_KEY']
+        tag_value = os.environ['TAG_VALUE']
     except KeyError as e:
-        logger.error(f"Error: Missing required input in event: {e}", exc_info=True)
+        logger.error(f"Error: Missing required env vars: {e}", exc_info=True)
         return {
             'statusCode': 400,
-            'body': json.dumps(f"Missing required input: {e}")
+            'body': json.dumps(f"Missing required env vars: {e}")
         }
 
     logger.info(f"Searching for parameters with tag: {tag_key}={tag_value}")

@@ -9,8 +9,24 @@ data "aws_iam_policy_document" "lambda_assume_role" {
   }
 }
 
+resource "aws_s3_bucket" "parameter_store_backup_storage" {
+  bucket = "${var.name_prefix}-parameter-store-backup"
+
+  tags = {
+    () = "True"
+    Environment                = var.environment_name
+    Application                = var.project_name
+    Name                       = "${var.name_prefix}"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+# The IAM role name is fixed as it is referenced in the KMS key policy in the backup destination account.
 resource "aws_iam_role" "iam_for_lambda_parameter_store_backup" {
-  name               = "${var.name_prefix}_iam_for_lambda_parameter_store_backup"
+  name               = "parameter_store_lambda_encryption_role"
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
 }
 
@@ -56,6 +72,10 @@ resource "aws_lambda_function" "lambda_parameter_store_backup" {
   runtime          = "python3.12"
   environment {
     variables = {
+      KMS_KEY_ARN                 = var.parameter_store_kms_key_arn
+      PARAMETER_STORE_BUCKET_NAME = aws_s3_bucket.parameter_store_backup_storage.bucket
+      TAG_KEY                     = var.backup_plan_config_parameter_store.selection_tag
+      TAG_VALUE                   = "true"
     }
   }
 }

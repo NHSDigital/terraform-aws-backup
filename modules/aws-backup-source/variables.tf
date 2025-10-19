@@ -362,14 +362,27 @@ variable "backup_plan_config_aurora" {
   }
 }
 
+variable "backup_plan_config_parameter_store" {
+  description = "Configuration for backup plans with parameter store"
+  type = object({
+    enable              = bool
+    selection_tag       = string
+    lambda_backup_cron  = optional(string)
+  })
+  default = {
+    enable                    = false
+    selection_tag             = "BackupParameterStore"
+    compliance_resource_types = ["SSM_PARAMETER_STORE"]
+  }
+
 variable "iam_role_permissions_boundary" {
   description = "Optional permissions boundary ARN for backup role"
   type        = string
   default     = "" # Empty by default
 }
 
-variable "parameter_store_lambda_backup_cron" {
-  description = "Cron expression for scheduling the parameter store backup Lambda function."
+variable "parameter_store_kms_key_arn" {
+  description = "The ARN of the KMS key used to encrypt Parameter Store backups."
   type        = string
   default     = ""
 }
