@@ -80,7 +80,7 @@ resource "aws_lambda_function" "lambda_parameter_store_backup" {
   runtime          = "python3.12"
   environment {
     variables = {
-      KMS_KEY_ARN                 = var.parameter_store_kms_key_arn
+      KMS_KEY_ARN                 = var.destination_parameter_store_kms_key_arn
       PARAMETER_STORE_BUCKET_NAME = aws_s3_bucket.parameter_store_backup_storage[0].bucket
       TAG_KEY                     = var.backup_plan_config_parameter_store.selection_tag
       TAG_VALUE                   = "true"
@@ -93,7 +93,7 @@ resource "aws_cloudwatch_event_rule" "aws_backup_event_rule" {
   name        = "${var.name_prefix}-parameter-store-backup-rule"
   description = "Triggers the ECR Backup lambda."
 
-  schedule_expression = "cron(${var.parameter_store_lambda_backup_cron})"
+  schedule_expression = "cron(${var.var.backup_plan_config_parameter_store.lambda_backup_cron})"
 }
 
 resource "aws_cloudwatch_event_target" "lambda_target" {
