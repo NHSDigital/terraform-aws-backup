@@ -11,7 +11,7 @@ data "aws_iam_policy_document" "kms_key_policy" {
   }
 
   dynamic "statement" {
-    for_each = var.enable_cross_account_role_permissions ? [] : ["add_statement"]
+    for_each = var.enable_cross_account_role_permissions ? ["add_statement"] : []
 
     content {
       sid = "Allow Lambda Role from Source Account to Use Key"
