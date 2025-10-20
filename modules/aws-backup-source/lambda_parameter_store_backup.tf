@@ -35,7 +35,7 @@ data "aws_iam_policy_document" "lambda_parameter_store_backup_permissions" {
 data "archive_file" "lambda_parameter_store_backup_zip" {
   count       = var.backup_plan_config_parameter_store.enable ? 1 : 0
   type        = "zip"
-  source_dir  = "${path.module}/resources/parameter_store_backup/"
+  source_dir  = "${path.module}/resources/parameter-store-backup/"
   output_path = "${path.module}/.terraform/archive_files/lambda_parameter_store_backup.zip"
 }
 

@@ -370,7 +370,7 @@ variable "backup_plan_config_parameter_store" {
     lambda_backup_cron  = optional(string)
   })
   default = {
-    enable                    = false
+    enable                    = true
     selection_tag             = "BackupParameterStore"
     lambda_backup_cron        = "0 6 * * ? *"
     compliance_resource_types = ["SSM_PARAMETER_STORE"]
