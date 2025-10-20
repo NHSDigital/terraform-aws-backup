@@ -374,6 +374,7 @@ variable "backup_plan_config_parameter_store" {
     selection_tag             = "BackupParameterStore"
     compliance_resource_types = ["SSM_PARAMETER_STORE"]
   }
+}
 
 variable "iam_role_permissions_boundary" {
   description = "Optional permissions boundary ARN for backup role"
@@ -381,7 +382,7 @@ variable "iam_role_permissions_boundary" {
   default     = "" # Empty by default
 }
 
-variable "parameter_store_kms_key_arn" {
+variable "destination_parameter_store_kms_key_arn" {
   description = "The ARN of the KMS key used to encrypt Parameter Store backups."
   type        = string
   default     = ""
