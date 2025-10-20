@@ -10,21 +10,25 @@ data "aws_iam_policy_document" "kms_key_policy" {
     resources = ["*"]
   }
 
-  statement {
-    sid = "Allow Lambda Role from Source Account to Use Key"
-    effect = "Allow"
-    principals {
-      type = "AWS"
-      identifiers = ["arn:aws:iam::${var.source_account_id}:role/parameter_store_lambda_encryption_role"]
+  dynamic "statement" {
+    for_each = var.enable_cross_account_role_permissions ? [] : ["add_statement"]
+
+    content {
+      sid = "Allow Lambda Role from Source Account to Use Key"
+      effect = "Allow"
+      principals {
+        type = "AWS"
+        identifiers = ["arn:aws:iam::${var.source_account_id}:role/parameter_store_lambda_encryption_role"]
+      }
+      actions = [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey",
+      ]
+      resources = ["*"]
     }
-    actions = [
-      "kms:Encrypt",
-      "kms:Decrypt",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:DescribeKey",
-    ]
-    resources = ["*"]
   }
 }
 

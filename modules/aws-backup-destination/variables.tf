@@ -88,3 +88,9 @@ variable "name_prefix" {
     error_message = "The name_prefix must not contain any numbers."
   }
 }
+
+variable "enable_cross_account_role_permissions" {
+  description = "Flag to enable cross account role permissions for AWS Backup"
+  type        = bool
+  default     = false
+}
