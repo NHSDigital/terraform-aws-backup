@@ -46,7 +46,6 @@ resource "aws_s3_bucket" "parameter_store_backup_storage" {
   bucket = "${var.name_prefix}-parameter-store-backup"
 
   tags = {
-    () = "True" # Assuming this is a placeholder/typo and should be a valid key
     Environment                = var.environment_name
     Application                = var.project_name
     Name                       = "${var.name_prefix}"
@@ -61,16 +60,13 @@ resource "aws_s3_bucket" "parameter_store_backup_storage" {
 resource "aws_iam_role" "iam_for_lambda_parameter_store_backup" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
   name               = "parameter_store_lambda_encryption_role"
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role[0].json # Access data source with index [0]
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role[0].json
 }
 
 resource "aws_iam_role_policy" "lambda_parameter_store_backup_iam_permissions" {
   count  = var.backup_plan_config_parameter_store.enable ? 1 : 0
   name   = "${var.name_prefix}_lambda_parameter_store_backup_iam_permissions_policy"
-  role   = aws_iam_role.iam_for_lambda_parameter_store_backup[0].id # Access resource with index [0]
-  # NOTE: Original code referenced 'data.aws_iam_policy_document.lambda_post_build_version_permissions.json'
-  # which seems like a typo for 'data.aws_iam_policy_document.lambda_parameter_store_backup_permissions.json'.
-  # Using the corrected name with index [0].
+  role   = aws_iam_role.iam_for_lambda_parameter_store_backup[0].id
   policy = data.aws_iam_policy_document.lambda_parameter_store_backup_permissions[0].json
 }
 
@@ -103,9 +99,6 @@ resource "aws_cloudwatch_event_rule" "aws_backup_event_rule" {
 resource "aws_cloudwatch_event_target" "lambda_target" {
   count     = var.backup_plan_config_parameter_store.enable ? 1 : 0
   rule      = aws_cloudwatch_event_rule.aws_backup_event_rule[0].name
-  # NOTE: Original code referenced 'aws_lambda_function.lambda_post_build_version.arn'
-  # which seems like a typo for 'aws_lambda_function.lambda_parameter_store_backup.arn'.
-  # Using the corrected name with index [0].
   arn       = aws_lambda_function.lambda_parameter_store_backup[0].arn
   target_id = "${var.name_prefix}parameterStoreBackupLambdaTarget"
 }
