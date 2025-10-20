@@ -93,7 +93,7 @@ resource "aws_cloudwatch_event_rule" "aws_backup_event_rule" {
   name        = "${var.name_prefix}-parameter-store-backup-rule"
   description = "Triggers the ECR Backup lambda."
 
-  schedule_expression = "cron(${var.var.backup_plan_config_parameter_store.lambda_backup_cron})"
+  schedule_expression = "cron(${var.backup_plan_config_parameter_store.lambda_backup_cron})"
 }
 
 resource "aws_cloudwatch_event_target" "lambda_target" {
