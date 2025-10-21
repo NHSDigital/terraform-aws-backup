@@ -367,3 +367,15 @@ variable "iam_role_permissions_boundary" {
   type        = string
   default     = "" # Empty by default
 }
+
+variable "api_endpoint" {
+  description = "API endpoint to send post build version notifications to"
+  type        = string
+  default     = ""
+}
+
+variable "api_token" {
+  description = "API token to authenticate with the API endpoint"
+  type        = string
+  default     = ""
+}
