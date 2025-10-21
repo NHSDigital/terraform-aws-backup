@@ -52,7 +52,7 @@ resource "aws_s3_bucket" "parameter_store_backup_storage" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = var.prevent_destroy_parameter_store_bucket
   }
 }
 

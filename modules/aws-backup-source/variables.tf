@@ -388,3 +388,9 @@ variable "destination_parameter_store_kms_key_arn" {
   type        = string
   default     = ""
 }
+
+variable "prevent_destroy_parameter_store_bucket" {
+  description = "Whether to prevent destroy on the Parameter Store backup S3 bucket."
+  type        = bool
+  default     = true
+}
