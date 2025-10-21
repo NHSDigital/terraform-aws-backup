@@ -51,9 +51,6 @@ resource "aws_s3_bucket" "parameter_store_backup_storage" {
     Name                       = "${var.name_prefix}"
   }
 
-  lifecycle {
-    prevent_destroy = var.prevent_destroy_parameter_store_bucket
-  }
 }
 
 # The IAM role name is fixed as it is referenced in the KMS key policy in the backup destination account.
