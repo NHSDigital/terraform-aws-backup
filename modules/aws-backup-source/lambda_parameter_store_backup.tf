@@ -114,6 +114,7 @@ resource "aws_lambda_function" "lambda_parameter_store_backup" {
   role             = aws_iam_role.iam_for_lambda_parameter_store_backup[0].arn
   handler          = "parameter_store_backup.lambda_handler"
   runtime          = "python3.12"
+  timeout          = 900
   environment {
     variables = {
       KMS_KEY_ARN                 = var.destination_parameter_store_kms_key_arn
