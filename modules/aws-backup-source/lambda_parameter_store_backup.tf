@@ -24,6 +24,46 @@ data "aws_iam_policy_document" "lambda_parameter_store_backup_permissions" {
   statement {
     effect    = "Allow"
     actions   = [
+      "ssm:DescribeParameters",
+      "ssm:GetParametersByPath",
+      "ssm:GetParameter",
+      "ssm:GetParameters"
+    ]
+    resources = ["arn:aws:ssm:*:*:*"]
+  }
+
+  statement {
+    effect  = "Allow"
+    actions   = [
+      "tag:GetResources",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    effect  = "Allow"
+    actions   = [
+      "kms:Encrypt",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = [
+      "s3:PutObject",
+      "s3:PutObjectAcl",
+      "s3:ListBucket"
+    ]
+    resources = [
+      "${aws_s3_bucket.parameter_store_backup_storage[0].arn}",
+      "${aws_s3_bucket.parameter_store_backup_storage[0].arn}/*"
+    ]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents"

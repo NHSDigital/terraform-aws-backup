@@ -1,53 +1,42 @@
-import json
-import logging
 import os
-import boto3
+import json
 import base64
+import logging
+import boto3
 from botocore.exceptions import ClientError
-
-# Initialize AWS clients
-ssm_client = boto3.client('ssm')
-kms_client = boto3.client('kms')
-s3_client = boto3.client('s3')
 
 
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
-def lambda_handler(event, context):
-    """
-    Retrieves Parameter Store values filtered by a tag, including all metadata
-    for a perfect restoration. It encrypts the data using KMS and stores
-    the encrypted blob in an S3 bucket (one file per parameter).
-    """
-
+def load_configuration():
+    """Reads and validates environment variables."""
     try:
-        kms_key_id = os.environ['KMS_KEY_ID']
-        s3_bucket_name = os.environ['PARAMETER_STORE_BUCKET_NAME']
-        tag_key = os.environ['TAG_KEY']
-        tag_value = os.environ['TAG_VALUE']
+        config = {
+            'kms_key_id': os.environ['KMS_KEY_ARN'],
+            's3_bucket_name': os.environ['PARAMETER_STORE_BUCKET_NAME'],
+            'tag_key': os.environ['TAG_KEY'],
+            'tag_value': os.environ['TAG_VALUE']
+        }
+        return config
     except KeyError as e:
         logger.error(f"Error: Missing required env vars: {e}", exc_info=True)
-        return {
-            'statusCode': 400,
-            'body': json.dumps(f"Missing required env vars: {e}")
-        }
+        raise ValueError(f"Missing required env vars: {e}")
 
+
+def discover_parameters(ssm_client, tag_key, tag_value):
+    """Paginates through SSM to find all parameter names matching the tag."""
     logger.info(f"Searching for parameters with tag: {tag_key}={tag_value}")
     parameter_names = []
-    next_token = None
+    next_token = ''
 
     while True:
         try:
             response = ssm_client.describe_parameters(
                 ParameterFilters=[
                     {
-                        'Key': 'tag-key',
-                        'Option': 'Equals',
-                        'Values': [tag_key]
-                    },
-                    {
-                        'Key': 'tag-value',
+                        'Key': f'tag:{tag_key}',
                         'Option': 'Equals',
                         'Values': [tag_value]
                     }
@@ -65,114 +54,139 @@ def lambda_handler(event, context):
 
         except ClientError as e:
             logger.error(f"Error listing parameters: {e}", exc_info=True)
-            return {'statusCode': 500, 'body': json.dumps(f"SSM Error: {e.response['Error']['Message']}")}
+            raise ClientError(e.response, 'DescribeParameters')
 
     logger.info(f"Found {len(parameter_names)} parameters: {parameter_names}")
+    return parameter_names
 
-    if not parameter_names:
-        logger.info("No parameters found with the specified tag.")
-        return {'statusCode': 200, 'body': json.dumps("No parameters found.")}
 
-    # --- 3. Process and Backup Each Parameter ---
+def process_and_backup_parameter(ssm_client, kms_client, s3_client, param_name, kms_key_id, s3_bucket_name):
+    """
+    Retrieves, encrypts, and stores a single parameter's complete metadata and value.
+    Returns a result dict for tracking success/failure.
+    """
+    try:
+        param_response = ssm_client.get_parameter(
+            Name=param_name,
+            WithDecryption=True
+        )
+        parameter = param_response['Parameter']
+
+        tag_response = ssm_client.list_tags_for_resource(
+            ResourceType='Parameter',
+            ResourceId=param_name
+        )
+
+        backup_data = {
+            'Name': parameter['Name'],
+            'Type': parameter['Type'],
+            'Value': parameter['Value'],  # Decrypted value
+            'KeyId': parameter.get('KeyId'),
+            'Description': parameter.get('Description'),
+            'Tags': tag_response.get('TagList', []),
+            'Tier': parameter.get('Tier'),
+            'Policies': param_response.get('Policies', []),
+            'DataType': parameter.get('DataType')
+        }
+
+        plain_text_data = json.dumps(backup_data)
+
+        encrypt_response = kms_client.encrypt(
+            KeyId=kms_key_id,
+            Plaintext=plain_text_data.encode('utf-8')
+        )
+
+        encrypted_data_b64 = base64.b64encode(encrypt_response['CiphertextBlob']).decode('utf-8')
+
+        s3_key = f"{param_name.lstrip('/').replace('/', '_')}.encrypted"
+
+        s3_client.put_object(
+            Bucket=s3_bucket_name,
+            Key=s3_key,
+            Body=encrypted_data_b64
+        )
+
+        logger.info(f"Successfully backed up '{param_name}' to s3://{s3_bucket_name}/{s3_key}")
+        return {
+            'parameter_name': param_name,
+            's3_key': s3_key,
+            'status': 'SUCCESS'
+        }
+
+    except ClientError as e:
+        error_message = f"Error processing parameter '{param_name}': {e.response['Error']['Message']}"
+        logger.error(error_message, exc_info=True)
+        return {
+            'parameter_name': param_name,
+            'status': 'FAILED',
+            'error': error_message
+        }
+    except Exception as e:
+        error_message = f"An unexpected error occurred for '{param_name}': {str(e)}"
+        logger.error(error_message, exc_info=True)
+        return {
+            'parameter_name': param_name,
+            'status': 'FAILED',
+            'error': error_message
+        }
+
+
+def lambda_handler(event, context):
+    """
+    The main handler. Coordinates configuration loading, parameter discovery,
+    and backup processing.
+    """
     backup_results = []
 
-    for param_name in parameter_names:
-        try:
-            # 3a. Retrieve full parameter details (including value)
-            param_response = ssm_client.get_parameter(
-                Name=param_name,
-                WithDecryption=True
+    ssm_client = boto3.client('ssm')
+    kms_client = boto3.client('kms')
+    s3_client = boto3.client('s3')
+
+    try:
+        config = load_configuration()
+
+        parameter_names = discover_parameters(
+            ssm_client,
+            config['tag_key'],
+            config['tag_value']
+        )
+
+        if not parameter_names:
+            logger.info("No parameters found with the specified tag.")
+            return {'statusCode': 200, 'body': json.dumps("No parameters found.")}
+
+        for param_name in parameter_names:
+            result = process_and_backup_parameter(
+                ssm_client,
+                kms_client,
+                s3_client,
+                param_name,
+                config['kms_key_id'],
+                config['s3_bucket_name']
             )
-            parameter = param_response['Parameter']
+            backup_results.append(result)
 
-            # 3b. Retrieve additional metadata for perfect restoration
-
-            # Get Tags
-            tag_response = ssm_client.list_tags_for_resource(
-                ResourceType='Parameter',
-                ResourceId=param_name
-            )
-
-            # Get Policies (e.g., Expiration, Tier)
-            policies_list = []
-            try:
-                policy_response = ssm_client.get_parameter_policies(
-                    ParameterName=param_name,
-                    WithDecryption=True
-                )
-                policies_list = policy_response.get('Policies', [])
-            except ClientError as e:
-                logger.error(f"Error retrieving policies for {param_name}: {e}", exc_info=True)
-                # 'ParameterNotFound' is the error code when NO policies are present.
-                if e.response['Error']['Code'] == 'ParameterNotFound':
-                    pass  # Policy does not exist, which is fine
-                else:
-                    raise  # Re-raise if it's a different error
-
-            # Construct the complete parameter object for backup
-            backup_data = {
-                'Name': parameter['Name'],
-                'Type': parameter['Type'],
-                'Value': parameter['Value'],  # Decrypted value
-                'KeyId': parameter.get('KeyId'),  # KMS Key ARN for SecureString
-                'Description': parameter.get('Description'),
-                'Tags': tag_response.get('TagList', []),
-                'Tier': parameter.get('Tier'),  # Parameter Tier (Standard/Advanced)
-                'Policies': policies_list,  # Parameter Policies (e.g., Expiration, Rotation)
-            }
-
-            # 3c. Encrypt the complete parameter data using the specified KMS Key
-            plain_text_data = json.dumps(backup_data)
-
-            encrypt_response = kms_client.encrypt(
-                KeyId=kms_key_id,
-                Plaintext=plain_text_data.encode('utf-8')
-            )
-
-            # The ciphertext blob is a binary type, base64 encode it for safe storage
-            encrypted_data = base64.b64encode(encrypt_response['CiphertextBlob']).decode('utf-8')
-
-            # The final content to store in S3 is the base64-encoded encrypted blob
-            s3_file_content = encrypted_data
-
-            # Create a safe S3 key from the parameter name (stripping leading '/' and replacing internal '/')
-            s3_key = f"{param_name.lstrip('/').replace('/', '_')}.encrypted"
-
-            # 3d. Store the encrypted data in S3
-            s3_client.put_object(
-                Bucket=s3_bucket_name,
-                Key=s3_key,
-                Body=s3_file_content
-            )
-
-            logger.info(f"Successfully backed up '{param_name}' to s3://{s3_bucket_name}/{s3_key}")
-            backup_results.append({
-                'parameter_name': param_name,
-                's3_key': s3_key,
-                'status': 'SUCCESS'
+        return {
+            'statusCode': 200,
+            'body': json.dumps({
+                'message': 'Parameter backup process complete.',
+                'results': backup_results
             })
+        }
 
-        except ClientError as e:
-            error_message = f"Error processing parameter '{param_name}': {e.response['Error']['Message']}"
-            logger.error(error_message, exc_info=True)
-            backup_results.append({
-                'parameter_name': param_name,
-                'status': 'FAILED',
-                'error': error_message
-            })
-        except Exception as e:
-            error_message = f"An unexpected error occurred for '{param_name}': {str(e)}"
-            logger.error(error_message, exc_info=True)
-            backup_results.append({
-                'parameter_name': param_name,
-                'status': 'FAILED',
-                'error': error_message
-            })
-
-    return {
-        'statusCode': 200,
-        'body': json.dumps({
-            'message': 'Parameter backup process complete.',
-            'results': backup_results
-        })
-    }
+    except ValueError as e:
+        return {
+            'statusCode': 400,
+            'body': json.dumps(str(e))
+        }
+    except ClientError as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps(f"SSM Error during discovery: {e.response['Error']['Message']}")
+        }
+    except Exception as e:
+        logger.error(f"Unexpected error in handler: {e}", exc_info=True)
+        return {
+            'statusCode': 500,
+            'body': json.dumps(f"An unexpected error occurred: {str(e)}")
+        }
