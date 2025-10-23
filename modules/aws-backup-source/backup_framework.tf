@@ -264,7 +264,7 @@ resource "aws_backup_framework" "parameter_store" {
     name = "BACKUP_RESOURCES_PROTECTED_BY_BACKUP_PLAN"
 
     scope {
-      compliance_resource_types = ["s3"]
+      compliance_resource_types = ["S3"]
       tags = {
         (var.backup_plan_config_parameter_store.selection_tag) = "True"
       }
@@ -285,7 +285,7 @@ resource "aws_backup_framework" "parameter_store" {
     }
 
     scope {
-      compliance_resource_types = ["s3"]
+      compliance_resource_types = ["S3"]
       tags = {
         (var.backup_plan_config_parameter_store.selection_tag) = "True"
       }
