@@ -377,6 +377,7 @@ variable "backup_plan_config_parameter_store" {
     rules = optional(list(object({
       name                     = string
       schedule                 = string
+      completion_window        = optional(number)
       enable_continuous_backup = optional(bool)
       lifecycle = object({
         delete_after       = number
