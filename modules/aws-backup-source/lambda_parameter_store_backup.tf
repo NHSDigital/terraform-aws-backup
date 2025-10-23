@@ -89,7 +89,7 @@ resource "aws_s3_bucket" "parameter_store_backup_storage" {
     Environment                                               = var.environment_name
     Application                                               = var.project_name
     Name                                                      = "${var.name_prefix}"
-    "${var.backup_plan_config_parameter_store.selection_tag}" = "True"
+    "${var.backup_plan_config_parameter_store.selection_tag}" = var.backup_plan_config_parameter_store.selection_tag_value != null ? var.backup_plan_config_parameter_store.selection_tag_value : "True"
   }
 
 }
@@ -122,7 +122,7 @@ resource "aws_lambda_function" "lambda_parameter_store_backup" {
       KMS_KEY_ARN                 = var.destination_parameter_store_kms_key_arn
       PARAMETER_STORE_BUCKET_NAME = aws_s3_bucket.parameter_store_backup_storage[0].bucket
       TAG_KEY                     = var.backup_plan_config_parameter_store.selection_tag
-      TAG_VALUE                   = "True"
+      TAG_VALUE                   = var.backup_plan_config_parameter_store.selection_tag_value != null ? var.backup_plan_config_parameter_store.selection_tag_value : "True"
     }
   }
 }
