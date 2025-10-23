@@ -395,7 +395,7 @@ variable "backup_plan_config_parameter_store" {
     selection_tags            = []
     lambda_backup_cron        = "0 6 * * ? *"
     lambda_timeout_seconds    = 300
-    compliance_resource_types = ["SSM_PARAMETER_STORE"]
+    compliance_resource_types = ["S3"]
     rules = [
       {
         name     = "daily_kept_5_weeks"
