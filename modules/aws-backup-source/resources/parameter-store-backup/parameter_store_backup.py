@@ -155,6 +155,7 @@ def lambda_handler(event, context):
             logger.info("No parameters found with the specified tag.")
             return {'statusCode': 200, 'body': json.dumps("No parameters found.")}
 
+        any_failed = False
         for param_name in parameter_names:
             result = process_and_backup_parameter(
                 ssm_client,
@@ -164,8 +165,18 @@ def lambda_handler(event, context):
                 config['kms_key_id'],
                 config['s3_bucket_name']
             )
+            if result['status'] == 'FAILED':
+                any_failed = True
             backup_results.append(result)
 
+        if any_failed:
+            return {
+                'statusCode': 500,
+                'body': json.dumps({
+                    'message': 'One or more parameters failed to back up.',
+                    'results': backup_results
+                })
+            }
         return {
             'statusCode': 200,
             'body': json.dumps({

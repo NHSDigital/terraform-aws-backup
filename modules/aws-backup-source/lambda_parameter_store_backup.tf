@@ -79,7 +79,6 @@ data "archive_file" "lambda_parameter_store_backup_zip" {
   output_path = "${path.module}/.terraform/archive_files/lambda_parameter_store_backup.zip"
 }
 
-# --- Resources ---
 
 resource "aws_s3_bucket" "parameter_store_backup_storage" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
@@ -128,7 +127,7 @@ resource "aws_lambda_function" "lambda_parameter_store_backup" {
 resource "aws_cloudwatch_event_rule" "aws_backup_event_rule" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
   name        = "${var.name_prefix}-parameter-store-backup-rule"
-  description = "Triggers the ECR Backup lambda."
+  description = "Triggers the Parameter Store Backup lambda."
 
   schedule_expression = "cron(${var.backup_plan_config_parameter_store.lambda_backup_cron})"
 }
