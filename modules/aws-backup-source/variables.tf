@@ -365,14 +365,16 @@ variable "backup_plan_config_aurora" {
 variable "backup_plan_config_parameter_store" {
   description = "Configuration for backup plans with parameter store"
   type = object({
-    enable              = bool
-    selection_tag       = string
-    lambda_backup_cron  = optional(string)
+    enable                 = bool
+    selection_tag          = string
+    lambda_backup_cron     = optional(string)
+    lambda_timeout_seconds = optional(number)
   })
   default = {
     enable                    = true
     selection_tag             = "BackupParameterStore"
     lambda_backup_cron        = "0 6 * * ? *"
+    lambda_timeout_seconds    = 300
     compliance_resource_types = ["SSM_PARAMETER_STORE"]
   }
 }
