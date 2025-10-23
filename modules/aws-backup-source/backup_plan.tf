@@ -199,3 +199,25 @@ resource "aws_backup_selection" "aurora" {
     value = "True"
   }
 }
+
+resource "aws_backup_selection" "parameter_store" {
+  count        = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  iam_role_arn = aws_iam_role.backup.arn
+  name         = "${local.resource_name_prefix}-parameter-store-selection"
+  plan_id      = aws_backup_plan.parameter_store[0].id
+
+  selection_tag {
+    key   = var.backup_plan_config_parameter_store.selection_tag
+    type  = "STRINGEQUALS"
+    value = (var.backup_plan_config_parameter_store.selection_tag_value == null) ? "True" : var.backup_plan_config_parameter_store.selection_tag_value
+  }
+  condition {
+    dynamic "string_equals" {
+      for_each = local.selection_tags_parameter_store_null_checked
+      content {
+        key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
+        value = try(string_equals.value.value, null)
+      }
+    }
+  }
+}
