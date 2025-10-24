@@ -94,6 +94,15 @@ resource "aws_s3_bucket" "parameter_store_backup_storage" {
 
 }
 
+resource "aws_s3_bucket_versioning" "parameter_store_backup_versioning" {
+  count  = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  bucket = aws_s3_bucket.parameter_store_backup_storage[count.index].id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 # The IAM role name is fixed as it is referenced in the KMS key policy in the backup destination account.
 resource "aws_iam_role" "iam_for_lambda_parameter_store_backup" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
