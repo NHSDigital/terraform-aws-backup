@@ -51,6 +51,7 @@ Today, the AWS services supported by these modules are:
 - Amazon RDS (including Aurora)
 - Amazon DynamoDB
 - Amazon EBS
+- Amazon Parameter Store
 
 For a detailed, maintained breakdown (scope, caveats, roadmap) see: [COVERED_SERVICES.md](./COVERED_SERVICES.md).
 
@@ -68,6 +69,7 @@ These modules will deploy a number of AWS resources:
   - Backup KMS key
   - SNS topic for notifications
   - Backup framework for compliance
+  - Lambda function for copying and encrypting parameter store to S3.
 - modules/destination
   - Vault
   - Vault policies
