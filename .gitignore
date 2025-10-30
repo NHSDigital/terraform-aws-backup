@@ -13,3 +13,5 @@
 # Please, add your custom content below!
 
 .DS_Store
+
+*__pycache__
