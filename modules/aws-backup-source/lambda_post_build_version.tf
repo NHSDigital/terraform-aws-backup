@@ -74,7 +74,7 @@ resource "aws_cloudwatch_event_rule" "aws_backup_event_rule" {
 
   event_pattern = jsonencode({
     "source": ["aws.backup"],
-    "detail-type": ["AWS Backup Job State Change"],
+    "detail-type": ["Backup Job State Change"],
     "detail": {
       "state": ["COMPLETED"]
     }
