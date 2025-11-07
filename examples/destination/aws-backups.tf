@@ -41,6 +41,40 @@ resource "aws_kms_key" "destination_backup_key" {
         }
         Action = "kms:*"
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Sid    = "Allow cross-account access from source account"
+        Principal = {
+          AWS = "arn:aws:iam::${local.source_account_id}:root"
+        }
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:CreateGrant",
+          "kms:ListGrants",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Sid    = "Allow AWS Backup service to use the key"
+        Principal = {
+          Service = "backup.amazonaws.com"
+        }
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:CreateGrant",
+          "kms:ListGrants",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
       }
     ]
   })
@@ -49,12 +83,15 @@ resource "aws_kms_key" "destination_backup_key" {
 module "destination" {
   source = "../../modules/aws-backup-destination"
 
-  source_account_name     = "source" # please note that the assigned value would be the prefix in aws_backup_vault.vault.name
-  account_id              = local.destination_account_id
-  source_account_id       = local.source_account_id
-  kms_key                 = aws_kms_key.destination_backup_key.arn
-  enable_vault_protection = false
-  enable_iam_protection   = false
+  source_account_name                   = "source" # please note that the assigned value would be the prefix in aws_backup_vault.vault.name
+  account_id                            = local.destination_account_id
+  source_account_id                     = local.source_account_id
+  kms_key                               = aws_kms_key.destination_backup_key.arn
+  enable_vault_protection               = false
+  enable_iam_protection                 = false
+  enable_cross_account_role_permissions = true
+  enable_cross_account_vault_access     = true
+  name_prefix                           = "tawbt"
 }
 
 ###
@@ -65,4 +102,8 @@ output "destination_vault_arn" {
   # The ARN of the backup vault in the destination account is needed by
   # the source account to copy backups into it.
   value = module.destination.vault_arn
+}
+
+output "copy_recovery_point_role_arn" {
+  value = module.destination.copy_recovery_point_role_arn
 }

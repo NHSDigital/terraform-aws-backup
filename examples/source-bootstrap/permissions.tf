@@ -54,7 +54,11 @@ resource "aws_iam_policy" "source_account_backup_permissions" {
           "backup:DeleteRestoreTestingPlan",
           "backup:GetRestoreTestingPlan",
           "backup:ListRestoreTestingPlans",
-          "backup:UpdateRestoreTestingPlan"
+          "backup:UpdateRestoreTestingPlan",
+          "backup:StartCopyJob",
+          "backup:DescribeCopyJob",
+          "backup:ListRecoveryPointsByBackupVault",
+          "backup:DescribeRecoveryPoint"
         ],
         Resource = "*"
       },
