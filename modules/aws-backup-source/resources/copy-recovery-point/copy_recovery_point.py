@@ -32,16 +32,18 @@ def _parse_vault_name(vault_arn: str) -> str:
         raise ValueError("Unable to parse backup vault name from ARN")
 
 
-def _start_copy_job(recovery_point_arn: str, source_vault_arn: str, assume_role_arn: str | None, context) -> dict:
-    logger.info(f"Starting copy job for recovery_point_arn={recovery_point_arn}")
-    request_params = {
+def _build_copy_job_params(recovery_point_arn: str, source_vault_arn: str, destination_vault_arn: str, assume_role_arn: str | None, context) -> dict:
+    return {
         "RecoveryPointArn": recovery_point_arn,
         "DestinationBackupVaultArn": source_vault_arn,
-        "SourceBackupVaultName": _parse_vault_name(os.environ.get("DESTINATION_VAULT_ARN")),
-        "IamRoleArn": assume_role_arn if assume_role_arn else os.environ.get("ASSUME_ROLE_ARN") or "",
+        "SourceBackupVaultName": _parse_vault_name(destination_vault_arn),
         "IdempotencyToken": context.aws_request_id,
+        **({"IamRoleArn": assume_role_arn} if assume_role_arn else {})
     }
 
+
+def _start_copy_job(request_params: dict) -> dict:
+    logger.info(f"Starting copy job for recovery_point_arn={request_params.get('RecoveryPointArn')}")
     try:
         resp = backup_client.start_copy_job(**request_params)
         logger.info(f"Copy job started: {resp.get('CopyJobId')}")
@@ -110,7 +112,8 @@ def lambda_handler(event, context):
         }
 
     try:
-        start_details = _start_copy_job(recovery_point_arn, source_vault_arn, assume_role_arn, context)
+        params = _build_copy_job_params(recovery_point_arn, source_vault_arn, destination_vault_arn, assume_role_arn, context)
+        start_details = _start_copy_job(params)
         description = _describe_copy_job(start_details["copy_job_id"])  # Immediate status snapshot
         logger.info(f"Copy job started and described: {description}")
         status_code = _http_status_for_state(description.get("state"))
