@@ -85,7 +85,7 @@ def lambda_handler(event, context):
 
     destination_vault_arn = os.environ.get("DESTINATION_VAULT_ARN")
     source_vault_arn = os.environ.get("SOURCE_VAULT_ARN")
-    assume_role_arn = os.environ.get("ASSUME_ROLE_ARN") or None
+    assume_role_arn = os.environ.get("ASSUME_ROLE_ARN")
 
     if copy_job_id:
         try:
