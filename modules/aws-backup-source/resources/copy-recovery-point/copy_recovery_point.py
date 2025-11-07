@@ -12,6 +12,18 @@ backup_client = boto3.client("backup")
 TERMINAL_STATES = {"COMPLETED", "FAILED", "ABORTED"}
 
 
+def _http_status_for_state(state: str) -> int:
+    if state == "COMPLETED":
+        return 200
+    if state == "CREATED":
+        return 201
+    if state == "RUNNING":
+        return 202
+    if state in {"FAILED", "ABORTED"}:
+        return 500
+    return 202
+
+
 def _parse_vault_name(vault_arn: str) -> str:
     # arn:aws:backup:region:account:backup-vault:VaultName
     try:
@@ -77,8 +89,9 @@ def lambda_handler(event, context):
         try:
             details = _describe_copy_job(copy_job_id)
             logger.info(f"Describe copy job result: {details}")
+            status_code = _http_status_for_state(details.get("state"))
             return {
-                "statusCode": 200,
+                "statusCode": status_code,
                 "body": details,
             }
         except Exception as e:
@@ -100,8 +113,9 @@ def lambda_handler(event, context):
         start_details = _start_copy_job(recovery_point_arn, source_vault_arn, assume_role_arn, context)
         description = _describe_copy_job(start_details["copy_job_id"])  # Immediate status snapshot
         logger.info(f"Copy job started and described: {description}")
+        status_code = _http_status_for_state(description.get("state"))
         return {
-            "statusCode": 200,
+            "statusCode": status_code,
             "body": {
                 "message": "Copy job started",
                 "copy_job": description,
