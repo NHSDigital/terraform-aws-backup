@@ -13,5 +13,5 @@
 # Please, add your custom content below!
 
 .DS_Store
-
 *__pycache__
+.github/instructions/memory.instructions.md
