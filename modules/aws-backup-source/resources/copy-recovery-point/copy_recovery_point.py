@@ -29,8 +29,6 @@ def _start_copy_job(recovery_point_arn: str, source_vault_arn: str, assume_role_
         "IamRoleArn": assume_role_arn if assume_role_arn else os.environ.get("ASSUME_ROLE_ARN") or "",
         "IdempotencyToken": context.aws_request_id,
     }
-    if not request_params["IamRoleArn"]:
-        request_params.pop("IamRoleArn")  # If role not required/remove empty
 
     try:
         resp = backup_client.start_copy_job(**request_params)
