@@ -19,24 +19,6 @@ def _parse_vault_name(vault_arn: str) -> str:
         raise ValueError("Unable to parse backup vault name from ARN")
 
 
-def _resolve_recovery_point_arn(recovery_point_id: str, destination_vault_arn: str) -> str:
-    if recovery_point_id.startswith("arn:aws:backup:"):
-        return recovery_point_id
-
-    vault_name = _parse_vault_name(destination_vault_arn)
-    try:
-        paginator = backup_client.get_paginator("list_recovery_points_by_backup_vault")
-        for page in paginator.paginate(BackupVaultName=vault_name, MaxResults=1000):
-            for rp in page.get("RecoveryPoints", []):
-                arn = rp.get("RecoveryPointArn")
-                if arn and arn.endswith(recovery_point_id):
-                    return arn
-    except ClientError as e:
-        logger.error(f"Error listing recovery points: {e}")
-        raise
-    raise ValueError("Recovery point ID not found in destination vault")
-
-
 def _start_copy_job(recovery_point_arn: str, source_vault_arn: str, assume_role_arn: str | None, context) -> dict:
     request_params = {
         "RecoveryPointArn": recovery_point_arn,
@@ -78,7 +60,7 @@ def _describe_copy_job(copy_job_id: str) -> dict:
 
 
 def lambda_handler(event, context):
-    recovery_point_input = event.get("recovery_point_id")
+    recovery_point_arn = event.get("recovery_point_arn")
     copy_job_id = event.get("copy_job_id")
 
     destination_vault_arn = os.environ.get("DESTINATION_VAULT_ARN")
@@ -98,19 +80,14 @@ def lambda_handler(event, context):
                 "body": {"message": f"Error describing copy job: {str(e)}"},
             }
 
-    if not recovery_point_input:
+    if not recovery_point_arn:
         return {
             "statusCode": 400,
-            "body": {"message": "Missing recovery_point_id for starting a copy job"},
+            "body": {"message": "Missing recovery_point_arn for starting a copy job"},
         }
 
     try:
-        rp_arn = _resolve_recovery_point_arn(recovery_point_input, destination_vault_arn)
-    except Exception as e:
-        return {"statusCode": 404, "body": {"message": str(e)}}
-
-    try:
-        start_details = _start_copy_job(rp_arn, source_vault_arn, assume_role_arn, context)
+        start_details = _start_copy_job(recovery_point_arn, source_vault_arn, assume_role_arn, context)
         description = _describe_copy_job(start_details["copy_job_id"])  # Immediate status snapshot
         return {
             "statusCode": 200,
