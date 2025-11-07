@@ -1,5 +1,5 @@
 ---
-description: Beast Mode Dev
+description: Beast Mode for GPT-5
 model: GPT-5
 ---
 

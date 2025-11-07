@@ -1,5 +1,5 @@
 ---
-description: 'GPT 4.1 as a top-notch coding agent.'
+description: Beast Mode for GPT-4.1
 model: GPT-4.1
 ---
 
