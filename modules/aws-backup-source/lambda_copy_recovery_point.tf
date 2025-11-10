@@ -7,7 +7,7 @@ data "archive_file" "lambda_copy_recovery_point_zip" {
 
 resource "aws_iam_role" "iam_for_lambda_copy_recovery_point" {
   count = var.lambda_copy_recovery_point_enable ? 1 : 0
-  name  = "${var.name_prefix}-lambda-copy-recovery-point-role"
+  name  = "${var.resource_name_prefix}-lambda-copy-recovery-point-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
