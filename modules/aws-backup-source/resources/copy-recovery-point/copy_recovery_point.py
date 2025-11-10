@@ -1,14 +1,13 @@
 import os
 import logging
 import boto3
-import traceback
 import time
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-backup_client = boto3.client("backup")
+_default_backup_client = boto3.client("backup")
 
 TERMINAL_STATES = {"COMPLETED", "FAILED", "ABORTED"}
 WAIT_DELAY_SECONDS = 30  # single place to adjust the one-off wait introduced by event.wait
@@ -44,10 +43,29 @@ def _build_copy_job_params(recovery_point_arn: str, source_vault_arn: str, desti
     }
 
 
-def _start_copy_job(request_params: dict) -> dict:
+def _get_backup_client(assume_role_arn: str | None):
+    """Return a backup client, assuming cross-account role if ARN supplied."""
+    if not assume_role_arn:
+        return _default_backup_client
+    try:
+        sts = boto3.client("sts")
+        resp = sts.assume_role(RoleArn=assume_role_arn, RoleSessionName="copy-recovery-point")
+        creds = resp["Credentials"]
+        return boto3.client(
+            "backup",
+            aws_access_key_id=creds["AccessKeyId"],
+            aws_secret_access_key=creds["SecretAccessKey"],
+            aws_session_token=creds["SessionToken"],
+        )
+    except ClientError as e:
+        logger.error(f"Failed to assume role {assume_role_arn}: {e}", exc_info=True)
+        raise
+
+
+def _start_copy_job(client, request_params: dict) -> dict:
     logger.info(f"Starting copy job for recovery_point_arn={request_params.get('RecoveryPointArn')}")
     try:
-        resp = backup_client.start_copy_job(**request_params)
+        resp = client.start_copy_job(**request_params)
         logger.info(f"Copy job started: {resp.get('CopyJobId')}")
         return {
             "copy_job_id": resp.get("CopyJobId"),
@@ -59,10 +77,10 @@ def _start_copy_job(request_params: dict) -> dict:
         raise
 
 
-def _describe_copy_job(copy_job_id: str) -> dict:
+def _describe_copy_job(client, copy_job_id: str) -> dict:
     logger.info(f"Describing copy job: {copy_job_id}")
     try:
-        resp = backup_client.describe_copy_job(CopyJobId=copy_job_id)
+        resp = client.describe_copy_job(CopyJobId=copy_job_id)
         cj = resp.get("CopyJob", {})
         logger.info(f"Copy job state: {cj.get('State')}")
         return {
@@ -89,12 +107,14 @@ def lambda_handler(event, context):
 
     wait_flag = bool(event.get("wait", False))
 
+    client = _get_backup_client(assume_role_arn)
+
     if copy_job_id:
         try:
             if wait_flag:
                 logger.info(f"Wait flag set; sleeping {WAIT_DELAY_SECONDS}s before polling copy job state")
                 time.sleep(WAIT_DELAY_SECONDS)
-            details = _describe_copy_job(copy_job_id)
+            details = _describe_copy_job(client, copy_job_id)
             logger.info(f"Describe copy job result: {details}")
             status_code = _http_status_for_state(details.get("state"))
             return {
@@ -117,11 +137,11 @@ def lambda_handler(event, context):
 
     try:
         params = _build_copy_job_params(recovery_point_arn, source_vault_arn, destination_vault_arn, assume_role_arn, context)
-        start_details = _start_copy_job(params)
+        start_details = _start_copy_job(client, params)
         if wait_flag:
             logger.info(f"Wait flag set; sleeping {WAIT_DELAY_SECONDS}s before first status describe after start")
             time.sleep(WAIT_DELAY_SECONDS)
-        description = _describe_copy_job(start_details["copy_job_id"])  # Status snapshot after optional wait
+        description = _describe_copy_job(client, start_details["copy_job_id"])  # Status snapshot after optional wait
         logger.info(f"Copy job started and described: {description}")
         status_code = _http_status_for_state(description.get("state"))
         return {
