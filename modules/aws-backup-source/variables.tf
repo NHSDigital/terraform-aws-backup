@@ -362,6 +362,87 @@ variable "backup_plan_config_aurora" {
   }
 }
 
+variable "backup_plan_config_parameter_store" {
+  description = "Configuration for backup plans with parameter store"
+  type = object({
+    enable                 = bool
+    selection_tag          = string
+    selection_tag_value = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
+    lambda_backup_cron     = optional(string)
+    lambda_timeout_seconds = optional(number)
+    rules = optional(list(object({
+      name                     = string
+      schedule                 = string
+      completion_window        = optional(number)
+      enable_continuous_backup = optional(bool)
+      lifecycle = object({
+        delete_after       = number
+        cold_storage_after = optional(number)
+      })
+      copy_action = optional(object({
+        delete_after = optional(number)
+      }))
+    })))
+  })
+  default = {
+    enable                    = true
+    selection_tag             = "BackupParameterStore"
+    selection_tag_value       = "True"
+    selection_tags            = []
+    lambda_backup_cron        = "0 6 * * ? *"
+    lambda_timeout_seconds    = 300
+    compliance_resource_types = ["S3"]
+    rules = [
+      {
+        name     = "daily_kept_5_weeks"
+        schedule = "cron(0 0 * * ? *)"
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "weekly_kept_3_months"
+        schedule = "cron(0 1 ? * SUN *)"
+        lifecycle = {
+          delete_after = 90
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "monthly_kept_7_years"
+        schedule = "cron(0 2 1  * ? *)"
+        lifecycle = {
+          cold_storage_after = 30
+          delete_after       = 2555
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name                     = "point_in_time_recovery"
+        schedule                 = "cron(0 5 * * ? *)"
+        enable_continuous_backup = true
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      }
+    ]
+  }
+}
+
 variable "iam_role_permissions_boundary" {
   description = "Optional permissions boundary ARN for backup role"
   type        = string
@@ -376,6 +457,12 @@ variable "api_endpoint" {
 
 variable "api_token" {
   description = "API token to authenticate with the API endpoint"
+  type        = string
+  default     = ""
+}
+
+variable "destination_parameter_store_kms_key_arn" {
+  description = "The ARN of the KMS key used to encrypt Parameter Store backups."
   type        = string
   default     = ""
 }

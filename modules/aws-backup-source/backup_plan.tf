@@ -122,6 +122,40 @@ resource "aws_backup_plan" "aurora" {
   }
 }
 
+
+resource "aws_backup_plan" "parameter_store" {
+  count = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  name = "${local.resource_name_prefix}-parameter-store-plan"
+
+  dynamic "rule" {
+    for_each = var.backup_plan_config_parameter_store.rules
+    content {
+      recovery_point_tags = {
+        backup_rule_name = rule.value.name
+      }
+      rule_name                = rule.value.name
+      target_vault_name        = aws_backup_vault.main.name
+      schedule                 = rule.value.schedule
+      completion_window        = rule.value.completion_window
+      enable_continuous_backup = rule.value.enable_continuous_backup != null ? rule.value.enable_continuous_backup : null
+      lifecycle {
+        delete_after       = rule.value.lifecycle.delete_after
+        cold_storage_after = rule.value.lifecycle.cold_storage_after
+      }
+      dynamic "copy_action" {
+        for_each = var.backup_copy_vault_arn != "" && var.backup_copy_vault_account_id != "" && rule.value.copy_action != null ? rule.value.copy_action : {}
+        content {
+          lifecycle {
+            delete_after = copy_action.value
+          }
+          destination_vault_arn = var.backup_copy_vault_arn
+        }
+      }
+    }
+  }
+}
+
+
 resource "aws_backup_selection" "default" {
   iam_role_arn = aws_iam_role.backup.arn
   name         = "${local.resource_name_prefix}-selection"
@@ -197,5 +231,27 @@ resource "aws_backup_selection" "aurora" {
     key   = var.backup_plan_config_aurora.selection_tag
     type  = "STRINGEQUALS"
     value = "True"
+  }
+}
+
+resource "aws_backup_selection" "parameter_store" {
+  count        = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  iam_role_arn = aws_iam_role.backup.arn
+  name         = "${local.resource_name_prefix}-parameter-store-selection"
+  plan_id      = aws_backup_plan.parameter_store[0].id
+
+  selection_tag {
+    key   = var.backup_plan_config_parameter_store.selection_tag
+    type  = "STRINGEQUALS"
+    value = (var.backup_plan_config_parameter_store.selection_tag_value == null) ? "True" : var.backup_plan_config_parameter_store.selection_tag_value
+  }
+  condition {
+    dynamic "string_equals" {
+      for_each = local.selection_tags_parameter_store_null_checked
+      content {
+        key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
+        value = try(string_equals.value.value, null)
+      }
+    }
   }
 }
