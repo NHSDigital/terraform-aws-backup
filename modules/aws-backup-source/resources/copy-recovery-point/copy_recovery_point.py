@@ -2,6 +2,7 @@ import os
 import logging
 import boto3
 import traceback
+import time
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
@@ -10,6 +11,7 @@ logger.setLevel(logging.INFO)
 backup_client = boto3.client("backup")
 
 TERMINAL_STATES = {"COMPLETED", "FAILED", "ABORTED"}
+WAIT_DELAY_SECONDS = 30  # single place to adjust the one-off wait introduced by event.wait
 
 
 def _http_status_for_state(state: str) -> int:
@@ -87,8 +89,13 @@ def lambda_handler(event, context):
     source_vault_arn = os.environ.get("SOURCE_VAULT_ARN")
     assume_role_arn = os.environ.get("ASSUME_ROLE_ARN")
 
+    wait_flag = bool(event.get("wait", False))
+
     if copy_job_id:
         try:
+            if wait_flag:
+                logger.info(f"Wait flag set; sleeping {WAIT_DELAY_SECONDS}s before polling copy job state")
+                time.sleep(WAIT_DELAY_SECONDS)
             details = _describe_copy_job(copy_job_id)
             logger.info(f"Describe copy job result: {details}")
             status_code = _http_status_for_state(details.get("state"))
@@ -114,7 +121,10 @@ def lambda_handler(event, context):
     try:
         params = _build_copy_job_params(recovery_point_arn, source_vault_arn, destination_vault_arn, assume_role_arn, context)
         start_details = _start_copy_job(params)
-        description = _describe_copy_job(start_details["copy_job_id"])  # Immediate status snapshot
+        if wait_flag:
+            logger.info(f"Wait flag set; sleeping {WAIT_DELAY_SECONDS}s before first status describe after start")
+            time.sleep(WAIT_DELAY_SECONDS)
+        description = _describe_copy_job(start_details["copy_job_id"])  # Status snapshot after optional wait
         logger.info(f"Copy job started and described: {description}")
         status_code = _http_status_for_state(description.get("state"))
         return {

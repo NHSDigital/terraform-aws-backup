@@ -22,6 +22,30 @@ Poll an existing copy job:
 }
 ```
 
+Optional fields:
+
+- `metadata`: object merged into request input map (e.g. `{ "trigger": "step-function" }`).
+- `wait`: boolean; if true the lambda sleeps 30 seconds before describing the copy job (useful to give AWS Backup time to transition from `CREATED` to `RUNNING` for orchestration stability).
+
+Example starting with wait + metadata:
+
+```json
+{
+  "recovery_point_id": "1EB3B5E7-9EB0-435A-A80B-108B488B0D45",
+  "wait": true,
+  "metadata": {"trigger": "sf", "attempt": 1}
+}
+```
+
+Example polling with wait:
+
+```json
+{
+  "copy_job_id": "abcd1234-....",
+  "wait": true
+}
+```
+
 ## Response (start)
 
 ```json
@@ -50,4 +74,4 @@ Poll an existing copy job:
 
 - Lifecycle for the copied recovery point is not overridden; AWS defaults apply.
 - If providing only the recovery point ID, the function searches the destination vault for a matching ARN suffix.
-- No waiting/polling loop is performed; Step Function orchestration should invoke periodically to monitor status.
+- No continuous polling loop is performed; Step Function orchestration should invoke periodically to monitor status. `wait` adds a one‑off 30s delay, not a loop.
