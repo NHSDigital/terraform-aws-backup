@@ -55,8 +55,7 @@ def _start_copy_job(request_params: dict) -> dict:
             "is_parent": resp.get("IsParent"),
         }
     except ClientError as e:
-        logger.error(f"Failed to start copy job: {e}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Failed to start copy job: {e}", exc_info=True)
         raise
 
 
@@ -75,8 +74,7 @@ def _describe_copy_job(copy_job_id: str) -> dict:
             "completion_date": cj.get("CompletionDate"),
         }
     except ClientError as e:
-        logger.error(f"Failed to describe copy job {copy_job_id}: {e}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Failed to describe copy job {copy_job_id}: {e}", exc_info=True)
         raise
 
 
@@ -104,8 +102,7 @@ def lambda_handler(event, context):
                 "body": details,
             }
         except Exception as e:
-            logger.error(f"Error describing copy job: {str(e)}")
-            logger.error(traceback.format_exc())
+            logger.error(f"Error describing copy job: {str(e)}", exc_info=True)
             return {
                 "statusCode": 500,
                 "body": {"message": f"Error describing copy job: {str(e)}"},
@@ -135,6 +132,5 @@ def lambda_handler(event, context):
             },
         }
     except Exception as e:
-        logger.error(f"Failed to start copy job: {str(e)}")
-        logger.error(traceback.format_exc())
+        logger.error(f"Failed to start copy job: {str(e)}", exc_info=True)
         return {"statusCode": 500, "body": {"message": f"Failed to start copy job: {str(e)}"}}
