@@ -32,8 +32,9 @@ def lambda_handler(event, context):
         }
 
     payload = {
-        "version": MODULE_VERSION,
-        "awsAccount": AWS_ACCOUNT_ID
+        "version": "v1",
+        "moduleVersion": MODULE_VERSION,
+        "awsAccountId": AWS_ACCOUNT_ID
     }
 
     data = json.dumps(payload).encode('utf-8')
