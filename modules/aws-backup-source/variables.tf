@@ -454,3 +454,21 @@ variable "destination_parameter_store_kms_key_arn" {
   type        = string
   default     = ""
 }
+
+variable "lambda_restore_to_s3_enable" {
+  description = "Enable the Lambda function to restore Parameter Store backups to S3."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_restore_to_s3_poll_interval_seconds" {
+  description = "Poll interval in seconds for checking the status of the restore job."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_restore_to_s3_max_wait_minutes" {
+  description = "Maximum wait time in minutes for the restore job to complete."
+  type        = number
+  default     = 5
+}

@@ -8,7 +8,7 @@ data "archive_file" "lambda_restore_to_s3_zip" {
 
 resource "aws_iam_role" "iam_for_lambda_restore_to_s3" {
   count = var.lambda_restore_to_s3_enable ? 1 : 0
-  name  = "${var.name_prefix}-lambda-restore-to-s3-role"
+  name  = "${local.resource_name_prefix}-lambda-restore-to-s3-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -25,7 +25,7 @@ resource "aws_iam_role" "iam_for_lambda_restore_to_s3" {
 
 resource "aws_iam_policy" "iam_policy_for_lambda_restore_to_s3" {
   count = var.lambda_restore_to_s3_enable ? 1 : 0
-  name  = "${var.name_prefix}-lambda-restore-to-s3-policy"
+  name  = "${local.resource_name_prefix}-lambda-restore-to-s3-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -70,7 +70,7 @@ resource "aws_iam_role_policy_attachment" "lambda_restore_to_s3_policy_attach" {
 
 resource "aws_lambda_function" "lambda_restore_to_s3" {
   count            = var.lambda_restore_to_s3_enable ? 1 : 0
-  function_name    = "${var.name_prefix}_lambda-restore-to-s3"
+  function_name    = "${local.resource_name_prefix}_lambda-restore-to-s3"
 
   role             = aws_iam_role.iam_for_lambda_restore_to_s3[0].arn
   handler          = "lambda_function.lambda_handler"
