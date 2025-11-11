@@ -183,4 +183,15 @@ module "source" {
                                         "selection_tag": "NHSE-Enable-Backup"
                                       }
 
+  backup_plan_config_parameter_store = {
+                                        "compliance_resource_types": [
+                                          "S3"
+                                        ],
+                                        "rules": [
+                                        ],
+                                        "enable": false,
+                                        "selection_tag": "NHSE-Enable-Backup"
+                                      }
+
 }
+

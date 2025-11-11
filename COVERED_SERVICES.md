@@ -8,6 +8,7 @@ This blueprint currently supports (and is validated against) the following AWS s
 | Amazon RDS (including Aurora) | Instance & cluster snapshots | Ensure automated backups are enabled where PITR is required. Aurora is treated under the RDS umbrella. |
 | Amazon DynamoDB | Point-in-time recovery (PITR) + on-demand backups | PITR must be enabled on tables you tag. Large tables may create longer restore times; adjust retention to balance cost. |
 | Amazon EBS | Snapshots of tagged volumes | Encrypt volumes (CMK or AWS-managed). Snapshot costs scale with changed blocks; monitor for high churn. |
+| Amazon Parameter Store | Backups of tagged parameters | No additional configuration required. |
 
 ## Operational Recommendations
 
