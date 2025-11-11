@@ -3,6 +3,12 @@ provider  "aws" {
   region = "eu-west-2"
 }
 
+variable "name_prefix" {
+  description = "Optional name prefix used by destination module for IAM role names"
+  type        = string
+  default     = ""
+}
+
 variable "source_terraform_role_arn" {
   description = "ARN of the terraform role in the source account"
   type        = string
@@ -21,6 +27,8 @@ locals {
 
   source_account_id = data.aws_arn.source_terraform_role.account
   destination_account_id = data.aws_caller_identity.current.account_id
+
+  copy_recovery_role_name = var.name_prefix != "" ? "${var.name_prefix}-copy-recovery-point" : "copy-recovery-point"
 }
 
 
@@ -41,6 +49,43 @@ resource "aws_kms_key" "destination_backup_key" {
         }
         Action = "kms:*"
         Resource = "*"
+      },
+      {
+        Sid       = "AllowCrossAccountBackupKeyOperations"
+        Effect    = "Allow"
+        Principal = {
+          AWS = [
+            "arn:aws:iam::${local.destination_account_id}:role/${local.copy_recovery_role_name}",
+            "arn:aws:iam::${local.source_account_id}:role/aws-service-role/backup.amazonaws.com/AWSServiceRoleForBackup"
+          ]
+        }
+        Action = [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid       = "AllowCrossAccountBackupGrants"
+        Effect    = "Allow"
+        Principal = {
+          AWS = [
+            "arn:aws:iam::${local.destination_account_id}:role/${local.copy_recovery_role_name}",
+            "arn:aws:iam::${local.source_account_id}:role/aws-service-role/backup.amazonaws.com/AWSServiceRoleForBackup"
+          ]
+        }
+        Action = [
+          "kms:CreateGrant"
+        ]
+        Resource  = "*"
+        Condition = {
+          Bool = {
+            "kms:GrantIsForAWSResource" = "true"
+          }
+        }
       }
     ]
   })
@@ -52,6 +97,7 @@ module "destination" {
   source_account_name     = "source" # please note that the assigned value would be the prefix in aws_backup_vault.vault.name
   account_id              = local.destination_account_id
   source_account_id       = local.source_account_id
+  name_prefix             = var.name_prefix
   kms_key                 = aws_kms_key.destination_backup_key.arn
   enable_vault_protection = false
   enable_iam_protection   = false

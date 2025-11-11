@@ -203,5 +203,8 @@ module "source" {
   lambda_copy_recovery_point_enable          = var.copy_recovery_point_role_arn != ""
   lambda_copy_recovery_point_assume_role_arn = var.copy_recovery_point_role_arn
 
+  # Enable RDS restore Lambda
+  lambda_restore_to_rds_enable               = true
+
 }
 
