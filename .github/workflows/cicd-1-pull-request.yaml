@@ -1,0 +1,23 @@
+name: "CI/CD pull request"
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  check-version:
+    name: "Check version"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          # Fetch all history for all branches and tags
+          fetch-depth: 0
+
+      - name: Run Version Check
+        run: |
+          ./scripts/validate-version-to-latest-tag.sh modules/aws-backup-source/version
