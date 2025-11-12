@@ -125,7 +125,7 @@ resource "aws_backup_plan" "aurora" {
 
 resource "aws_backup_plan" "parameter_store" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
-  name = "${local.resource_name_prefix}-parameter-store-plan"
+  name = "${local.resource_name_prefix}-ps-plan"
 
   dynamic "rule" {
     for_each = var.backup_plan_config_parameter_store.rules
@@ -237,7 +237,7 @@ resource "aws_backup_selection" "aurora" {
 resource "aws_backup_selection" "parameter_store" {
   count        = var.backup_plan_config_parameter_store.enable ? 1 : 0
   iam_role_arn = aws_iam_role.backup.arn
-  name         = "${local.resource_name_prefix}-parameter-store-selection"
+  name         = "${local.resource_name_prefix}-ps-selection"
   plan_id      = aws_backup_plan.parameter_store[0].id
 
   selection_tag {

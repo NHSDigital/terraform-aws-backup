@@ -189,8 +189,20 @@ module "source" {
                                         "selection_tag": "NHSE-Enable-Backup"
                                       }
 
+
   # Enable copy recovery point lambda and feed destination role ARN if provided
   lambda_copy_recovery_point_enable          = var.copy_recovery_point_role_arn != ""
   lambda_copy_recovery_point_assume_role_arn = var.copy_recovery_point_role_arn
 
+  backup_plan_config_parameter_store = {
+                                        "compliance_resource_types": [
+                                          "S3"
+                                        ],
+                                        "rules": [
+                                        ],
+                                        "enable": false,
+                                        "selection_tag": "NHSE-Enable-Backup"
+                                      }
+
 }
+
