@@ -96,3 +96,50 @@ No modules.
 
 No outputs.
 <!-- END_TF_DOCS -->
+
+## Restoration State Machine (Preview)
+
+When `restore_state_machine_enable = true` a Step Functions state machine named `<prefix>-restore-workflow` (or the value of `restore_state_machine_name_override`) is deployed. It orchestrates:
+
+1. Copy of a recovery point from the destination vault back into the source vault (requires `lambda_copy_recovery_point_enable`).
+2. Sequential restore operations for one or more targets (currently supported: `S3`, `RDS`).
+3. Polling until completion for each restore job.
+
+### Input Contract
+
+Execution input example:
+
+```json
+{
+  "recovery_point_arn": "arn:aws:backup:eu-west-2:123456789012:recovery-point:11112222-3333-4444-5555-666677778888",
+  "desired_targets": [
+    {
+      "type": "S3",
+      "destination_s3_bucket": "my-restore-bucket",
+      "iam_role_arn": "arn:aws:iam::123456789012:role/BackupRestoreRole"
+    },
+    {
+      "type": "RDS",
+      "iam_role_arn": "arn:aws:iam::123456789012:role/BackupRestoreRole",
+      "db_instance_identifier": "restored-db-1",
+      "db_instance_class": "db.t3.medium",
+      "db_subnet_group_name": "my-subnet-group",
+      "vpc_security_group_ids": ["sg-0123456789abcdef0"],
+      "restore_metadata_overrides": {"AllocatedStorage": "20"}
+    }
+  ]
+}
+```
+
+Each target object is sent to the corresponding Lambda. Additional resource types (DynamoDB, Aurora) will be added once their restore Lambdas exist in the module.
+
+### Output
+
+Aggregated per-target results are available under `$.restore_targets` in the execution output.
+
+### Notes
+
+- If a required Lambda is disabled the execution will fail at that Task state.
+- Validation Lambda integration is planned but not yet included.
+- Poll intervals controlled by `restore_state_machine_wait_seconds`.
+
