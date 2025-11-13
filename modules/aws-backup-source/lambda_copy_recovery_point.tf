@@ -7,7 +7,7 @@ data "archive_file" "lambda_copy_recovery_point_zip" {
 
 resource "aws_iam_role" "iam_for_lambda_copy_recovery_point" {
   count = var.lambda_copy_recovery_point_enable ? 1 : 0
-  name  = "${var.resource_name_prefix}-lambda-copy-recovery-point-role"
+  name  = "${local.resource_name_prefix}-lambda-copy-recovery-point-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -21,7 +21,7 @@ resource "aws_iam_role" "iam_for_lambda_copy_recovery_point" {
 
 resource "aws_iam_policy" "iam_policy_for_lambda_copy_recovery_point" {
   count = var.lambda_copy_recovery_point_enable ? 1 : 0
-  name  = "${var.name_prefix}-lambda-copy-recovery-point-policy"
+  name  = "${local.resource_name_prefix}-lambda-copy-recovery-point-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -62,7 +62,7 @@ resource "aws_iam_role_policy_attachment" "lambda_copy_recovery_point_policy_att
 
 resource "aws_lambda_function" "lambda_copy_recovery_point" {
   count            = var.lambda_copy_recovery_point_enable ? 1 : 0
-  function_name    = "${var.name_prefix}_lambda-copy-recovery-point"
+  function_name    = "${local.resource_name_prefix}_lambda-copy-recovery-point"
   role             = aws_iam_role.iam_for_lambda_copy_recovery_point[0].arn
   handler          = "lambda_function.lambda_handler"
   runtime          = "python3.12"
