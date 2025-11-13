@@ -1,3 +1,20 @@
+variable "lambda_restore_to_rds_enable" {
+  description = "Flag to enable the restore-to-rds lambda."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_restore_to_rds_poll_interval_seconds" {
+  description = "Polling interval in seconds for RDS restore job status checks."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_restore_to_rds_max_wait_minutes" {
+  description = "Maximum number of minutes to wait for an RDS restore job to reach a terminal state before returning running status."
+  type        = number
+  default     = 10
+}
 variable "project_name" {
   description = "The name of the project this relates to."
   type        = string
