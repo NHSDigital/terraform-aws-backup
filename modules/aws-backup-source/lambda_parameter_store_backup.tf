@@ -1,4 +1,4 @@
-data "aws_iam_policy_document" "lambda_assume_role" {
+data "aws_iam_policy_document" "lambda_parameter_store_assume_role" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
   statement {
     effect = "Allow"
@@ -107,7 +107,7 @@ resource "aws_s3_bucket_versioning" "parameter_store_backup_versioning" {
 resource "aws_iam_role" "iam_for_lambda_parameter_store_backup" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
   name               = "parameter_store_lambda_encryption_role"
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role[0].json
+  assume_role_policy = data.aws_iam_policy_document.lambda_parameter_store_assume_role[0].json
 }
 
 resource "aws_iam_role_policy" "lambda_parameter_store_backup_iam_permissions" {
@@ -136,7 +136,7 @@ resource "aws_lambda_function" "lambda_parameter_store_backup" {
   }
 }
 
-resource "aws_cloudwatch_event_rule" "aws_backup_event_rule" {
+resource "aws_cloudwatch_event_rule" "aws_backup_parameter_store_event_rule" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
   name        = "${local.resource_name_prefix}-parameter-store-backup-rule"
   description = "Triggers the Parameter Store Backup lambda."
@@ -144,21 +144,21 @@ resource "aws_cloudwatch_event_rule" "aws_backup_event_rule" {
   schedule_expression = "cron(${var.backup_plan_config_parameter_store.lambda_backup_cron})"
 }
 
-resource "aws_cloudwatch_event_target" "lambda_target" {
+resource "aws_cloudwatch_event_target" "lambda_parameter_store_target" {
   count     = var.backup_plan_config_parameter_store.enable ? 1 : 0
-  rule      = aws_cloudwatch_event_rule.aws_backup_event_rule[0].name
+  rule      = aws_cloudwatch_event_rule.aws_backup_parameter_store_event_rule[0].name
   arn       = aws_lambda_function.lambda_parameter_store_backup[0].arn
   target_id = "${local.resource_name_prefix}parameterStoreBackupLambdaTarget"
 }
 
-resource "aws_lambda_permission" "allow_eventbridge" {
+resource "aws_lambda_permission" "lambda_parameter_store_allow_eventbridge" {
   count         = var.backup_plan_config_parameter_store.enable ? 1 : 0
   statement_id  = "${local.resource_name_prefix}AllowExecutionFromEventbridge"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_parameter_store_backup[0].function_name
   principal     = "events.amazonaws.com"
 
-  source_arn    = aws_cloudwatch_event_rule.aws_backup_event_rule[0].arn
+  source_arn    = aws_cloudwatch_event_rule.aws_backup_parameter_store_event_rule[0].arn
 }
 
 resource "aws_cloudwatch_log_group" "parameter_store_backup" {

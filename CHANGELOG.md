@@ -1,5 +1,15 @@
 # Changelog
 
+## [v1.4.1] (2025-11-13)
+
+### Features
+
+- Post release version lambda (#83)
+
+### Bug Fixes
+
+- Correct duplicate terraform module resource name (#97)
+
 ## [v1.4.0] (2025-11-04)
 
 ### Features
