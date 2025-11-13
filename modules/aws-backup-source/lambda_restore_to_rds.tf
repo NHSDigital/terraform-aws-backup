@@ -67,7 +67,7 @@ resource "aws_lambda_function" "lambda_restore_to_rds" {
   count            = var.lambda_restore_to_rds_enable ? 1 : 0
   function_name    = "${var.name_prefix}_lambda-restore-to-rds"
   role             = aws_iam_role.iam_for_lambda_restore_to_rds[0].arn
-  handler          = "lambda_function.lambda_handler"
+  handler          = "restore_to_rds.lambda_handler"
   runtime          = "python3.12"
   filename         = data.archive_file.lambda_restore_to_rds_zip.output_path
   source_code_hash = data.archive_file.lambda_restore_to_rds_zip.output_base64sha256
