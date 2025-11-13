@@ -66,8 +66,8 @@ resource "aws_lambda_function" "lambda_copy_recovery_point" {
   role             = aws_iam_role.iam_for_lambda_copy_recovery_point[0].arn
   handler          = "lambda_function.lambda_handler"
   runtime          = "python3.12"
-  filename         = data.archive_file.lambda_copy_recovery_point_zip.output_path
-  source_code_hash = data.archive_file.lambda_copy_recovery_point_zip.output_base64sha256
+  filename         = data.archive_file.lambda_copy_recovery_point_zip[0].output_path
+  source_code_hash = data.archive_file.lambda_copy_recovery_point_zip[0].output_base64sha256
   timeout          = var.lambda_copy_recovery_point_max_wait_minutes * 60
 
   environment {
