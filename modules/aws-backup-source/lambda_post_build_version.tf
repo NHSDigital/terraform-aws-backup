@@ -1,4 +1,4 @@
-data "aws_iam_policy_document" "lambda_assume_role" {
+data "aws_iam_policy_document" "lambda_post_build_version_assume_role" {
   statement {
     effect = "Allow"
     principals {
@@ -11,7 +11,7 @@ data "aws_iam_policy_document" "lambda_assume_role" {
 
 resource "aws_iam_role" "iam_for_lambda_post_build_version" {
   name               = "${var.name_prefix}_iam_for_lambda_post_build_version"
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+  assume_role_policy = data.aws_iam_policy_document.lambda_post_build_version_assume_role.json
 }
 
 data "aws_iam_policy_document" "lambda_post_build_version_permissions" {
@@ -68,7 +68,7 @@ resource "aws_lambda_function" "lambda_post_build_version" {
   }
 }
 
-resource "aws_cloudwatch_event_rule" "aws_backup_event_rule" {
+resource "aws_cloudwatch_event_rule" "aws_backup_post_build_version_event_rule" {
   name        = "${var.name_prefix}-post-build-version-rule"
   description = "Triggers the lambda on successful AWS Backup job completion."
 
@@ -81,19 +81,19 @@ resource "aws_cloudwatch_event_rule" "aws_backup_event_rule" {
   })
 }
 
-resource "aws_cloudwatch_event_target" "lambda_target" {
-  rule      = aws_cloudwatch_event_rule.aws_backup_event_rule.name
+resource "aws_cloudwatch_event_target" "lambda_post_build_version_target" {
+  rule      = aws_cloudwatch_event_rule.aws_backup_post_build_version_event_rule.name
   arn       = aws_lambda_function.lambda_post_build_version.arn
   target_id = "${var.name_prefix}postBuildVersionLambdaTarget"
 }
 
-resource "aws_lambda_permission" "allow_eventbridge" {
+resource "aws_lambda_permission" "post_build_allow_eventbridge" {
   statement_id  = "${var.name_prefix}AllowExecutionFromEventbridge"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_post_build_version.function_name
   principal     = "events.amazonaws.com"
 
-  source_arn    = aws_cloudwatch_event_rule.aws_backup_event_rule.arn
+  source_arn    = aws_cloudwatch_event_rule.aws_backup_post_build_version_event_rule.arn
 }
 
 resource "aws_cloudwatch_log_group" "post_build_version_logs" {
