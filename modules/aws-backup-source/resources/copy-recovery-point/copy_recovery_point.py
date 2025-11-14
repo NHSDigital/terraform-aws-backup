@@ -1,7 +1,9 @@
 import os
 import logging
 import boto3
+import datetime as dt
 import time
+from typing import Optional
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
@@ -11,6 +13,14 @@ _default_backup_client = boto3.client("backup")
 
 TERMINAL_STATES = {"COMPLETED", "FAILED", "ABORTED"}
 WAIT_DELAY_SECONDS = 30  # single place to adjust the one-off wait introduced by event.wait
+
+
+def format_datetime(dte: Optional[dt.datetime|str]) -> str:
+    if dt is None:
+        return ""
+    if isinstance(dt, str):
+        return dt
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _http_status_for_state(state: str) -> int:
@@ -69,7 +79,7 @@ def _start_copy_job(client, request_params: dict) -> dict:
         logger.info(f"Copy job started: {resp.get('CopyJobId')}")
         return {
             "copy_job_id": resp.get("CopyJobId"),
-            "creation_date": resp.get("CreationDate"),
+            "creation_date": format_datetime(resp.get("CreationDate")),
             "is_parent": resp.get("IsParent"),
         }
     except ClientError as e:
@@ -89,7 +99,7 @@ def _describe_copy_job(client, copy_job_id: str) -> dict:
             "status_message": cj.get("StatusMessage"),
             "source_recovery_point_arn": cj.get("SourceRecoveryPointArn"),
             "destination_recovery_point_arn": cj.get("DestinationRecoveryPointArn"),
-            "completion_date": cj.get("CompletionDate"),
+            "completion_date": format_datetime(cj.get("CompletionDate")),
         }
     except ClientError as e:
         logger.error(f"Failed to describe copy job {copy_job_id}: {e}", exc_info=True)
