@@ -1,7 +1,7 @@
 data "archive_file" "lambda_copy_recovery_point_zip" {
   count       = var.lambda_copy_recovery_point_enable ? 1 : 0
   type        = "zip"
-  source_file = "${path.module}/resources/copy-recovery-point/"
+  source_dir  = "${path.module}/resources/copy-recovery-point/"
   output_path = "${path.module}/.terraform/archive_files/lambda_copy_recovery_point.zip"
 }
 
