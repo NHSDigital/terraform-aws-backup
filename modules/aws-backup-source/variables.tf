@@ -455,8 +455,44 @@ variable "api_endpoint" {
   default     = ""
 }
 
+variable "lambda_copy_recovery_point_enable" {
+  description = "Flag to enable the copy recovery point lambda (copy recovery point from destination vault back to source)."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_copy_recovery_point_poll_interval_seconds" {
+  description = "Polling interval in seconds for copy job status checks."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_copy_recovery_point_max_wait_minutes" {
+  description = "Maximum number of minutes to wait for a copy job to reach a terminal state before returning running status."
+  type        = number
+  default     = 10
+}
+
+variable "lambda_copy_recovery_point_destination_vault_arn" {
+  description = "Destination vault ARN containing the recovery point to be copied back (the air-gapped vault)."
+  type        = string
+  default     = ""
+}
+
 variable "api_token" {
   description = "API token to authenticate with the API endpoint"
+  type        = string
+  default     = ""
+}
+
+variable "lambda_copy_recovery_point_source_vault_arn" {
+  description = "Source vault ARN to which the recovery point will be copied back."
+  type        = string
+  default     = ""
+}
+
+variable "lambda_copy_recovery_point_assume_role_arn" {
+  description = "ARN of role in destination account the lambda assumes to initiate the copy job (if required for cross-account)."
   type        = string
   default     = ""
 }

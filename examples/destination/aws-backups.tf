@@ -55,6 +55,7 @@ module "destination" {
   kms_key                 = aws_kms_key.destination_backup_key.arn
   enable_vault_protection = false
   enable_iam_protection   = false
+  enable_cross_account_role_permissions = true
 }
 
 ###
@@ -65,4 +66,8 @@ output "destination_vault_arn" {
   # The ARN of the backup vault in the destination account is needed by
   # the source account to copy backups into it.
   value = module.destination.vault_arn
+}
+
+output "copy_recovery_point_role_arn" {
+  value = module.destination.copy_recovery_point_role_arn
 }
