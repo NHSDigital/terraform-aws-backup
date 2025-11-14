@@ -1,3 +1,20 @@
+variable "lambda_restore_to_rds_enable" {
+  description = "Flag to enable the restore-to-rds lambda."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_restore_to_rds_poll_interval_seconds" {
+  description = "Polling interval in seconds for RDS restore job status checks."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_restore_to_rds_max_wait_minutes" {
+  description = "Maximum number of minutes to wait for an RDS restore job to reach a terminal state before returning running status."
+  type        = number
+  default     = 10
+}
 variable "project_name" {
   description = "The name of the project this relates to."
   type        = string
@@ -455,8 +472,44 @@ variable "api_endpoint" {
   default     = ""
 }
 
+variable "lambda_copy_recovery_point_enable" {
+  description = "Flag to enable the copy recovery point lambda (copy recovery point from destination vault back to source)."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_copy_recovery_point_poll_interval_seconds" {
+  description = "Polling interval in seconds for copy job status checks."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_copy_recovery_point_max_wait_minutes" {
+  description = "Maximum number of minutes to wait for a copy job to reach a terminal state before returning running status."
+  type        = number
+  default     = 10
+}
+
+variable "lambda_copy_recovery_point_destination_vault_arn" {
+  description = "Destination vault ARN containing the recovery point to be copied back (the air-gapped vault)."
+  type        = string
+  default     = ""
+}
+
 variable "api_token" {
   description = "API token to authenticate with the API endpoint"
+  type        = string
+  default     = ""
+}
+
+variable "lambda_copy_recovery_point_source_vault_arn" {
+  description = "Source vault ARN to which the recovery point will be copied back."
+  type        = string
+  default     = ""
+}
+
+variable "lambda_copy_recovery_point_assume_role_arn" {
+  description = "ARN of role in destination account the lambda assumes to initiate the copy job (if required for cross-account)."
   type        = string
   default     = ""
 }
@@ -466,3 +519,40 @@ variable "destination_parameter_store_kms_key_arn" {
   type        = string
   default     = ""
 }
+
+variable "lambda_restore_to_s3_enable" {
+  description = "Enable the Lambda function to restore Parameter Store backups to S3."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_restore_to_s3_poll_interval_seconds" {
+  description = "Poll interval in seconds for checking the status of the restore job."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_restore_to_s3_max_wait_minutes" {
+  description = "Maximum wait time in minutes for the restore job to complete."
+  type        = number
+  default     = 5
+}
+
+variable "restore_state_machine_enable" {
+  description = "Enable creation of the restoration Step Functions state machine (copies recovery points, restores resources, optional validation)."
+  type        = bool
+  default     = false
+}
+
+variable "restore_state_machine_wait_seconds" {
+  description = "Number of seconds for Wait states between polling attempts (copy & restore)."
+  type        = number
+  default     = 30
+}
+
+variable "restore_state_machine_name_override" {
+  description = "Optional explicit name for the restoration state machine; defaults to prefix-based name if null."
+  type        = string
+  default     = null
+}
+
