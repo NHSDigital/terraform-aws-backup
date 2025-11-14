@@ -31,7 +31,8 @@ resource "aws_iam_role_policy" "restore_state_machine" {
         Resource = compact([
           try(aws_lambda_function.lambda_copy_recovery_point[0].arn, null),
           try(aws_lambda_function.lambda_restore_to_s3[0].arn, null),
-          try(aws_lambda_function.lambda_restore_to_rds[0].arn, null)
+          try(aws_lambda_function.lambda_restore_to_rds[0].arn, null),
+          try(aws_lambda_function.lambda_restore_to_aurora[0].arn, null)
         ])
       }
     ]
@@ -135,6 +136,11 @@ locals {
                   Variable = "$.target.type",
                   StringEquals = "RDS",
                   Next = "RestoreRDS"
+                },
+                {
+                  Variable = "$.target.type",
+                  StringEquals = "Aurora",
+                  Next = "RestoreAurora"
                 }
               ],
               Default = "UnknownTypeFail"
@@ -222,6 +228,49 @@ locals {
               },
               ResultPath = "$.restore_result",
               Next = "RDSOutcome"
+            },
+            RestoreAurora = {
+              Type = "Task",
+              Resource = "arn:aws:states:::lambda:invoke",
+              Parameters = {
+                FunctionName = try(aws_lambda_function.lambda_restore_to_aurora[0].arn, "")
+                Payload = {
+                  "recovery_point_arn.$" = "$.recovery_point_arn"
+                  "iam_role_arn.$" = "$.target.iam_role_arn"
+                  "db_cluster_identifier.$" = "$.target.db_cluster_identifier"
+                  "db_subnet_group_name.$" = "$.target.db_subnet_group_name"
+                  "vpc_security_group_ids.$" = "$.target.vpc_security_group_ids"
+                  "restore_metadata_overrides.$" = "$.target.restore_metadata_overrides"
+                }
+              },
+              ResultPath = "$.restore_result",
+              Next = "AuroraOutcome"
+            },
+            AuroraOutcome = {
+              Type = "Choice",
+              Choices = [
+                { Variable = "$.restore_result.Payload.body.finalStatus", StringEquals = "COMPLETED", Next = "SuccessPass" },
+                { Variable = "$.restore_result.Payload.body.finalStatus", StringEquals = "FAILED", Next = "RestoreFailed" },
+                { Variable = "$.restore_result.Payload.body.finalStatus", StringEquals = "ABORTED", Next = "RestoreFailed" }
+              ],
+              Default = "RestorePendingAurora"
+            },
+            RestorePendingAurora = {
+              Type = "Wait",
+              Seconds = var.restore_state_machine_wait_seconds,
+              Next = "PollAurora"
+            },
+            PollAurora = {
+              Type = "Task",
+              Resource = "arn:aws:states:::lambda:invoke",
+              Parameters = {
+                FunctionName = try(aws_lambda_function.lambda_restore_to_aurora[0].arn, "")
+                Payload = {
+                  "restore_job_id.$" = "$.restore_result.Payload.body.restoreJobId"
+                }
+              },
+              ResultPath = "$.restore_result",
+              Next = "AuroraOutcome"
             },
             SuccessPass = { Type = "Pass", End = true },
             RestoreFailed = { Type = "Fail", Error = "RestoreFailed", Cause = "Resource restore failed" },

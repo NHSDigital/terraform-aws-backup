@@ -556,3 +556,21 @@ variable "restore_state_machine_name_override" {
   default     = null
 }
 
+
+variable "lambda_restore_to_aurora_enable" {
+  description = "Flag to enable the restore-to-aurora lambda."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_restore_to_aurora_poll_interval_seconds" {
+  description = "Polling interval in seconds for Aurora restore job status checks."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_restore_to_aurora_max_wait_minutes" {
+  description = "Maximum number of minutes to wait for an Aurora restore job to reach a terminal state before returning running status."
+  type        = number
+  default     = 15
+}
