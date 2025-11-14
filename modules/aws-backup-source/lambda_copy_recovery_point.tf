@@ -47,8 +47,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda_copy_recovery_point" {
       {
         Action   = ["sts:AssumeRole"]
         Resource = var.lambda_copy_recovery_point_assume_role_arn == "" ? null : var.lambda_copy_recovery_point_assume_role_arn
-        Effect    = var.lambda_copy_recovery_point_assume_role_arn == "" ? "Allow" : "Allow"
-        Condition = var.lambda_copy_recovery_point_assume_role_arn == "" ? null : { StringEquals = { "aws:PrincipalArn" = var.lambda_copy_recovery_point_assume_role_arn } }
+        Effect    = "Allow"
       }
     ]
   })

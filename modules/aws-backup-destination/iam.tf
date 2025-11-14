@@ -51,7 +51,7 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
 			"backup:StartCopyJob"
 		]
 		# Recovery points originate from the source account; allow any recovery point ARN pattern for that account & any region used via var.region
-		resources = ["arn:aws:backup:${var.region}:${var.source_account_id}:recovery-point:*"]
+		resources = ["arn:aws:backup:${var.region}:${var.account_id}:recovery-point:*"]
 	}
 
 	# Describe copy job (no resource-level restriction per AWS docs)
