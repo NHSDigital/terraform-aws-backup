@@ -1,6 +1,6 @@
 #############################################
 # Cross-account role for copy-recovery-point
-# Created only when enable_cross_account_role_permissions = true
+# Created only when enable_cross_account_vault_access = true
 #############################################
 
 locals {
@@ -8,7 +8,7 @@ locals {
 }
 
 data "aws_iam_policy_document" "copy_recovery_point_assume" {
-	count = var.enable_cross_account_role_permissions ? 1 : 0
+	count = var.enable_cross_account_vault_access ? 1 : 0
 
 	statement {
 		effect = "Allow"
@@ -31,7 +31,7 @@ data "aws_iam_policy_document" "copy_recovery_point_assume" {
 }
 
 resource "aws_iam_role" "copy_recovery_point" {
-	count              = var.enable_cross_account_role_permissions ? 1 : 0
+	count              = var.enable_cross_account_vault_access ? 1 : 0
 	name               = local.copy_recovery_role_name
 	assume_role_policy = data.aws_iam_policy_document.copy_recovery_point_assume[0].json
 	description        = "Role assumed by source account lambda to start and describe AWS Backup copy jobs, also passed to AWS Backup service for execution"
@@ -42,7 +42,7 @@ resource "aws_iam_role" "copy_recovery_point" {
 }
 
 data "aws_iam_policy_document" "copy_recovery_point_permissions" {
-	count = var.enable_cross_account_role_permissions ? 1 : 0
+	count = var.enable_cross_account_vault_access ? 1 : 0
 
 	# Start copy job (resource-level supports recoveryPoint*)
 	statement {
@@ -75,7 +75,7 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
 }
 
 resource "aws_iam_role_policy" "copy_recovery_point_policy" {
-	count  = var.enable_cross_account_role_permissions ? 1 : 0
+	count  = var.enable_cross_account_vault_access ? 1 : 0
 	name   = "${local.copy_recovery_role_name}-policy"
 	role   = aws_iam_role.copy_recovery_point[0].id
 	policy = data.aws_iam_policy_document.copy_recovery_point_permissions[0].json
