@@ -56,14 +56,9 @@ resource "aws_iam_policy" "iam_policy_for_lambda_copy_recovery_point" {
         Effect   = "Allow"
       },
       {
-        Action   = ["sts:AssumeRole"]
-        Resource = var.lambda_copy_recovery_point_assume_role_arn == "" ? null : var.lambda_copy_recovery_point_assume_role_arn
-        Effect    = "Allow"
-      },
-      {
-        Action   = ["iam:PassRole"]
-        Resource = var.lambda_copy_recovery_point_assume_role_arn == "" ? null : var.lambda_copy_recovery_point_assume_role_arn
-        Effect   = "Allow"
+        Action = []
+        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/DO-NOT-USE"
+        Effect = "Deny"
       }
     ]
   })
@@ -91,7 +86,6 @@ resource "aws_lambda_function" "lambda_copy_recovery_point" {
       MAX_WAIT_MINUTES            = var.lambda_copy_recovery_point_max_wait_minutes
       DESTINATION_VAULT_ARN       = var.lambda_copy_recovery_point_destination_vault_arn != "" ? var.lambda_copy_recovery_point_destination_vault_arn : var.backup_copy_vault_arn
       SOURCE_VAULT_ARN            = var.lambda_copy_recovery_point_source_vault_arn != "" ? var.lambda_copy_recovery_point_source_vault_arn : aws_backup_vault.main.arn
-      ASSUME_ROLE_ARN             = var.lambda_copy_recovery_point_assume_role_arn
     }
   }
 }

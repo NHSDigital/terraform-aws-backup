@@ -43,33 +43,33 @@ def _parse_vault_name(vault_arn: str) -> str:
         raise ValueError("Unable to parse backup vault name from ARN")
 
 
+def _extract_account_id(arn: str | None) -> str | None:
+    if not arn or not arn.startswith("arn:"):
+        return None
+    try:
+        return arn.split(":")[4]
+    except Exception:
+        return None
+
+
 def _build_copy_job_params(recovery_point_arn: str, source_vault_arn: str, destination_vault_arn: str, assume_role_arn: str | None, context) -> dict:
-    return {
+    params = {
         "RecoveryPointArn": recovery_point_arn,
         "DestinationBackupVaultArn": destination_vault_arn,
         "SourceBackupVaultName": _parse_vault_name(source_vault_arn),
         "IdempotencyToken": context.aws_request_id,
-        **({"IamRoleArn": assume_role_arn} if assume_role_arn else {})
     }
+    # Only include IamRoleArn if role account matches recovery point account (source account)
+    rp_account = _extract_account_id(recovery_point_arn)
+    role_account = _extract_account_id(assume_role_arn)
+    if assume_role_arn and rp_account and role_account and rp_account == role_account:
+        params["IamRoleArn"] = assume_role_arn
+    return params
 
 
-def _get_backup_client(assume_role_arn: str | None):
-    """Return a backup client, assuming cross-account role if ARN supplied."""
-    if not assume_role_arn:
-        return _default_backup_client
-    try:
-        sts = boto3.client("sts")
-        resp = sts.assume_role(RoleArn=assume_role_arn, RoleSessionName="copy-recovery-point")
-        creds = resp["Credentials"]
-        return boto3.client(
-            "backup",
-            aws_access_key_id=creds["AccessKeyId"],
-            aws_secret_access_key=creds["SecretAccessKey"],
-            aws_session_token=creds["SessionToken"],
-        )
-    except ClientError as e:
-        logger.error(f"Failed to assume role {assume_role_arn}: {e}", exc_info=True)
-        raise
+def _get_backup_client(_assume_role_arn_unused: str | None):
+    # StartCopyJob must be invoked from source account; do not assume destination role.
+    return _default_backup_client
 
 
 def _start_copy_job(client, request_params: dict) -> dict:
