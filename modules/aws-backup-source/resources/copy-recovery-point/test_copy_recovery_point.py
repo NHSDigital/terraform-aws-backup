@@ -9,15 +9,15 @@ def test_build_copy_job_params_correct_mapping():
     source_vault_arn = "arn:aws:backup:eu-west-2:123456789012:backup-vault:source-vault"
     destination_vault_arn = "arn:aws:backup:eu-west-2:987654321098:backup-vault:dest-vault"
     assume_role_arn = "arn:aws:iam::987654321098:role/test-role"
-    
+
     params = crp._build_copy_job_params(
-        recovery_point_arn, 
-        source_vault_arn, 
-        destination_vault_arn, 
-        assume_role_arn, 
+        recovery_point_arn,
+        source_vault_arn,
+        destination_vault_arn,
+        assume_role_arn,
         Ctx()
     )
-    
+
     # Critical: DestinationBackupVaultArn should be the destination vault ARN
     assert params["DestinationBackupVaultArn"] == destination_vault_arn
     # SourceBackupVaultName should be parsed from source vault ARN
@@ -66,3 +66,8 @@ def test_wait_flag_applies_sleep_on_poll():
         resp = crp.lambda_handler(event, Ctx())
         sleep_mock.assert_called_with(30)
         assert resp['body']['copy_job_id'] == 'job-p' or resp['body']['state'] == 'RUNNING'
+
+def test_get_backup_client_uses_default_client():
+    # Should not attempt STS assume; returns module-level client
+    client = crp._get_backup_client('ignored')
+    assert client is crp._default_backup_client

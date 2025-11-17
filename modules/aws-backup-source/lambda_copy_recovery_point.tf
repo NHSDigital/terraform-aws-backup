@@ -39,7 +39,8 @@ resource "aws_iam_policy" "iam_policy_for_lambda_copy_recovery_point" {
         Action = [
           "backup:StartCopyJob",
           "backup:DescribeCopyJob",
-          "backup:ListRecoveryPointsByBackupVault"
+          "backup:ListRecoveryPointsByBackupVault",
+          "backup:ListBackupVaults"
         ]
         Resource = "*"
         Effect   = "Allow"
@@ -56,10 +57,13 @@ resource "aws_iam_policy" "iam_policy_for_lambda_copy_recovery_point" {
         Effect   = "Allow"
       },
       {
-        # No cross-account role assumption required; previous Assume/Pass removed.
-        # (Intentionally left without extra permissions.)
-        Action   = ["backup:ListBackupVaults"]
-        Resource = "*"
+        Action   = ["sts:AssumeRole"]
+        Resource = var.lambda_copy_recovery_point_assume_role_arn == "" ? null : var.lambda_copy_recovery_point_assume_role_arn
+        Effect    = "Allow"
+      },
+      {
+        Action   = ["iam:PassRole"]
+        Resource = var.lambda_copy_recovery_point_assume_role_arn == "" ? null : var.lambda_copy_recovery_point_assume_role_arn
         Effect   = "Allow"
       }
     ]
@@ -76,7 +80,7 @@ resource "aws_lambda_function" "lambda_copy_recovery_point" {
   count            = var.lambda_copy_recovery_point_enable ? 1 : 0
   function_name    = "${local.resource_name_prefix}_lambda-copy-recovery-point"
   role             = aws_iam_role.iam_for_lambda_copy_recovery_point[0].arn
-  handler          = "lambda_function.lambda_handler"
+  handler          = "copy_recovery_point.lambda_handler"
   runtime          = "python3.12"
   filename         = data.archive_file.lambda_copy_recovery_point_zip[0].output_path
   source_code_hash = data.archive_file.lambda_copy_recovery_point_zip[0].output_base64sha256
@@ -88,6 +92,8 @@ resource "aws_lambda_function" "lambda_copy_recovery_point" {
       MAX_WAIT_MINUTES            = var.lambda_copy_recovery_point_max_wait_minutes
       DESTINATION_VAULT_ARN       = var.lambda_copy_recovery_point_destination_vault_arn != "" ? var.lambda_copy_recovery_point_destination_vault_arn : var.backup_copy_vault_arn
       SOURCE_VAULT_ARN            = var.lambda_copy_recovery_point_source_vault_arn != "" ? var.lambda_copy_recovery_point_source_vault_arn : aws_backup_vault.main.arn
+      # Fallback to source backup service role if explicit cross-account role not provided
+      ASSUME_ROLE_ARN             = var.lambda_copy_recovery_point_assume_role_arn != "" ? var.lambda_copy_recovery_point_assume_role_arn : aws_iam_role.backup.arn
     }
   }
 }
