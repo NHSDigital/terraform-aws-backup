@@ -38,16 +38,22 @@ resource "aws_iam_role_policy_attachment" "s3_backup" {
 }
 
 # Cross-account copy permissions for AWS Backup service to write to destination vault
+locals {
+  # Filter out empty ARN values to avoid malformed inline policy documents
+  backup_vault_resource_arns = compact([var.backup_vault_arn, var.backup_copy_vault_arn])
+  kms_key_resource_arns      = compact([var.kms_key_arn, var.backup_copy_kms_key_arn])
+}
+
 resource "aws_iam_role_policy" "backup_cross_account_copy" {
-  name  = "${var.project_name}BackupCrossAccountCopyPolicy"
-  role  = aws_iam_role.backup.id
+  name = "${var.project_name}BackupCrossAccountCopyPolicy"
+  role = aws_iam_role.backup.id
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version   = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = [
+        Effect   = "Allow"
+        Action   = [
           "backup:CopyIntoBackupVault",
           "backup:DescribeRecoveryPoint",
           "backup:GetRecoveryPointRestoreMetadata",
@@ -58,33 +64,24 @@ resource "aws_iam_role_policy" "backup_cross_account_copy" {
           "backup:ListCopyJobs",
           "backup:DescribeCopyJob"
         ]
-        Resource = [
-          var.backup_vault_arn, # Source vault
-          var.backup_copy_vault_arn # Destination vault
-        ]
+        Resource = local.backup_vault_resource_arns
       },
       {
-        Effect = "Allow"
-        Action = [
+        Effect   = "Allow"
+        Action   = [
           "kms:Decrypt",
           "kms:DescribeKey"
         ]
-        Resource = [
-          var.kms_key_arn, # Source KMS key
-          var.backup_copy_kms_key_arn # Destination KMS key
-        ]
+        Resource = local.kms_key_resource_arns
       },
       {
-        Effect = "Allow"
-        Action = [
+        Effect   = "Allow"
+        Action   = [
           "kms:Encrypt",
           "kms:GenerateDataKey",
           "kms:CreateGrant"
         ]
-        Resource = [
-          var.kms_key_arn, # Source KMS key
-          var.backup_copy_kms_key_arn # Destination KMS key
-        ]
+        Resource = local.kms_key_resource_arns
         Condition = {
           StringLike = {
             "kms:ViaService" = "backup.*.amazonaws.com"
