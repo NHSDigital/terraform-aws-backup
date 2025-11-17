@@ -53,17 +53,15 @@ def _extract_account_id(arn: str | None) -> str | None:
 
 
 def _build_copy_job_params(recovery_point_arn: str, source_vault_arn: str, destination_vault_arn: str, assume_role_arn: str | None, context) -> dict:
+    if not assume_role_arn:
+        raise ValueError("IamRoleArn is required for StartCopyJob but ASSUME_ROLE_ARN was not set")
     params = {
         "RecoveryPointArn": recovery_point_arn,
         "DestinationBackupVaultArn": destination_vault_arn,
         "SourceBackupVaultName": _parse_vault_name(source_vault_arn),
         "IdempotencyToken": context.aws_request_id,
+        "IamRoleArn": assume_role_arn,
     }
-    # Only include IamRoleArn if role account matches recovery point account (source account)
-    rp_account = _extract_account_id(recovery_point_arn)
-    role_account = _extract_account_id(assume_role_arn)
-    if assume_role_arn and rp_account and role_account and rp_account == role_account:
-        params["IamRoleArn"] = assume_role_arn
     return params
 
 
