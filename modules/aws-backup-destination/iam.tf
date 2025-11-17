@@ -61,6 +61,43 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
 		resources = ["*"]
 	}
 
+	# AWS Backup service needs these permissions when executing the copy job
+	statement {
+		effect = "Allow"
+		actions = [
+			"backup:CopyIntoBackupVault",
+			"backup:DescribeRecoveryPoint",
+			"backup:GetRecoveryPointRestoreMetadata"
+		]
+		resources = ["*"]
+	}
+
+	# KMS permissions needed for cross-account encrypted backups
+	statement {
+		effect = "Allow"
+		actions = [
+			"kms:Decrypt",
+			"kms:DescribeKey"
+		]
+		resources = ["*"]
+	}
+
+	# KMS permissions for destination vault encryption
+	statement {
+		effect = "Allow"
+		actions = [
+			"kms:Encrypt",
+			"kms:GenerateDataKey",
+			"kms:CreateGrant"
+		]
+		resources = ["*"]
+		condition {
+			test     = "StringLike"
+			variable = "kms:ViaService"
+			values   = ["backup.${var.region}.amazonaws.com"]
+		}
+	}
+
 	# Pass this role to AWS Backup service when invoking StartCopyJob with IamRoleArn
 	statement {
 		effect = "Allow"

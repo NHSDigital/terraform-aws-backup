@@ -45,6 +45,14 @@ resource "aws_iam_policy" "iam_policy_for_lambda_copy_recovery_point" {
         Effect   = "Allow"
       },
       {
+        Action = [
+          "kms:DescribeKey",
+          "kms:Decrypt"
+        ]
+        Resource = "*"
+        Effect   = "Allow"
+      },
+      {
         Action   = ["sts:AssumeRole"]
         Resource = var.lambda_copy_recovery_point_assume_role_arn == "" ? null : var.lambda_copy_recovery_point_assume_role_arn
         Effect    = "Allow"
