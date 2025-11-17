@@ -14,6 +14,13 @@ variable "backup_copy_kms_key_arn" {
   description = "The ARN of the destination KMS key used for cross-account backup copy encryption."
   type        = string
   default     = ""
+  validation {
+    condition = var.backup_copy_kms_key_arn == "" || (
+      var.backup_copy_kms_key_arn != "" && 
+      var.backup_copy_vault_arn != ""
+    )
+    error_message = "When backup_copy_kms_key_arn is provided, backup_copy_vault_arn must also be provided for cross-account copy configuration."
+  }
 }
 variable "project_name" {
   description = "The name of the project this relates to."
@@ -94,12 +101,26 @@ variable "backup_copy_vault_arn" {
   description = "The ARN of the destination backup vault for cross-account backup copies."
   type        = string
   default     = ""
+  validation {
+    condition = var.backup_copy_vault_arn == "" || (
+      var.backup_copy_vault_arn != "" && 
+      var.backup_copy_vault_account_id != ""
+    )
+    error_message = "When backup_copy_vault_arn is provided, backup_copy_vault_account_id must also be provided."
+  }
 }
 
 variable "backup_copy_vault_account_id" {
   description = "The account id of the destination backup vault for allowing restores back into the source account."
   type        = string
   default     = ""
+  validation {
+    condition = var.backup_copy_vault_account_id == "" || (
+      var.backup_copy_vault_account_id != "" && 
+      var.backup_copy_vault_arn != ""
+    )
+    error_message = "When backup_copy_vault_account_id is provided, backup_copy_vault_arn must also be provided."
+  }
 }
 
 variable "backup_plan_config" {
