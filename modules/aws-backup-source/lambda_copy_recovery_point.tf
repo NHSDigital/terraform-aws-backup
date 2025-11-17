@@ -56,9 +56,11 @@ resource "aws_iam_policy" "iam_policy_for_lambda_copy_recovery_point" {
         Effect   = "Allow"
       },
       {
-        Action = []
-        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/DO-NOT-USE"
-        Effect = "Deny"
+        # No cross-account role assumption required; previous Assume/Pass removed.
+        # (Intentionally left without extra permissions.)
+        Action   = ["backup:ListBackupVaults"]
+        Resource = "*"
+        Effect   = "Allow"
       }
     ]
   })
