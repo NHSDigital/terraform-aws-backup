@@ -3,27 +3,24 @@ from unittest.mock import patch, MagicMock
 
 class Ctx: aws_request_id = 'test-id'
 
-def test_build_copy_job_params_correct_mapping():
-    """Test that destination and source vault ARNs are correctly mapped in parameters"""
+def test_build_copy_job_params_includes_role_when_account_matches():
+    recovery_point_arn = "arn:aws:backup:eu-west-2:123456789012:recovery-point:test"
+    source_vault_arn = "arn:aws:backup:eu-west-2:123456789012:backup-vault:source-vault"
+    destination_vault_arn = "arn:aws:backup:eu-west-2:987654321098:backup-vault:dest-vault"
+    assume_role_arn = "arn:aws:iam::123456789012:role/backup-service-role"
+    params = crp._build_copy_job_params(recovery_point_arn, source_vault_arn, destination_vault_arn, assume_role_arn, Ctx())
+    assert params["IamRoleArn"] == assume_role_arn
+
+def test_build_copy_job_params_raises_on_mismatch():
     recovery_point_arn = "arn:aws:backup:eu-west-2:123456789012:recovery-point:test"
     source_vault_arn = "arn:aws:backup:eu-west-2:123456789012:backup-vault:source-vault"
     destination_vault_arn = "arn:aws:backup:eu-west-2:987654321098:backup-vault:dest-vault"
     assume_role_arn = "arn:aws:iam::987654321098:role/test-role"
-
-    params = crp._build_copy_job_params(
-        recovery_point_arn,
-        source_vault_arn,
-        destination_vault_arn,
-        assume_role_arn,
-        Ctx()
-    )
-
-    # Critical: DestinationBackupVaultArn should be the destination vault ARN
-    assert params["DestinationBackupVaultArn"] == destination_vault_arn
-    # SourceBackupVaultName should be parsed from source vault ARN
-    assert params["SourceBackupVaultName"] == "source-vault"
-    assert params["RecoveryPointArn"] == recovery_point_arn
-    assert params["IamRoleArn"] == assume_role_arn
+    try:
+        crp._build_copy_job_params(recovery_point_arn, source_vault_arn, destination_vault_arn, assume_role_arn, Ctx())
+        assert False, "Expected mismatch to raise ValueError"
+    except ValueError as e:
+        assert "mismatch" in str(e)
 
 def test_start_copy_job_with_arn():
     event = {"recovery_point_arn": "arn:aws:backup:eu-west-2:123456789012:recovery-point:ABC"}

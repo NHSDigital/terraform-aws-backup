@@ -54,15 +54,22 @@ def _extract_account_id(arn: str | None) -> str | None:
 
 def _build_copy_job_params(recovery_point_arn: str, source_vault_arn: str, destination_vault_arn: str, assume_role_arn: str | None, context) -> dict:
     if not assume_role_arn or not assume_role_arn.strip():
-        raise ValueError("ASSUME_ROLE_ARN missing; export lambda_copy_recovery_point_assume_role_arn from destination module output copy_recovery_point_role_arn")
-    return {
+        raise ValueError("ASSUME_ROLE_ARN missing; expected source account backup service role or dedicated copy role")
+    rp_account = _extract_account_id(recovery_point_arn)
+    role_account = _extract_account_id(assume_role_arn)
+    if not rp_account or not role_account:
+        raise ValueError("Unable to extract account IDs for validation")
+    if rp_account != role_account:
+        raise ValueError("IamRoleArn account mismatch; role must reside in source account of recovery point")
+    params = {
         "RecoveryPointArn": recovery_point_arn,
         "DestinationBackupVaultArn": destination_vault_arn,
         "SourceBackupVaultName": _parse_vault_name(source_vault_arn),
         "IdempotencyToken": context.aws_request_id,
-        # Role lives in destination account; AWS Backup service assumes it during copy. Caller stays in source account.
         "IamRoleArn": assume_role_arn,
     }
+    logger.info(f"Built copy job params (rp_account={rp_account}, role_account={role_account})")
+    return params
 
 
 def _get_backup_client(_assume_role_arn_unused: str | None):
