@@ -36,3 +36,61 @@ resource "aws_iam_role_policy_attachment" "s3_backup" {
   policy_arn = "arn:aws:iam::aws:policy/AWSBackupServiceRolePolicyForS3Backup"
   role       = aws_iam_role.backup.name
 }
+
+# Cross-account copy permissions for AWS Backup service to write to destination vault
+resource "aws_iam_role_policy" "backup_cross_account_copy" {
+  name  = "${var.project_name}BackupCrossAccountCopyPolicy"
+  role  = aws_iam_role.backup.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "backup:CopyIntoBackupVault",
+          "backup:DescribeRecoveryPoint",
+          "backup:GetRecoveryPointRestoreMetadata",
+          "backup:ListRecoveryPointsByBackupVault",
+          "backup:StartCopyJob",
+          "backup:ListBackupVaults",
+          "backup:ListBackupJobs",
+          "backup:ListCopyJobs",
+          "backup:DescribeCopyJob"
+        ]
+        Resource = [
+          var.backup_vault_arn, # Source vault
+          var.backup_copy_vault_arn # Destination vault
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey"
+        ]
+        Resource = [
+          var.kms_key_arn, # Source KMS key
+          var.backup_copy_kms_key_arn # Destination KMS key
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Encrypt",
+          "kms:GenerateDataKey",
+          "kms:CreateGrant"
+        ]
+        Resource = [
+          var.kms_key_arn, # Source KMS key
+          var.backup_copy_kms_key_arn # Destination KMS key
+        ]
+        Condition = {
+          StringLike = {
+            "kms:ViaService" = "backup.*.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+}

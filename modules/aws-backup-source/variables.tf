@@ -1,3 +1,20 @@
+variable "backup_vault_arn" {
+  description = "The ARN of the source backup vault."
+  type        = string
+  default     = ""
+}
+
+variable "kms_key_arn" {
+  description = "The ARN of the source KMS key used for backup encryption."
+  type        = string
+  default     = ""
+}
+
+variable "backup_copy_kms_key_arn" {
+  description = "The ARN of the destination KMS key used for cross-account backup copy encryption."
+  type        = string
+  default     = ""
+}
 variable "project_name" {
   description = "The name of the project this relates to."
   type        = string
