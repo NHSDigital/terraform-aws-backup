@@ -57,7 +57,10 @@ resource "aws_iam_policy" "create_backup_vaults_policy" {
           "backup:TagResource",
           "backup:ListTags",
           "backup:PutBackupVaultAccessPolicy",
-          "backup:GetBackupVaultAccessPolicy"
+          "backup:GetBackupVaultAccessPolicy",
+          "backup:StartCopyJob",
+          "backup:DescribeCopyJob",
+          "backup:ListRecoveryPointsByBackupVault"
         ]
         Resource = "*"
       },
