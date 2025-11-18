@@ -16,11 +16,11 @@ WAIT_DELAY_SECONDS = 30  # single place to adjust the one-off wait introduced by
 
 
 def format_datetime(dte: Optional[dt.datetime|str]) -> str:
-    if dt is None:
+    if dte is None:
         return ""
-    if isinstance(dt, str):
-        return dt
-    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    if isinstance(dte, str):
+        return dte
+    return dte.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _http_status_for_state(state: str) -> int:
