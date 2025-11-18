@@ -44,16 +44,28 @@ resource "aws_iam_role" "copy_recovery_point" {
 data "aws_iam_policy_document" "copy_recovery_point_permissions" {
   count = var.enable_cross_account_vault_access ? 1 : 0
 
-  # AWS Backup service needs to copy FROM source account vault (when this role is passed to StartCopyJob)
+  # StartCopyJob when assumed by Lambda
   statement {
-    effect = "Allow"
-    actions = [
-      "backup:CopyFromBackupVault"
-    ]
-    resources = ["arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault/*"]
+    effect    = "Allow"
+    actions   = ["backup:StartCopyJob"]
+    resources = ["*"]
   }
 
-  # AWS Backup service needs to copy INTO destination account vault
+  # DescribeCopyJob when assumed by Lambda
+  statement {
+    effect    = "Allow"
+    actions   = ["backup:DescribeCopyJob"]
+    resources = ["*"]
+  }
+
+  # ListRecoveryPointsByBackupVault when assumed by Lambda
+  statement {
+    effect    = "Allow"
+    actions   = ["backup:ListRecoveryPointsByBackupVault"]
+    resources = ["*"]
+  }
+
+  # CopyIntoBackupVault for destination vault (AWS Backup service needs this)
   statement {
     effect = "Allow"
     actions = [
@@ -62,16 +74,7 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
     resources = ["arn:aws:backup:${var.region}:${var.account_id}:backup-vault/*"]
   }
 
-  # AWS Backup service needs to read source recovery point metadata
-  statement {
-    effect = "Allow"
-    actions = [
-      "backup:DescribeRecoveryPoint"
-    ]
-    resources = ["arn:aws:backup:${var.region}:${var.source_account_id}:recovery-point:*"]
-  }
-
-  # KMS permissions for destination vault encryption (AWS Backup service needs these)
+  # KMS permissions for destination vault encryption
   statement {
     effect = "Allow"
     actions = [
