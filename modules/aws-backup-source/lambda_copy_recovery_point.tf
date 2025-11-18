@@ -12,8 +12,8 @@ resource "aws_iam_role" "iam_for_lambda_copy_recovery_point" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
       Principal = { Service = "lambda.amazonaws.com" }
     }]
   })
@@ -27,6 +27,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda_copy_recovery_point" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid = "CloudWatchLogs"
         Action = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
@@ -36,18 +37,39 @@ resource "aws_iam_policy" "iam_policy_for_lambda_copy_recovery_point" {
         Effect   = "Allow"
       },
       {
+        Sid = "StartCopyJob"
         Action = [
-          "backup:StartCopyJob",
-          "backup:DescribeCopyJob",
+          "backup:StartCopyJob"
+        ]
+        Resource = "*"
+        Effect   = "Allow"
+      },
+      {
+        Sid = "DescribeCopyJob"
+        Action = [
+          "backup:DescribeCopyJob"
+        ]
+        Resource = "*"
+        Effect   = "Allow"
+      },
+      {
+        Sid = "ListRecoveryPoints"
+        Action = [
           "backup:ListRecoveryPointsByBackupVault"
         ]
         Resource = "*"
         Effect   = "Allow"
       },
       {
-        Action   = ["sts:AssumeRole"]
-        Resource = var.lambda_copy_recovery_point_assume_role_arn == "" ? null : var.lambda_copy_recovery_point_assume_role_arn
-        Effect    = "Allow"
+        Sid      = "PassRoleToBackupService"
+        Action   = ["iam:PassRole"]
+        Resource = var.lambda_copy_recovery_point_assume_role_arn
+        Effect   = "Allow"
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "backup.amazonaws.com"
+          }
+        }
       }
     ]
   })
@@ -71,11 +93,11 @@ resource "aws_lambda_function" "lambda_copy_recovery_point" {
 
   environment {
     variables = {
-      POLL_INTERVAL_SECONDS       = var.lambda_copy_recovery_point_poll_interval_seconds
-      MAX_WAIT_MINUTES            = var.lambda_copy_recovery_point_max_wait_minutes
-      DESTINATION_VAULT_ARN       = var.lambda_copy_recovery_point_destination_vault_arn != "" ? var.lambda_copy_recovery_point_destination_vault_arn : var.backup_copy_vault_arn
-      SOURCE_VAULT_ARN            = var.lambda_copy_recovery_point_source_vault_arn != "" ? var.lambda_copy_recovery_point_source_vault_arn : aws_backup_vault.main.arn
-      ASSUME_ROLE_ARN             = var.lambda_copy_recovery_point_assume_role_arn
+      POLL_INTERVAL_SECONDS = var.lambda_copy_recovery_point_poll_interval_seconds
+      MAX_WAIT_MINUTES      = var.lambda_copy_recovery_point_max_wait_minutes
+      DESTINATION_VAULT_ARN = var.lambda_copy_recovery_point_destination_vault_arn != "" ? var.lambda_copy_recovery_point_destination_vault_arn : var.backup_copy_vault_arn
+      SOURCE_VAULT_ARN      = var.lambda_copy_recovery_point_source_vault_arn != "" ? var.lambda_copy_recovery_point_source_vault_arn : aws_backup_vault.main.arn
+      ASSUME_ROLE_ARN       = var.lambda_copy_recovery_point_assume_role_arn
     }
   }
 }

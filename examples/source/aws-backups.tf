@@ -1,4 +1,4 @@
-provider  "aws" {
+provider "aws" {
   alias  = "source"
   region = "eu-west-2"
 }
@@ -20,10 +20,10 @@ data "aws_arn" "destination_vault_arn" {
 
 locals {
   # Adjust these as required
-  project_name = "my-shiny-project"
+  project_name     = "my-shiny-project"
   environment_name = "dev"
 
-  source_account_id = data.aws_caller_identity.current.account_id
+  source_account_id      = data.aws_caller_identity.current.account_id
   destination_account_id = data.aws_arn.destination_vault_arn.account
 }
 
@@ -31,7 +31,7 @@ locals {
 # S3 buckets with more refined access rules, which you may prefer to use.
 
 resource "aws_s3_bucket" "backup_reports" {
-  bucket_prefix        = "${local.project_name}-backup-reports"
+  bucket_prefix = "${local.project_name}-backup-reports"
 }
 
 # Now we have to configure access to the report bucket.
@@ -60,7 +60,7 @@ resource "aws_s3_bucket_policy" "backup_reports_policy" {
         Principal = {
           AWS = "arn:aws:iam::${local.source_account_id}:role/aws-service-role/reports.backup.amazonaws.com/AWSServiceRoleForBackupReports"
         },
-        Action = "s3:PutObject",
+        Action   = "s3:PutObject",
         Resource = "${aws_s3_bucket.backup_reports.arn}/*",
         Condition = {
           StringEquals = {
@@ -95,16 +95,16 @@ resource "aws_kms_key" "backup_notifications" {
         Principal = {
           AWS = "arn:aws:iam::${local.source_account_id}:root"
         }
-        Action = "kms:*"
+        Action   = "kms:*"
         Resource = "*"
       },
       {
-        Effect    = "Allow"
+        Effect = "Allow"
         Principal = {
           Service = "sns.amazonaws.com"
         }
-        Action    = ["kms:GenerateDataKey*", "kms:Decrypt"]
-        Resource  = "*"
+        Action   = ["kms:GenerateDataKey*", "kms:Decrypt"]
+        Resource = "*"
       },
       {
         Effect = "Allow"
@@ -123,81 +123,81 @@ resource "aws_kms_key" "backup_notifications" {
 module "source" {
   source = "../../modules/aws-backup-source"
 
-  backup_copy_vault_account_id       = local.destination_account_id
-  backup_copy_vault_arn              = data.aws_arn.destination_vault_arn.arn
-  environment_name                   = local.environment_name
-  bootstrap_kms_key_arn              = aws_kms_key.backup_notifications.arn
-  project_name                       = local.project_name
-  reports_bucket                     = aws_s3_bucket.backup_reports.bucket
-  terraform_role_arns                = [data.aws_caller_identity.current.arn]
+  backup_copy_vault_account_id = local.destination_account_id
+  backup_copy_vault_arn        = data.aws_arn.destination_vault_arn.arn
+  environment_name             = local.environment_name
+  bootstrap_kms_key_arn        = aws_kms_key.backup_notifications.arn
+  project_name                 = local.project_name
+  reports_bucket               = aws_s3_bucket.backup_reports.bucket
+  terraform_role_arns          = [data.aws_caller_identity.current.arn]
 
-  backup_plan_config                 = {
-                                        "compliance_resource_types": [
-                                          "S3"
-                                        ],
-                                        "rules": [
-                                          {
-                                            "copy_action": {
-                                              "delete_after": 4
-                                            },
-                                            "lifecycle": {
-                                              "delete_after": 2
-                                            },
-                                            "name": "daily_kept_for_2_days",
-                                            "schedule": "cron(0 0 * * ? *)"
-                                          }
-                                        ],
-                                        "selection_tag": "NHSE-Enable-Backup"
-                                        # The selection_tags are optional and can be used to
-                                        # provide fine grained resource selection with existing tagging
-                                        "selection_tags": [
-                                          {
-                                            "key": "Environment"
-                                            "value": "myenvironment"
-                                          }
-                                        ]
-                                      }
+  backup_plan_config = {
+    "compliance_resource_types" : [
+      "S3"
+    ],
+    "rules" : [
+      {
+        "copy_action" : {
+          "delete_after" : 4
+        },
+        "lifecycle" : {
+          "delete_after" : 2
+        },
+        "name" : "daily_kept_for_2_days",
+        "schedule" : "cron(0 0 * * ? *)"
+      }
+    ],
+    "selection_tag" : "NHSE-Enable-Backup"
+    # The selection_tags are optional and can be used to
+    # provide fine grained resource selection with existing tagging
+    "selection_tags" : [
+      {
+        "key" : "Environment"
+        "value" : "myenvironment"
+      }
+    ]
+  }
   # Note here that we need to explicitly disable DynamoDB and Aurora backups in the source account.
   # The default config in the module enables backups for all resource types.
-  backup_plan_config_dynamodb =  {
-                                        "compliance_resource_types": [
-                                          "DynamoDB"
-                                        ],
-                                        "rules": [
-                                        ],
-                                        "enable": false,
-                                        "selection_tag": "NHSE-Enable-Backup"
-                                      }
+  backup_plan_config_dynamodb = {
+    "compliance_resource_types" : [
+      "DynamoDB"
+    ],
+    "rules" : [
+    ],
+    "enable" : false,
+    "selection_tag" : "NHSE-Enable-Backup"
+  }
 
-  backup_plan_config_ebsvol =  {
-                                        "compliance_resource_types": [
-                                          "EBS"
-                                        ],
-                                        "rules": [
-                                        ],
-                                        "enable": false,
-                                        "selection_tag": "NHSE-Enable-Backup"
-                                      }
+  backup_plan_config_ebsvol = {
+    "compliance_resource_types" : [
+      "EBS"
+    ],
+    "rules" : [
+    ],
+    "enable" : false,
+    "selection_tag" : "NHSE-Enable-Backup"
+  }
 
-  backup_plan_config_aurora =  {
-                                        "compliance_resource_types": [
-                                          "Aurora"
-                                        ],
-                                        "rules": [
-                                        ],
-                                        "enable": false,
-                                        "selection_tag": "NHSE-Enable-Backup"
-                                      }
+  backup_plan_config_aurora = {
+    "compliance_resource_types" : [
+      "Aurora"
+    ],
+    "rules" : [
+    ],
+    "enable" : false,
+    "selection_tag" : "NHSE-Enable-Backup"
+  }
 
   backup_plan_config_parameter_store = {
-                                        "compliance_resource_types": [
-                                          "S3"
-                                        ],
-                                        "rules": [
-                                        ],
-                                        "enable": false,
-                                        "selection_tag": "NHSE-Enable-Backup"
-                                      }
+    "compliance_resource_types" : [
+      "S3"
+    ],
+    "rules" : [
+    ],
+    "enable" : false,
+    "selection_tag" : "NHSE-Enable-Backup"
+  }
 
   # Enable copy recovery point lambda and feed destination role ARN if provided
   lambda_copy_recovery_point_enable          = var.copy_recovery_point_role_arn != ""

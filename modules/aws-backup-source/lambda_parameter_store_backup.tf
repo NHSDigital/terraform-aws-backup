@@ -11,19 +11,19 @@ data "aws_iam_policy_document" "lambda_parameter_store_assume_role" {
 }
 
 data "aws_iam_policy_document" "lambda_parameter_store_backup_permissions" {
-  count = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  count   = var.backup_plan_config_parameter_store.enable ? 1 : 0
   version = "2012-10-17"
   statement {
-    effect    = "Allow"
-    actions   = [
+    effect = "Allow"
+    actions = [
       "iam:PassRole"
     ]
     resources = [aws_iam_role.iam_for_lambda_parameter_store_backup[0].arn]
   }
 
   statement {
-    effect    = "Allow"
-    actions   = [
+    effect = "Allow"
+    actions = [
       "ssm:DescribeParameters",
       "ssm:GetParametersByPath",
       "ssm:GetParameter",
@@ -34,24 +34,24 @@ data "aws_iam_policy_document" "lambda_parameter_store_backup_permissions" {
   }
 
   statement {
-    effect  = "Allow"
-    actions   = [
+    effect = "Allow"
+    actions = [
       "tag:GetResources",
     ]
     resources = ["*"]
   }
 
   statement {
-    effect  = "Allow"
-    actions   = [
+    effect = "Allow"
+    actions = [
       "kms:Encrypt",
     ]
     resources = ["*"]
   }
 
   statement {
-    effect    = "Allow"
-    actions   = [
+    effect = "Allow"
+    actions = [
       "s3:PutObject",
       "s3:PutObjectAcl",
       "s3:ListBucket"
@@ -63,8 +63,8 @@ data "aws_iam_policy_document" "lambda_parameter_store_backup_permissions" {
   }
 
   statement {
-    effect    = "Allow"
-    actions   = [
+    effect = "Allow"
+    actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents"
@@ -82,7 +82,7 @@ data "archive_file" "lambda_parameter_store_backup_zip" {
 
 
 resource "aws_s3_bucket" "parameter_store_backup_storage" {
-  count = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  count  = var.backup_plan_config_parameter_store.enable ? 1 : 0
   bucket = "${local.resource_name_prefix}-parameter-store-backup"
 
   tags = {
@@ -105,7 +105,7 @@ resource "aws_s3_bucket_versioning" "parameter_store_backup_versioning" {
 
 # The IAM role name is fixed as it is referenced in the KMS key policy in the backup destination account.
 resource "aws_iam_role" "iam_for_lambda_parameter_store_backup" {
-  count = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  count              = var.backup_plan_config_parameter_store.enable ? 1 : 0
   name               = "parameter_store_lambda_encryption_role"
   assume_role_policy = data.aws_iam_policy_document.lambda_parameter_store_assume_role[0].json
 }
@@ -137,7 +137,7 @@ resource "aws_lambda_function" "lambda_parameter_store_backup" {
 }
 
 resource "aws_cloudwatch_event_rule" "aws_backup_parameter_store_event_rule" {
-  count = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  count       = var.backup_plan_config_parameter_store.enable ? 1 : 0
   name        = "${local.resource_name_prefix}-parameter-store-backup-rule"
   description = "Triggers the Parameter Store Backup lambda."
 
@@ -158,7 +158,7 @@ resource "aws_lambda_permission" "lambda_parameter_store_allow_eventbridge" {
   function_name = aws_lambda_function.lambda_parameter_store_backup[0].function_name
   principal     = "events.amazonaws.com"
 
-  source_arn    = aws_cloudwatch_event_rule.aws_backup_parameter_store_event_rule[0].arn
+  source_arn = aws_cloudwatch_event_rule.aws_backup_parameter_store_event_rule[0].arn
 }
 
 resource "aws_cloudwatch_log_group" "parameter_store_backup" {

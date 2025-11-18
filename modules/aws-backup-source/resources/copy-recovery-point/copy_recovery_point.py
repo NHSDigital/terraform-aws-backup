@@ -43,33 +43,17 @@ def _parse_vault_name(vault_arn: str) -> str:
         raise ValueError("Unable to parse backup vault name from ARN")
 
 
-def _build_copy_job_params(recovery_point_arn: str, source_vault_arn: str, destination_vault_arn: str, assume_role_arn: str | None, context) -> dict:
+def _build_copy_job_params(recovery_point_arn: str, source_vault_arn: str, destination_vault_arn: str, iam_role_arn: str | None, context) -> dict:
     return {
         "RecoveryPointArn": recovery_point_arn,
-        "DestinationBackupVaultArn": source_vault_arn,
-        "SourceBackupVaultName": _parse_vault_name(destination_vault_arn),
+        "SourceBackupVaultName": _parse_vault_name(source_vault_arn),
+        "DestinationBackupVaultArn": destination_vault_arn,
         "IdempotencyToken": context.aws_request_id,
-        **({"IamRoleArn": assume_role_arn} if assume_role_arn else {})
+        **({"IamRoleArn": iam_role_arn} if iam_role_arn else {})
     }
 
 
-def _get_backup_client(assume_role_arn: str | None):
-    """Return a backup client, assuming cross-account role if ARN supplied."""
-    if not assume_role_arn:
-        return _default_backup_client
-    try:
-        sts = boto3.client("sts")
-        resp = sts.assume_role(RoleArn=assume_role_arn, RoleSessionName="copy-recovery-point")
-        creds = resp["Credentials"]
-        return boto3.client(
-            "backup",
-            aws_access_key_id=creds["AccessKeyId"],
-            aws_secret_access_key=creds["SecretAccessKey"],
-            aws_session_token=creds["SessionToken"],
-        )
-    except ClientError as e:
-        logger.error(f"Failed to assume role {assume_role_arn}: {e}", exc_info=True)
-        raise
+# Lambda uses own credentials; iam_role_arn passed to StartCopyJob for AWS Backup service to assume
 
 
 def _start_copy_job(client, request_params: dict) -> dict:
@@ -113,11 +97,11 @@ def lambda_handler(event, context):
 
     destination_vault_arn = os.environ.get("DESTINATION_VAULT_ARN")
     source_vault_arn = os.environ.get("SOURCE_VAULT_ARN")
-    assume_role_arn = os.environ.get("ASSUME_ROLE_ARN")
+    iam_role_arn = os.environ.get("ASSUME_ROLE_ARN")  # Role for AWS Backup service to assume
 
     wait_flag = bool(event.get("wait", False))
 
-    client = _get_backup_client(assume_role_arn)
+    client = _default_backup_client  # Lambda uses own credentials
 
     if copy_job_id:
         try:
@@ -146,7 +130,7 @@ def lambda_handler(event, context):
         }
 
     try:
-        params = _build_copy_job_params(recovery_point_arn, source_vault_arn, destination_vault_arn, assume_role_arn, context)
+        params = _build_copy_job_params(recovery_point_arn, source_vault_arn, destination_vault_arn, iam_role_arn, context)
         start_details = _start_copy_job(client, params)
         if wait_flag:
             logger.info(f"Wait flag set; sleeping {WAIT_DELAY_SECONDS}s before first status describe after start")

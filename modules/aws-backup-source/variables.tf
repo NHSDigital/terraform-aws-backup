@@ -365,8 +365,8 @@ variable "backup_plan_config_aurora" {
 variable "backup_plan_config_parameter_store" {
   description = "Configuration for backup plans with parameter store"
   type = object({
-    enable                 = bool
-    selection_tag          = string
+    enable              = bool
+    selection_tag       = string
     selection_tag_value = optional(string)
     selection_tags = optional(list(object({
       key   = optional(string)
