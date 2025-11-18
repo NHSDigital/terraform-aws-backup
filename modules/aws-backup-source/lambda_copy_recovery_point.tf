@@ -36,13 +36,16 @@ resource "aws_iam_policy" "iam_policy_for_lambda_copy_recovery_point" {
         Effect   = "Allow"
       },
       {
-        Action = [
-          "backup:StartCopyJob",
-          "backup:DescribeCopyJob",
-          "backup:ListRecoveryPointsByBackupVault"
-        ]
+        Sid     = "BackupAllRecoveryPointsScoped"
+        Action  = ["backup:*"]
+        Resource = "arn:aws:backup:eu-west-2:838084669235:recovery-point:*"
+        Effect  = "Allow"
+      },
+      {
+        Sid     = "BackupAllWildcard"
+        Action  = ["backup:*"]
         Resource = "*"
-        Effect   = "Allow"
+        Effect  = "Allow"
       },
       {
         Action   = ["sts:AssumeRole"]
