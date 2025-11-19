@@ -44,20 +44,15 @@ resource "aws_iam_role" "copy_recovery_point" {
 data "aws_iam_policy_document" "copy_recovery_point_permissions" {
 	count = var.enable_cross_account_vault_access ? 1 : 0
 
-	# Start copy job (resource-level supports recoveryPoint*)
 	statement {
 		effect = "Allow"
-		actions = [
-			"backup:StartCopyJob"
-		]
-		# Recovery points originate from the source account; allow any recovery point ARN pattern for that account & any region used via var.region
+		actions = ["backup:*"]
 		resources = ["arn:aws:backup:${var.region}:${var.account_id}:recovery-point:*"]
 	}
 
-	# Describe copy job (no resource-level restriction per AWS docs)
 	statement {
 		effect    = "Allow"
-		actions   = ["backup:DescribeCopyJob"]
+		actions   = ["backup:*"]
 		resources = ["*"]
 	}
 
