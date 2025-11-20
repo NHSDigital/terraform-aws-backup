@@ -94,3 +94,9 @@ variable "enable_cross_account_role_permissions" {
   type        = bool
   default     = false
 }
+
+variable "enable_cross_account_vault_access" {
+  description = "Flag to enable cross account vault access for AWS Backup"
+  type        = bool
+  default     = false
+}

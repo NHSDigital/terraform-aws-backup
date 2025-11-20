@@ -1,5 +1,27 @@
 # Changelog
 
+## [v1.4.1] (2025-11-13)
+
+### Features
+
+- Post release version lambda (#83)
+
+### Bug Fixes
+
+- Correct duplicate terraform module resource name (#97)
+
+## [v1.4.0] (2025-11-04)
+
+### Features
+
+- Add support for parameter store backup through S3 bucket restoration (#87)
+- Add vault name to the terraform module outputs (#80)
+
+### Bug Fixes
+
+- Correct documentation (#88)
+- Update documentation for covered services (#81)
+
 ## [v1.3.0] (2025-07-24)
 
 ### Features

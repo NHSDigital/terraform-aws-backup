@@ -1,0 +1,23 @@
+name: "CI/CD pull request"
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  check-version:
+    # Only enforce version bump on main branch pushes or version tag pushes
+    if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v')
+    name: "Check version"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Run Version Check
+        run: ./scripts/validate-version-to-latest-tag.sh modules/aws-backup-source/version
