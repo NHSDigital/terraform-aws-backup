@@ -54,15 +54,26 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
 		resources = ["arn:aws:backup:${var.region}:${var.account_id}:recovery-point:*"]
 	}
 
-	# Describe copy job (no resource-level restriction per AWS docs)
+	# Describe copy job (no resource-level restriction)
 	statement {
 		effect    = "Allow"
 		actions   = [
-      "backup:DescribeCopyJob",
+      "backup:DescribeCopyJob"
+    ]
+		resources = ["*"]
+	}
+
+	statement {
+		effect    = "Allow"
+		actions   = [
       "backup:CopyIntoBackupVault",
       "backup:CopyFromBackupVault"
     ]
-		resources = ["*"]
+		resources = [
+      "arn:aws:backup:${var.region}:${var.account_id}:recovery-point:*",
+      "arn:aws:backup:${var.region}:${var.account_id}:backup-vault:${aws_backup_vault.vault.name}",
+	    "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:*"
+    ]
 	}
 
 	# Pass this role to AWS Backup service when invoking StartCopyJob with IamRoleArn
@@ -90,4 +101,3 @@ output "copy_recovery_point_role_arn" {
 	value       = try(aws_iam_role.copy_recovery_point[0].arn, null)
 	depends_on  = [aws_iam_role.copy_recovery_point]
 }
-
