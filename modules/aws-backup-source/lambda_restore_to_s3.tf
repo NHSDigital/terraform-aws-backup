@@ -49,7 +49,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda_restore_to_s3" {
       },
       {
         Action = "iam:PassRole"
-        Resource = aws_iam_role.iam_for_lambda_restore_to_s3.arn
+        Resource = aws_iam_role.iam_for_lambda_restore_to_s3[0].arn
         Condition = {
           StringEquals = {
             "iam:PassedToService" : "backup.amazonaws.com"
