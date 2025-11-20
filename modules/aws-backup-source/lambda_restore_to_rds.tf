@@ -69,8 +69,8 @@ resource "aws_lambda_function" "lambda_restore_to_rds" {
   role             = aws_iam_role.iam_for_lambda_restore_to_rds[0].arn
   handler          = "restore_to_rds.lambda_handler"
   runtime          = "python3.12"
-  filename         = data.archive_file.lambda_restore_to_rds_zip.output_path
-  source_code_hash = data.archive_file.lambda_restore_to_rds_zip.output_base64sha256
+  filename         = data.archive_file.lambda_restore_to_rds_zip[0].output_path
+  source_code_hash = data.archive_file.lambda_restore_to_rds_zip[0].output_base64sha256
   timeout          = var.lambda_restore_to_rds_max_wait_minutes * 60
 
   environment {
