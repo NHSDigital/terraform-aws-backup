@@ -49,7 +49,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda_restore_to_s3" {
       },
       {
         Action = "iam:PassRole"
-        Resource = aws_iam_role.lambda_exec.arn
+        Resource = aws_iam_role.iam_for_lambda_restore_to_s3.arn
         Condition = {
           StringEquals = {
             "iam:PassedToService" : "backup.amazonaws.com"
@@ -75,8 +75,8 @@ resource "aws_lambda_function" "lambda_restore_to_s3" {
   role             = aws_iam_role.iam_for_lambda_restore_to_s3[0].arn
   handler          = "lambda_function.lambda_handler"
   runtime          = "python3.12"
-  filename         = data.archive_file.lambda_restore_to_s3_zip.output_path
-  source_code_hash = data.archive_file.lambda_restore_to_s3_zip.output_base64sha256
+  filename         = data.archive_file.lambda_restore_to_s3_zip[0].output_path
+  source_code_hash = data.archive_file.lambda_restore_to_s3_zip[0].output_base64sha256
   timeout          = var.lambda_restore_to_s3_max_wait_minutes * 60
 
   environment {
