@@ -79,11 +79,20 @@ def lambda_handler(event, context):
             }
         }
 
+    try:
+        iam_role_arn = os.environ.get('IAM_ROLE_ARN')
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': {
+                'message': f'Error retrieving IAM_ROLE_ARN from environment: {str(e)}'
+            }
+        }
+
     job_id_from_event = event.get('restore_job_id')
 
     destination_s3_bucket = event.get('destination_s3_bucket')
     recovery_point_arn = event.get('recovery_point_arn')
-    iam_role_arn = event.get('iam_role_arn')
     resource_type = 'S3'
 
     if job_id_from_event:
@@ -92,11 +101,11 @@ def lambda_handler(event, context):
     else:
         logger.info("Mode: START - Initiating new restore job.")
 
-        if not all([destination_s3_bucket, recovery_point_arn, iam_role_arn]):
+        if not all([destination_s3_bucket, recovery_point_arn]):
             return {
                 'statusCode': 400,
                 'body': {
-                    'message': 'Missing required parameters for starting a new job (destination_s3_bucket, recovery_point_arn, iam_role_arn).'
+                    'message': 'Missing required parameters for starting a new job (destination_s3_bucket, recovery_point_arn).'
                 }
             }
 
