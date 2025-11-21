@@ -574,3 +574,21 @@ variable "lambda_restore_to_aurora_max_wait_minutes" {
   type        = number
   default     = 15
 }
+
+variable "lambda_restore_to_dynamodb_enable" {
+  description = "Flag to enable the restore-to-dynamodb lambda."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_restore_to_dynamodb_poll_interval_seconds" {
+  description = "Polling interval in seconds for DynamoDB restore job status checks."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_restore_to_dynamodb_max_wait_minutes" {
+  description = "Maximum number of minutes to wait for a DynamoDB restore job to reach a terminal state before returning running status."
+  type        = number
+  default     = 10
+}
