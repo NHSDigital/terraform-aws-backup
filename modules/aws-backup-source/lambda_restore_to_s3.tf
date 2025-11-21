@@ -1,7 +1,7 @@
 data "archive_file" "lambda_restore_to_s3_zip" {
   count       = var.lambda_restore_to_s3_enable ? 1 : 0
   type        = "zip"
-  source_file = "${path.module}/resources/restore-to-s3/"
+  source_dir  = "${path.module}/resources/restore-to-s3/"
   output_path = "${path.module}/.terraform/archive_files/lambda_restore_to_s3.zip"
 }
 
