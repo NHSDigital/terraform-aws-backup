@@ -109,15 +109,10 @@ def lambda_handler(event, context):
                 }
             }
 
-        restore_metadata = {
-            'DestinationBucketName': destination_s3_bucket,
-            'ResourceType': resource_type
-        }
-
         try:
             start_response = backup_client.start_restore_job(
                 RecoveryPointArn=recovery_point_arn,
-                Metadata={'RestoreMetadata': json.dumps(restore_metadata)},
+                Metadata={'DestinationBucketName': destination_s3_bucket},
                 IamRoleArn=iam_role_arn,
                 IdempotencyToken=context.aws_request_id,
                 ResourceType=resource_type
