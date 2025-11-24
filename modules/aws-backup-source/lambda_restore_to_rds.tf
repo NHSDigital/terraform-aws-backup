@@ -45,7 +45,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda_restore_to_rds" {
       },
       {
         Action = "iam:PassRole"
-        Resource = aws_iam_role.iam_for_lambda_restore_to_rds[0].arn
+        Resource = aws_iam_role.backup.arn
         Condition = {
           StringEquals = {
             "iam:PassedToService" : "backup.amazonaws.com"
@@ -77,6 +77,7 @@ resource "aws_lambda_function" "lambda_restore_to_rds" {
     variables = {
       POLL_INTERVAL_SECONDS = var.lambda_restore_to_rds_poll_interval_seconds
       MAX_WAIT_MINUTES      = var.lambda_restore_to_rds_max_wait_minutes
+      IAM_ROLE_ARN          = aws_iam_role.backup.arn
     }
   }
 }

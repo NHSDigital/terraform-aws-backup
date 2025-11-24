@@ -1,14 +1,22 @@
+"""Lambda to start or monitor an AWS Backup RDS restore job.
+
+Modes:
+1. START: event supplies recovery_point_arn + db_instance_identifier (+ optional metadata) → starts restore.
+2. MONITOR: event supplies restore_job_id → polls until terminal state or timeout.
+
+Parallels restore_to_s3 implementation for consistency (env-driven IAM role, polling loop, unified response).
+"""
 import os
 import logging
 import boto3
 import time
-import traceback
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 backup_client = boto3.client('backup')
+sts_client = boto3.client('sts')
 
 FINAL_STATES = ['COMPLETED', 'FAILED', 'ABORTED']
 
@@ -62,18 +70,40 @@ def lambda_handler(event, context):
     # Start new restore job
     logger.info(f"Mode: START - Initiating new RDS restore job. Event: {event}")
     recovery_point_arn = event.get('recovery_point_arn')
-    iam_role_arn = event.get('iam_role_arn')
+    iam_role_arn = os.environ.get('IAM_ROLE_ARN')
     db_instance_identifier = event.get('db_instance_identifier')
     db_instance_class = event.get('db_instance_class')
     db_subnet_group_name = event.get('db_subnet_group_name')
     vpc_security_group_ids = event.get('vpc_security_group_ids')
     restore_metadata_overrides = event.get('restore_metadata_overrides', {})
 
-    if not all([recovery_point_arn, iam_role_arn, db_instance_identifier]):
+    if not all([recovery_point_arn, db_instance_identifier]):
         return {
             'statusCode': 400,
-            'body': {'message': 'Missing required parameters: recovery_point_arn, iam_role_arn, db_instance_identifier.'}
+            'body': {'message': 'Missing required parameters: recovery_point_arn, db_instance_identifier.'}
         }
+    if not iam_role_arn:
+        return {
+            'statusCode': 500,
+            'body': {'message': 'Configuration error: IAM_ROLE_ARN environment variable not set.'}
+        }
+
+    # Enforce same-account restore (recovery point copy expected beforehand)
+    try:
+        if recovery_point_arn:
+            rp_account_id = recovery_point_arn.split(':')[4]
+            caller_account_id = sts_client.get_caller_identity()['Account']
+            if rp_account_id != caller_account_id:
+                return {
+                    'statusCode': 400,
+                    'body': {
+                        'message': 'Recovery point account mismatch; copy to local vault via copy-recovery-point Lambda before RDS restore.',
+                        'recovery_point_account': rp_account_id,
+                        'lambda_account': caller_account_id
+                    }
+                }
+    except Exception as e:
+        logger.warning(f"Account validation skipped: {e}")
 
     # Build Metadata for RDS restore
     metadata = {
@@ -91,16 +121,21 @@ def lambda_handler(event, context):
     # Merge in any overrides
     metadata.update(restore_metadata_overrides)
 
+    copy_source_tags = event.get('copy_source_tags_to_restored_resource', False)
+
     try:
-        start_response = backup_client.start_restore_job(
-            RecoveryPointArn=recovery_point_arn,
-            Metadata=metadata,
-            IamRoleArn=iam_role_arn,
-            IdempotencyToken=context.aws_request_id,
-            ResourceType='RDS'
-        )
+        start_args = {
+            'RecoveryPointArn': recovery_point_arn,
+            'Metadata': metadata,
+            'IamRoleArn': iam_role_arn,
+            'IdempotencyToken': context.aws_request_id,
+            'ResourceType': 'RDS'
+        }
+        if isinstance(copy_source_tags, bool) and copy_source_tags:
+            start_args['CopySourceTagsToRestoredResource'] = True
+        start_response = backup_client.start_restore_job(**start_args)
         restore_job_id = start_response['RestoreJobId']
-        logger.info(f"Successfully started new RDS restore job: {restore_job_id}")
+        logger.info(f"Started RDS restore job: {restore_job_id}")
     except ClientError as e:
         error_message = f"Failed to start RDS restore job: {e.response['Error']['Message']}"
         logger.error(error_message, exc_info=True)
@@ -119,12 +154,17 @@ def _format_response(restore_job_id, final_status, final_details, max_wait_minut
     else:
         status_code = 202
         message = f'Restore job still running after max wait ({max_wait_minutes} mins). Final check status: {final_status}.'
+    completion_raw = final_details.get('CompletionDate', 'N/A')
+    if completion_raw == 'N/A':
+        completion_formatted = 'N/A'
+    else:
+        completion_formatted = completion_raw.isoformat() if hasattr(completion_raw, 'isoformat') else str(completion_raw)
     return {
         'statusCode': status_code,
         'body': {
             'message': message,
             'restoreJobId': restore_job_id,
             'finalStatus': final_status,
-            'completionDate': final_details.get('CompletionDate', 'N/A').isoformat() if 'CompletionDate' in final_details and final_details['CompletionDate'] != 'N/A' else 'N/A'
+            'completionDate': completion_formatted
         }
     }
