@@ -379,6 +379,73 @@ variable "backup_plan_config_aurora" {
   }
 }
 
+variable "backup_plan_config_rds" {
+  description = "Configuration for backup plans with RDS"
+  type = object({
+    enable                    = bool
+    selection_tag             = string
+    selection_tag_value       = optional(string)
+    selection_tags            = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
+    compliance_resource_types = list(string)
+    rules = optional(list(object({
+      name                     = string
+      schedule                 = string
+      completion_window        = optional(number)
+      enable_continuous_backup = optional(bool)
+      lifecycle = object({
+        delete_after       = number
+        cold_storage_after = optional(number)
+      })
+      copy_action = optional(object({
+        delete_after = optional(number)
+      }))
+    })))
+  })
+  default = {
+    enable                    = true
+    selection_tag             = "NHSE-Enable-Backup"
+    selection_tag_value       = "True"
+    selection_tags            = []
+    compliance_resource_types = ["RDS"]
+    rules = [
+      {
+        name     = "rds_daily_kept_5_weeks"
+        schedule = "cron(0 0 * * ? *)"
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "rds_weekly_kept_3_months"
+        schedule = "cron(0 1 ? * SUN *)"
+        lifecycle = {
+          delete_after = 90
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "rds_monthly_kept_7_years"
+        schedule = "cron(0 2 1  * ? *)"
+        lifecycle = {
+          cold_storage_after = 30
+          delete_after       = 2555
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      }
+    ]
+  }
+}
+
 variable "backup_plan_config_parameter_store" {
   description = "Configuration for backup plans with parameter store"
   type = object({
@@ -536,4 +603,59 @@ variable "lambda_restore_to_s3_max_wait_minutes" {
   description = "Maximum wait time in minutes for the restore job to complete."
   type        = number
   default     = 5
+}
+
+variable "restore_state_machine_enable" {
+  description = "Enable creation of the restoration Step Functions state machine (copies recovery points, restores resources, optional validation)."
+  type        = bool
+  default     = false
+}
+
+variable "restore_state_machine_wait_seconds" {
+  description = "Number of seconds for Wait states between polling attempts (copy & restore)."
+  type        = number
+  default     = 30
+}
+
+variable "restore_state_machine_name_override" {
+  description = "Optional explicit name for the restoration state machine; defaults to prefix-based name if null."
+  type        = string
+  default     = null
+}
+
+
+variable "lambda_restore_to_aurora_enable" {
+  description = "Flag to enable the restore-to-aurora lambda."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_restore_to_aurora_poll_interval_seconds" {
+  description = "Polling interval in seconds for Aurora restore job status checks."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_restore_to_aurora_max_wait_minutes" {
+  description = "Maximum number of minutes to wait for an Aurora restore job to reach a terminal state before returning running status."
+  type        = number
+  default     = 15
+}
+
+variable "lambda_restore_to_dynamodb_enable" {
+  description = "Flag to enable the restore-to-dynamodb lambda."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_restore_to_dynamodb_poll_interval_seconds" {
+  description = "Polling interval in seconds for DynamoDB restore job status checks."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_restore_to_dynamodb_max_wait_minutes" {
+  description = "Maximum number of minutes to wait for a DynamoDB restore job to reach a terminal state before returning running status."
+  type        = number
+  default     = 10
 }
