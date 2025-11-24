@@ -253,6 +253,43 @@ resource "aws_backup_framework" "aurora" {
   }
 }
 
+resource "aws_backup_framework" "rds" {
+  count = var.backup_plan_config_rds.enable ? 1 : 0
+  name        = replace("${local.resource_name_prefix}-rds-framework", "-", "_")
+  description = "${var.project_name} RDS Backup Framework"
+
+  control {
+    name = "BACKUP_RESOURCES_PROTECTED_BY_BACKUP_PLAN"
+    scope {
+      compliance_resource_types = var.backup_plan_config_rds.compliance_resource_types
+      tags = {
+        (var.backup_plan_config_rds.selection_tag) = var.backup_plan_config_rds.selection_tag_value != null ? var.backup_plan_config_rds.selection_tag_value : "True"
+      }
+    }
+  }
+
+  control {
+    name = "BACKUP_LAST_RECOVERY_POINT_CREATED"
+
+    input_parameter {
+      name  = "recoveryPointAgeUnit"
+      value = "days"
+    }
+
+    input_parameter {
+      name  = "recoveryPointAgeValue"
+      value = "1"
+    }
+
+    scope {
+      compliance_resource_types = var.backup_plan_config_rds.compliance_resource_types
+      tags = {
+        (var.backup_plan_config_rds.selection_tag) = var.backup_plan_config_rds.selection_tag_value != null ? var.backup_plan_config_rds.selection_tag_value : "True"
+      }
+    }
+  }
+}
+
 resource "aws_backup_framework" "parameter_store" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
   # must be underscores instead of dashes
