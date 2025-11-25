@@ -58,7 +58,9 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
 	statement {
 		effect    = "Allow"
 		actions   = [
-      "backup:DescribeCopyJob"
+      "backup:DescribeCopyJob",
+      "backup:ListRecoveryPointsByBackupVault",
+      "backup:ListCopyJobs"
     ]
 		resources = ["*"]
 	}
