@@ -40,7 +40,10 @@ data "aws_iam_policy_document" "vault_policy" {
 
       principals {
         type        = "AWS"
-        identifiers = ["arn:aws:iam::${var.backup_copy_vault_account_id}:root"]
+        identifiers = [
+          "arn:aws:iam::${var.backup_copy_vault_account_id}:root",
+          "arn:aws:iam::${var.backup_copy_vault_account_id}:role/${var.name_prefix}-copy-recovery-point"
+        ]
       }
     }
   }

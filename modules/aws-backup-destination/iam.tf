@@ -24,7 +24,10 @@ data "aws_iam_policy_document" "copy_recovery_point_assume" {
 		effect = "Allow"
 		principals {
 			type        = "Service"
-			identifiers = ["backup.amazonaws.com"]
+			identifiers = [
+        "backup.amazonaws.com",
+        "rds.amazonaws.com"
+      ]
 		}
 		actions = ["sts:AssumeRole"]
 	}
@@ -56,16 +59,26 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
 
 	# Describe copy job (no resource-level restriction)
 	statement {
+		sid      = "BackupServicePermissions"
 		effect    = "Allow"
 		actions   = [
+      "backup:StartCopyJob",
+      "backup:CopyIntoBackupVault",
       "backup:DescribeCopyJob",
+      "backup:DescribeBackupVault",
+      "backup:DescribeRecoveryPoint",
+      "backup:DescribeBackupJob",
+      "backup:GetBackupVaultAccessPolicy",
+      "backup:StopBackupJob",
       "backup:ListRecoveryPointsByBackupVault",
-      "backup:ListCopyJobs"
+      "backup:ListCopyJobs",
+      "backup:GetRecoveryPointRestoreMetadata"
     ]
 		resources = ["*"]
 	}
 
 	statement {
+		sid      = "CopyBackupPermissions"
 		effect    = "Allow"
 		actions   = [
       "backup:CopyIntoBackupVault",
@@ -78,8 +91,46 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
     ]
 	}
 
+	statement {
+		sid      = "RDSPermissions"
+		effect    = "Allow"
+		actions   = [
+      "rds:CopyDBSnapshot",
+      "rds:DescribeDBSnapshots",
+      "rds:ModifyDBSnapshotAttribute",
+      "rds:DescribeDBInstances",
+      "rds:DescribeDBClusters",
+      "rds:CopyDBClusterSnapshot",
+      "rds:DescribeDBClusterSnapshots"
+    ]
+		resources = [
+      "arn:aws:backup:${var.region}:${var.account_id}:recovery-point:*",
+      "arn:aws:backup:${var.region}:${var.account_id}:backup-vault:${aws_backup_vault.vault.name}",
+	    "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:*"
+    ]
+	}
+
+	statement {
+    sid      = "KMSPermissions"
+		effect    = "Allow"
+		actions   = [
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey",
+      "kms:CreateGrant",
+      "kms:RetireGrant",
+      "kms:ListGrants"
+    ]
+		resources = [
+      "arn:aws:kms:${var.region}:${var.account_id}:key/*"
+    ]
+	}
+
 	# Pass this role to AWS Backup service when invoking StartCopyJob with IamRoleArn
 	statement {
+    sid = "IAMPermissions"
 		effect = "Allow"
 		actions = ["iam:PassRole"]
 			resources = [aws_iam_role.copy_recovery_point[0].arn]
