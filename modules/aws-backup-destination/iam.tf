@@ -106,9 +106,14 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
       "rds:ListTagsForResource"
     ]
     resources = [
-      "arn:aws:backup:${var.region}:${var.account_id}:recovery-point:*",
-      "arn:aws:backup:${var.region}:${var.account_id}:backup-vault:${aws_backup_vault.vault.name}",
-      "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:*"
+      "arn:aws:rds:${var.region}:${var.account_id}:db:*",
+      "arn:aws:rds:${var.region}:${var.account_id}:snapshot:*",
+      "arn:aws:rds:${var.region}:${var.account_id}:cluster:*",
+      "arn:aws:rds:${var.region}:${var.account_id}:cluster-snapshot:*",
+      "arn:aws:rds:${var.region}:${var.source_account_id}:db:*",
+      "arn:aws:rds:${var.region}:${var.source_account_id}:snapshot:*",
+      "arn:aws:rds:${var.region}:${var.source_account_id}:cluster:*",
+      "arn:aws:rds:${var.region}:${var.source_account_id}:cluster-snapshot:*"
     ]
   }
 
