@@ -32,25 +32,43 @@ data "aws_iam_policy_document" "kms_key_policy" {
   }
 
   dynamic "statement" {
-    for_each = var.enable_cross_account_vault_access ? ["add_backup_access"] : []
+    for_each = var.enable_cross_account_vault_access ? ["allow_backup_key_ops"] : []
 
     content {
-      sid    = "AllowCrossAccountBackupAccess"
+      sid    = "AllowCrossAccountBackupKeyOperations"
       effect = "Allow"
       principals {
         type = "AWS"
         identifiers = [
-          "arn:aws:iam::${var.source_account_id}:root",
           try(aws_iam_role.copy_recovery_point[0].arn, ""),
           "arn:aws:iam::${var.source_account_id}:role/aws-service-role/backup.amazonaws.com/AWSServiceRoleForBackup"
         ]
       }
       actions = [
-        "kms:Decrypt",
-        "kms:DescribeKey",
         "kms:Encrypt",
-        "kms:GenerateDataKey*",
+        "kms:Decrypt",
         "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      resources = ["*"]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = var.enable_cross_account_vault_access ? ["allow_backup_grants"] : []
+
+    content {
+      sid    = "AllowCrossAccountBackupGrants"
+      effect = "Allow"
+      principals {
+        type = "AWS"
+        identifiers = [
+          try(aws_iam_role.copy_recovery_point[0].arn, ""),
+          "arn:aws:iam::${var.source_account_id}:role/aws-service-role/backup.amazonaws.com/AWSServiceRoleForBackup"
+        ]
+      }
+      actions = [
         "kms:CreateGrant"
       ]
       resources = ["*"]
