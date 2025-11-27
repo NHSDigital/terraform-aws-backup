@@ -101,12 +101,25 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
       "rds:DescribeDBInstances",
       "rds:DescribeDBClusters",
       "rds:CopyDBClusterSnapshot",
-      "rds:DescribeDBClusterSnapshots"
+      "rds:DescribeDBClusterSnapshots",
+      "rds:AddTagsToResource",
+      "rds:ListTagsForResource"
     ]
     resources = [
       "arn:aws:backup:${var.region}:${var.account_id}:recovery-point:*",
       "arn:aws:backup:${var.region}:${var.account_id}:backup-vault:${aws_backup_vault.vault.name}",
       "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:*"
+    ]
+  }
+
+  statement {
+    sid    = "BackupTagPermissions"
+    effect = "Allow"
+    actions = [
+      "backup:TagResource"
+    ]
+    resources = [
+      "arn:aws:backup:${var.region}:${var.account_id}:recovery-point:*"
     ]
   }
 

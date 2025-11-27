@@ -30,6 +30,37 @@ data "aws_iam_policy_document" "kms_key_policy" {
       resources = ["*"]
     }
   }
+
+  dynamic "statement" {
+    for_each = var.enable_cross_account_vault_access ? ["add_backup_access"] : []
+
+    content {
+      sid    = "AllowCrossAccountBackupAccess"
+      effect = "Allow"
+      principals {
+        type = "AWS"
+        identifiers = [
+          "arn:aws:iam::${var.source_account_id}:root",
+          try(aws_iam_role.copy_recovery_point[0].arn, ""),
+          "arn:aws:iam::${var.source_account_id}:role/aws-service-role/backup.amazonaws.com/AWSServiceRoleForBackup"
+        ]
+      }
+      actions = [
+        "kms:Decrypt",
+        "kms:DescribeKey",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:ReEncrypt*",
+        "kms:CreateGrant"
+      ]
+      resources = ["*"]
+      condition {
+        test     = "Bool"
+        variable = "kms:GrantIsForAWSResource"
+        values   = ["true"]
+      }
+    }
+  }
 }
 
 resource "aws_kms_key" "parameter_store_key" {
