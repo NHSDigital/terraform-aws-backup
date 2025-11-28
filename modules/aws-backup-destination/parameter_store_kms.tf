@@ -79,6 +79,52 @@ data "aws_iam_policy_document" "kms_key_policy" {
       }
     }
   }
+
+  # Additional explicit cross-account backup role permissions mirroring example policy structure
+  dynamic "statement" {
+    for_each = var.enable_cross_account_vault_access ? ["add_explicit_backup_key_ops"] : []
+    content {
+      sid    = "AllowCrossAccountBackupKeyOperationsExplicit"
+      effect = "Allow"
+      principals {
+        type = "AWS"
+        identifiers = [
+          try(aws_iam_role.copy_recovery_point[0].arn, ""),
+          "arn:aws:iam::${var.source_account_id}:role/aws-service-role/backup.amazonaws.com/AWSServiceRoleForBackup"
+        ]
+      }
+      actions = [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ]
+      resources = ["*"]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = var.enable_cross_account_vault_access ? ["add_explicit_backup_grants"] : []
+    content {
+      sid    = "AllowCrossAccountBackupGrantsExplicit"
+      effect = "Allow"
+      principals {
+        type = "AWS"
+        identifiers = [
+          try(aws_iam_role.copy_recovery_point[0].arn, ""),
+          "arn:aws:iam::${var.source_account_id}:role/aws-service-role/backup.amazonaws.com/AWSServiceRoleForBackup"
+        ]
+      }
+      actions = ["kms:CreateGrant"]
+      resources = ["*"]
+      condition {
+        test     = "Bool"
+        variable = "kms:GrantIsForAWSResource"
+        values   = ["true"]
+      }
+    }
+  }
 }
 
 resource "aws_kms_key" "parameter_store_key" {
