@@ -51,39 +51,39 @@ resource "aws_kms_key" "destination_backup_key" {
         Resource = "*"
       },
       {
-        Sid: "AllowCrossAccountBackupKeyOperations",
-        Effect: "Allow",
-        Principal: {
-          AWS: [
+        Sid       = "AllowCrossAccountBackupKeyOperations"
+        Effect    = "Allow"
+        Principal = {
+          AWS = [
             "arn:aws:iam::${local.destination_account_id}:role/${local.copy_recovery_role_name}",
             "arn:aws:iam::${local.source_account_id}:role/aws-service-role/backup.amazonaws.com/AWSServiceRoleForBackup"
           ]
-        },
-        Action: [
+        }
+        Action = [
           "kms:Encrypt",
           "kms:Decrypt",
           "kms:ReEncrypt*",
           "kms:GenerateDataKey*",
           "kms:DescribeKey"
-        ],
-        Resource: "*"
+        ]
+        Resource = "*"
       },
       {
-        Sid: "AllowCrossAccountBackupGrants",
-        Effect: "Allow",
-        Principal: {
-          AWS: [
+        Sid       = "AllowCrossAccountBackupGrants"
+        Effect    = "Allow"
+        Principal = {
+          AWS = [
             "arn:aws:iam::${local.destination_account_id}:role/${local.copy_recovery_role_name}",
             "arn:aws:iam::${local.source_account_id}:role/aws-service-role/backup.amazonaws.com/AWSServiceRoleForBackup"
           ]
-        },
-        Action: [
+        }
+        Action = [
           "kms:CreateGrant"
-        ],
-        Resource: "*",
-        Condition: {
-          Bool: {
-            "kms:GrantIsForAWSResource": "true"
+        ]
+        Resource  = "*"
+        Condition = {
+          Bool = {
+            "kms:GrantIsForAWSResource" = "true"
           }
         }
       }
