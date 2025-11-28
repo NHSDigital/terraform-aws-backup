@@ -72,7 +72,21 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
       "backup:StopBackupJob",
       "backup:ListRecoveryPointsByBackupVault",
       "backup:ListCopyJobs",
-      "backup:GetRecoveryPointRestoreMetadata"
+      "backup:GetRecoveryPointRestoreMetadata",
+      "backup:UpdateRecoveryPointLifecycle",
+      "backup:PutBackupVaultAccessPolicy",
+      "backup:ListRecoveryPointsByResource",
+      "backup:GetBackupPlan",
+      "backup:ListBackupJobs",
+      "backup:TagResource",
+      "backup:UntagResource",
+      "backup:ListTags",
+      "backup:ListBackupVaults",
+      "backup:CreateBackupVault",
+      "backup:GetBackupVaultNotifications",
+      "backup:PutBackupVaultNotifications",
+      "backup:DescribeProtectedResource",
+      "backup:ListProtectedResources"
     ]
     resources = ["*"]
   }
@@ -87,7 +101,19 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
     resources = [
       "arn:aws:backup:${var.region}:${var.account_id}:recovery-point:*",
       "arn:aws:backup:${var.region}:${var.account_id}:backup-vault:${aws_backup_vault.vault.name}",
-      "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:*"
+      "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:*",
+      "arn:aws:rds:${var.region}:${var.account_id}:*",
+      "arn:aws:rds:${var.region}:${var.source_account_id}:*",
+      "arn:aws:s3:${var.region}:${var.account_id}:*",
+      "arn:aws:s3:${var.region}:${var.source_account_id}:*",
+      "arn:aws:dynamodb:${var.region}:${var.account_id}:table/*",
+      "arn:aws:dynamodb:${var.region}:${var.source_account_id}:table/*",
+      "arn:aws:ec2:${var.region}:${var.account_id}:volume/*",
+      "arn:aws:ec2:${var.region}:${var.source_account_id}:volume/*",
+      "arn:aws:ec2:${var.region}:${var.account_id}:snapshot/*",
+      "arn:aws:ec2:${var.region}:${var.source_account_id}:snapshot/*",
+      "arn:aws:efs:${var.region}:${var.account_id}:file-system/*",
+      "arn:aws:efs:${var.region}:${var.source_account_id}:file-system/*"
     ]
   }
 
