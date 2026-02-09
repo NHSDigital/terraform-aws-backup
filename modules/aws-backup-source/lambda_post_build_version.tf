@@ -17,16 +17,16 @@ resource "aws_iam_role" "iam_for_lambda_post_build_version" {
 data "aws_iam_policy_document" "lambda_post_build_version_permissions" {
   version = "2012-10-17"
   statement {
-    effect    = "Allow"
-    actions   = [
+    effect = "Allow"
+    actions = [
       "iam:PassRole"
     ]
     resources = [aws_iam_role.iam_for_lambda_post_build_version.arn]
   }
 
   statement {
-    effect    = "Allow"
-    actions   = [
+    effect = "Allow"
+    actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents"
@@ -73,10 +73,10 @@ resource "aws_cloudwatch_event_rule" "aws_backup_post_build_version_event_rule" 
   description = "Triggers the lambda on successful AWS Backup job completion."
 
   event_pattern = jsonencode({
-    "source": ["aws.backup"],
-    "detail-type": ["Backup Job State Change"],
-    "detail": {
-      "state": ["COMPLETED"]
+    "source" : ["aws.backup"],
+    "detail-type" : ["Backup Job State Change"],
+    "detail" : {
+      "state" : ["COMPLETED"]
     }
   })
 }
@@ -93,7 +93,7 @@ resource "aws_lambda_permission" "post_build_allow_eventbridge" {
   function_name = aws_lambda_function.lambda_post_build_version.function_name
   principal     = "events.amazonaws.com"
 
-  source_arn    = aws_cloudwatch_event_rule.aws_backup_post_build_version_event_rule.arn
+  source_arn = aws_cloudwatch_event_rule.aws_backup_post_build_version_event_rule.arn
 }
 
 resource "aws_cloudwatch_log_group" "post_build_version_logs" {

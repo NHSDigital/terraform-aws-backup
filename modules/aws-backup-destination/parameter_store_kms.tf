@@ -1,6 +1,6 @@
 data "aws_iam_policy_document" "kms_key_policy" {
   statement {
-    sid = "Enable IAM User Permissions"
+    sid    = "Enable IAM User Permissions"
     effect = "Allow"
     principals {
       type        = "AWS"
@@ -14,10 +14,10 @@ data "aws_iam_policy_document" "kms_key_policy" {
     for_each = var.enable_cross_account_role_permissions ? ["add_statement"] : []
 
     content {
-      sid = "Allow Lambda Role from Source Account to Use Key"
+      sid    = "Allow Lambda Role from Source Account to Use Key"
       effect = "Allow"
       principals {
-        type = "AWS"
+        type        = "AWS"
         identifiers = ["arn:aws:iam::${var.source_account_id}:role/parameter_store_lambda_encryption_role"]
       }
       actions = [
@@ -39,7 +39,7 @@ resource "aws_kms_key" "parameter_store_key" {
 }
 
 resource "aws_kms_alias" "parameter_store_alias" {
-  name          = "alias/parameter-store-backup-key"
+  name          = var.name_prefix != null ? "alias/${var.name_prefix}-parameter-store-backup-key" : "alias/${var.source_account_name}-parameter-store-backup-key"
   target_key_id = aws_kms_key.parameter_store_key.key_id
 }
 

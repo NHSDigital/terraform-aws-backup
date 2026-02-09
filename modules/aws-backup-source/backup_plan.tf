@@ -27,6 +27,10 @@ resource "aws_backup_plan" "default" {
       }
     }
   }
+
+  tags = {
+    "environment_name" = var.environment_name
+  }
 }
 
 # this backup plan shouldn't include a continous backup rule as it isn't supported for DynamoDB
@@ -125,7 +129,7 @@ resource "aws_backup_plan" "aurora" {
 
 resource "aws_backup_plan" "parameter_store" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
-  name = "${local.resource_name_prefix}-ps-plan"
+  name  = "${local.resource_name_prefix}-ps-plan"
 
   dynamic "rule" {
     for_each = var.backup_plan_config_parameter_store.rules
