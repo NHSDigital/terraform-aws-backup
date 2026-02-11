@@ -7,11 +7,12 @@ resource "aws_backup_plan" "default" {
       recovery_point_tags = {
         backup_rule_name = rule.value.name
       }
-      rule_name                = rule.value.name
-      target_vault_name        = aws_backup_vault.main.name
-      schedule                 = rule.value.schedule
-      completion_window        = rule.value.completion_window
-      enable_continuous_backup = rule.value.enable_continuous_backup != null ? rule.value.enable_continuous_backup : null
+      rule_name                                    = rule.value.name
+      target_vault_name                            = aws_backup_vault.main.name
+      target_logically_air_gapped_backup_vault_arn = var.enable_logically_air_gapped_vault ? aws_backup_logically_air_gapped_vault.main[0].arn : null
+      schedule                                     = rule.value.schedule
+      completion_window                            = rule.value.completion_window
+      enable_continuous_backup                     = rule.value.enable_continuous_backup != null ? rule.value.enable_continuous_backup : null
       lifecycle {
         delete_after       = rule.value.lifecycle.delete_after != null ? rule.value.lifecycle.delete_after : null
         cold_storage_after = rule.value.lifecycle.cold_storage_after != null ? rule.value.lifecycle.cold_storage_after : null
@@ -40,10 +41,11 @@ resource "aws_backup_plan" "dynamodb" {
       recovery_point_tags = {
         backup_rule_name = rule.value.name
       }
-      rule_name         = rule.value.name
-      target_vault_name = aws_backup_vault.main.name
-      schedule          = rule.value.schedule
-      completion_window = rule.value.completion_window
+      rule_name                                    = rule.value.name
+      target_vault_name                            = aws_backup_vault.main.name
+      target_logically_air_gapped_backup_vault_arn = var.enable_logically_air_gapped_vault ? aws_backup_logically_air_gapped_vault.main[0].arn : null
+      schedule                                     = rule.value.schedule
+      completion_window                            = rule.value.completion_window
       lifecycle {
         delete_after       = rule.value.lifecycle.delete_after != null ? rule.value.lifecycle.delete_after : null
         cold_storage_after = rule.value.lifecycle.cold_storage_after != null ? rule.value.lifecycle.cold_storage_after : null
@@ -71,9 +73,10 @@ resource "aws_backup_plan" "ebsvol" {
       recovery_point_tags = {
         backup_rule_name = rule.value.name
       }
-      rule_name         = rule.value.name
-      target_vault_name = aws_backup_vault.main.name
-      schedule          = rule.value.schedule
+      rule_name                                    = rule.value.name
+      target_vault_name                            = aws_backup_vault.main.name
+      target_logically_air_gapped_backup_vault_arn = var.enable_logically_air_gapped_vault ? aws_backup_logically_air_gapped_vault.main[0].arn : null
+      schedule                                     = rule.value.schedule
       lifecycle {
         delete_after       = rule.value.lifecycle.delete_after != null ? rule.value.lifecycle.delete_after : null
         cold_storage_after = rule.value.lifecycle.cold_storage_after != null ? rule.value.lifecycle.cold_storage_after : null
@@ -102,9 +105,10 @@ resource "aws_backup_plan" "aurora" {
       recovery_point_tags = {
         backup_rule_name = rule.value.name
       }
-      rule_name         = rule.value.name
-      target_vault_name = aws_backup_vault.main.name
-      schedule          = rule.value.schedule
+      rule_name                                    = rule.value.name
+      target_vault_name                            = aws_backup_vault.main.name
+      target_logically_air_gapped_backup_vault_arn = var.enable_logically_air_gapped_vault ? aws_backup_logically_air_gapped_vault.main[0].arn : null
+      schedule                                     = rule.value.schedule
       lifecycle {
         delete_after       = rule.value.lifecycle.delete_after != null ? rule.value.lifecycle.delete_after : null
         cold_storage_after = rule.value.lifecycle.cold_storage_after != null ? rule.value.lifecycle.cold_storage_after : null
@@ -125,7 +129,7 @@ resource "aws_backup_plan" "aurora" {
 
 resource "aws_backup_plan" "parameter_store" {
   count = var.backup_plan_config_parameter_store.enable ? 1 : 0
-  name = "${local.resource_name_prefix}-ps-plan"
+  name  = "${local.resource_name_prefix}-ps-plan"
 
   dynamic "rule" {
     for_each = var.backup_plan_config_parameter_store.rules
@@ -133,11 +137,12 @@ resource "aws_backup_plan" "parameter_store" {
       recovery_point_tags = {
         backup_rule_name = rule.value.name
       }
-      rule_name                = rule.value.name
-      target_vault_name        = aws_backup_vault.main.name
-      schedule                 = rule.value.schedule
-      completion_window        = rule.value.completion_window
-      enable_continuous_backup = rule.value.enable_continuous_backup != null ? rule.value.enable_continuous_backup : null
+      rule_name                                    = rule.value.name
+      target_vault_name                            = aws_backup_vault.main.name
+      target_logically_air_gapped_backup_vault_arn = var.enable_logically_air_gapped_vault ? aws_backup_logically_air_gapped_vault.main[0].arn : null
+      schedule                                     = rule.value.schedule
+      completion_window                            = rule.value.completion_window
+      enable_continuous_backup                     = rule.value.enable_continuous_backup != null ? rule.value.enable_continuous_backup : null
       lifecycle {
         delete_after       = rule.value.lifecycle.delete_after
         cold_storage_after = rule.value.lifecycle.cold_storage_after
