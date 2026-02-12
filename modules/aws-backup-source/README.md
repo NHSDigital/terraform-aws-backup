@@ -99,5 +99,11 @@ No modules.
 
 ## Outputs
 
-No outputs.
+| Name                            | Description              |
+|---------------------------------| -------------------------|
+| backup_role_arn                 | ARN of the of the backup role |
+| backup_vault_arn                | ARN of the of the Backup Vault |
+| backup_vault_name               | Name of the of the Backup Vault |
+| logically_air_gapped_vault_arn  | ARN of the of the Logically Air-gapped Vault |
+| logically_air_gapped_vault_name | Name of the of the Logically Air-gapped Vault |
 <!-- END_TF_DOCS -->

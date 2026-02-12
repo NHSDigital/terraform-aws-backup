@@ -13,12 +13,12 @@ output "backup_vault_name" {
   description = "Name of the of the Backup Vault"
 }
 
-output "backup_vault_lag_arn" {
+output "logically_air_gapped_vault_arn" {
   value       = var.enable_logically_air_gapped_vault ? aws_backup_logically_air_gapped_vault.main[0].arn : null
   description = "ARN of the of the Logically Air-gapped Vault"
 }
 
-output "backup_vault_lag_name" {
+output "logically_air_gapped_vault_name" {
   value       = var.enable_logically_air_gapped_vault ? aws_backup_logically_air_gapped_vault.main[0].name : null
   description = "Name of the of the Logically Air-gapped Vault"
 }
