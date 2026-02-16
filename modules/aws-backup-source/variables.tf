@@ -307,6 +307,7 @@ variable "backup_plan_config_aurora" {
   type = object({
     enable                    = bool
     selection_tag             = string
+    selection_tag_value       = optional(string)
     compliance_resource_types = list(string)
     restore_testing_overrides = optional(string)
     rules = optional(list(object({
