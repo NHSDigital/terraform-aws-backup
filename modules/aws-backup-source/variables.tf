@@ -1,102 +1,523 @@
-data "aws_iam_policy_document" "lambda_post_build_version_assume_role" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-    actions = ["sts:AssumeRole"]
-  }
+variable "project_name" {
+  description = "The name of the project this relates to."
+  type        = string
 }
 
-resource "aws_iam_role" "iam_for_lambda_post_build_version" {
-  name               = "${var.name_prefix}_iam_for_lambda_post_build_version"
-  assume_role_policy = data.aws_iam_policy_document.lambda_post_build_version_assume_role.json
+variable "environment_name" {
+  description = "The name of the environment where AWS Backup is configured."
+  type        = string
 }
 
-data "aws_iam_policy_document" "lambda_post_build_version_permissions" {
-  version = "2012-10-17"
-  statement {
-    effect    = "Allow"
-    actions   = [
-      "iam:PassRole"
-    ]
-    resources = [aws_iam_role.iam_for_lambda_post_build_version.arn]
-  }
-
-  statement {
-    effect    = "Allow"
-    actions   = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ]
-    resources = ["arn:aws:logs:*:*:*"]
-  }
+variable "notifications_target_email_address" {
+  description = "The email address to which backup notifications will be sent via SNS."
+  type        = string
+  default     = ""
 }
 
-locals {
-  module_version = file("${path.module}/version")
+variable "bootstrap_kms_key_arn" {
+  description = "The ARN of the bootstrap KMS key used for encryption at rest of the SNS topic."
+  type        = string
 }
 
-resource "aws_iam_role_policy" "lambda_post_build_version_iam_permissions" {
-  name   = "${var.name_prefix}_lambda_post_build_version_iam_permissions_policy"
-  role   = aws_iam_role.iam_for_lambda_post_build_version.id
-  policy = data.aws_iam_policy_document.lambda_post_build_version_permissions.json
+variable "reports_bucket" {
+  description = "Bucket to drop backup reports into"
+  type        = string
 }
 
-data "archive_file" "lambda_post_build_version_zip" {
-  type        = "zip"
-  source_dir  = "${path.module}/resources/post_build_version/"
-  output_path = "${path.module}/.terraform/archive_files/lambda_post_build_version.zip"
+variable "terraform_role_arn" {
+  description = "ARN of Terraform role used to deploy to account (deprecated, please swap to terraform_role_arns)"
+  type        = string
+  default     = ""
 }
 
-resource "aws_lambda_function" "lambda_post_build_version" {
-  filename         = data.archive_file.lambda_post_build_version_zip.output_path
-  source_code_hash = data.archive_file.lambda_post_build_version_zip.output_base64sha256
-  function_name    = "${var.name_prefix}-post_build_version"
-  role             = aws_iam_role.iam_for_lambda_post_build_version.arn
-  handler          = "post_build_version.lambda_handler"
-  runtime          = "python3.12"
-  environment {
-    variables = {
-      AWS_ACCOUNT_ID = data.aws_caller_identity.current.account_id
-      MODULE_VERSION = local.module_version
-      API_ENDPOINT   = var.api_endpoint
-      API_TOKEN      = var.api_token
-    }
-  }
+variable "terraform_role_arns" {
+  description = "ARN of Terraform roles used to deploy to account, defaults to caller arn if list is empty"
+  type        = list(string)
+  default     = []
 }
 
-resource "aws_cloudwatch_event_rule" "aws_backup_post_build_version_event_rule" {
-  name        = "${var.name_prefix}-post-build-version-rule"
-  description = "Triggers the lambda on successful AWS Backup job completion."
+variable "deletion_allowed_principal_arns" {
+  description = "List of ARNs of principals allowed to delete backups."
+  type        = list(string)
+  default     = null
+  nullable    = true
+}
 
-  event_pattern = jsonencode({
-    "source": ["aws.backup"],
-    "detail-type": ["Backup Job State Change"],
-    "detail": {
-      "state": ["COMPLETED"]
-    }
+variable "restore_testing_plan_algorithm" {
+  description = "Algorithm of the Recovery Selection Point"
+  type        = string
+  default     = "LATEST_WITHIN_WINDOW"
+}
+
+variable "restore_testing_plan_start_window" {
+  description = "Start window from the scheduled time during which the test should start"
+  type        = number
+  default     = 1
+}
+
+variable "restore_testing_plan_scheduled_expression" {
+  description = "Scheduled Expression of Recovery Selection Point"
+  type        = string
+  default     = "cron(0 1 ? * SUN *)"
+}
+
+variable "restore_testing_plan_recovery_point_types" {
+  description = "Recovery Point Types"
+  type        = list(string)
+  default     = ["SNAPSHOT"]
+}
+
+variable "restore_testing_plan_selection_window_days" {
+  description = "Selection window days"
+  type        = number
+  default     = 7
+}
+
+variable "backup_copy_vault_arn" {
+  description = "The ARN of the destination backup vault for cross-account backup copies."
+  type        = string
+  default     = ""
+}
+
+variable "backup_copy_vault_account_id" {
+  description = "The account id of the destination backup vault for allowing restores back into the source account."
+  type        = string
+  default     = ""
+}
+
+variable "backup_plan_config" {
+  description = "Configuration for backup plans"
+  type = object({
+    selection_tag       = string
+    selection_tag_value = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
+    compliance_resource_types = list(string)
+    rules = list(object({
+      name                     = string
+      schedule                 = string
+      completion_window        = optional(number)
+      enable_continuous_backup = optional(bool)
+      lifecycle = object({
+        delete_after       = optional(number)
+        cold_storage_after = optional(number)
+      })
+      copy_action = optional(object({
+        delete_after = optional(number)
+      }))
+    }))
   })
+  default = {
+    selection_tag             = "BackupLocal"
+    selection_tag_value       = "True"
+    selection_tags            = []
+    compliance_resource_types = ["S3"]
+    rules = [
+      {
+        name     = "daily_kept_5_weeks"
+        schedule = "cron(0 0 * * ? *)"
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "weekly_kept_3_months"
+        schedule = "cron(0 1 ? * SUN *)"
+        lifecycle = {
+          delete_after = 90
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "monthly_kept_7_years"
+        schedule = "cron(0 2 1  * ? *)"
+        lifecycle = {
+          cold_storage_after = 30
+          delete_after       = 2555
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name                     = "point_in_time_recovery"
+        schedule                 = "cron(0 5 * * ? *)"
+        enable_continuous_backup = true
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      }
+    ]
+  }
 }
 
-resource "aws_cloudwatch_event_target" "lambda_post_build_version_target" {
-  rule      = aws_cloudwatch_event_rule.aws_backup_post_build_version_event_rule.name
-  arn       = aws_lambda_function.lambda_post_build_version.arn
-  target_id = "${var.name_prefix}postBuildVersionLambdaTarget"
+variable "backup_plan_config_dynamodb" {
+  description = "Configuration for backup plans with dynamodb"
+  type = object({
+    enable              = bool
+    selection_tag       = string
+    selection_tag_value = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
+    compliance_resource_types = list(string)
+    rules = optional(list(object({
+      name                     = string
+      schedule                 = string
+      completion_window        = optional(number)
+      enable_continuous_backup = optional(bool)
+      lifecycle = object({
+        delete_after       = number
+        cold_storage_after = optional(number)
+      })
+      copy_action = optional(object({
+        delete_after = optional(number)
+      }))
+    })))
+  })
+  default = {
+    enable                    = true
+    selection_tag             = "BackupDynamoDB"
+    selection_tag_value       = "True"
+    selection_tags            = []
+    compliance_resource_types = ["DynamoDB"]
+    rules = [
+      {
+        name     = "dynamodb_daily_kept_5_weeks"
+        schedule = "cron(0 0 * * ? *)"
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "dynamodb_weekly_kept_3_months"
+        schedule = "cron(0 1 ? * SUN *)"
+        lifecycle = {
+          delete_after = 90
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "dynamodb_monthly_kept_7_years"
+        schedule = "cron(0 2 1  * ? *)"
+        lifecycle = {
+          cold_storage_after = 30
+          delete_after       = 2555
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      }
+    ]
+  }
 }
 
-resource "aws_lambda_permission" "post_build_allow_eventbridge" {
-  statement_id  = "${var.name_prefix}AllowExecutionFromEventbridge"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.lambda_post_build_version.function_name
-  principal     = "events.amazonaws.com"
-
-  source_arn    = aws_cloudwatch_event_rule.aws_backup_post_build_version_event_rule.arn
+variable "name_prefix" {
+  description = "Name prefix for vault resources"
+  type        = string
+  default     = null
+  validation {
+    condition     = var.name_prefix == null || can(regex("^[^0-9]*$", var.name_prefix))
+    error_message = "The name_prefix must not contain any numbers."
+  }
 }
 
-resource "aws_cloudwatch_log_group" "post_build_version_logs" {
-  name              = "/aws/lambda/${var.name_prefix}-post_build_version"
-  retention_in_days = 30
+variable "backup_plan_config_ebsvol" {
+  description = "Configuration for backup plans with EBS"
+  type = object({
+    enable              = bool
+    selection_tag       = string
+    selection_tag_value = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
+    compliance_resource_types = list(string)
+    rules = optional(list(object({
+      name                     = string
+      schedule                 = string
+      enable_continuous_backup = optional(bool)
+      lifecycle = object({
+        delete_after       = number
+        cold_storage_after = optional(number)
+      })
+      copy_action = optional(object({
+        delete_after = optional(number)
+      }))
+    })))
+  })
+  default = {
+    enable                    = true
+    selection_tag             = "BackupEBSVol"
+    compliance_resource_types = ["EBS"]
+    rules = [
+      {
+        name     = "ebsvol_daily_kept_5_weeks"
+        schedule = "cron(0 0 * * ? *)"
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "ebsvol_weekly_kept_3_months"
+        schedule = "cron(0 1 ? * SUN *)"
+        lifecycle = {
+          delete_after = 90
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "ebsvol_monthly_kept_7_years"
+        schedule = "cron(0 2 1  * ? *)"
+        lifecycle = {
+          cold_storage_after = 30
+          delete_after       = 2555
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      }
+    ]
+  }
+}
+
+variable "backup_plan_config_aurora" {
+  description = "Configuration for backup plans with aurora"
+  type = object({
+    enable                    = bool
+    selection_tag             = string
+    selection_tag_value       = optional(string)
+    compliance_resource_types = list(string)
+    restore_testing_overrides = optional(string)
+    rules = optional(list(object({
+      name                     = string
+      schedule                 = string
+      enable_continuous_backup = optional(bool)
+      lifecycle = object({
+        delete_after       = number
+        cold_storage_after = optional(number)
+      })
+      copy_action = optional(object({
+        delete_after = optional(number)
+      }))
+    })))
+  })
+  default = {
+    enable                    = true
+    selection_tag             = "BackupAurora"
+    compliance_resource_types = ["Aurora"]
+    rules = [
+      {
+        name     = "aurora_daily_kept_5_weeks"
+        schedule = "cron(0 0 * * ? *)"
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "aurora_weekly_kept_3_months"
+        schedule = "cron(0 1 ? * SUN *)"
+        lifecycle = {
+          delete_after = 90
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "aurora_monthly_kept_7_years"
+        schedule = "cron(0 2 1  * ? *)"
+        lifecycle = {
+          cold_storage_after = 30
+          delete_after       = 2555
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      }
+    ]
+  }
+}
+
+variable "backup_plan_config_parameter_store" {
+  description = "Configuration for backup plans with parameter store"
+  type = object({
+    enable                 = bool
+    selection_tag          = string
+    selection_tag_value = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
+    lambda_backup_cron     = optional(string)
+    lambda_timeout_seconds = optional(number)
+    rules = optional(list(object({
+      name                     = string
+      schedule                 = string
+      completion_window        = optional(number)
+      enable_continuous_backup = optional(bool)
+      lifecycle = object({
+        delete_after       = number
+        cold_storage_after = optional(number)
+      })
+      copy_action = optional(object({
+        delete_after = optional(number)
+      }))
+    })))
+  })
+  default = {
+    enable                    = true
+    selection_tag             = "BackupParameterStore"
+    selection_tag_value       = "True"
+    selection_tags            = []
+    lambda_backup_cron        = "0 6 * * ? *"
+    lambda_timeout_seconds    = 300
+    compliance_resource_types = ["S3"]
+    rules = [
+      {
+        name     = "daily_kept_5_weeks"
+        schedule = "cron(0 0 * * ? *)"
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "weekly_kept_3_months"
+        schedule = "cron(0 1 ? * SUN *)"
+        lifecycle = {
+          delete_after = 90
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name     = "monthly_kept_7_years"
+        schedule = "cron(0 2 1  * ? *)"
+        lifecycle = {
+          cold_storage_after = 30
+          delete_after       = 2555
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      },
+      {
+        name                     = "point_in_time_recovery"
+        schedule                 = "cron(0 5 * * ? *)"
+        enable_continuous_backup = true
+        lifecycle = {
+          delete_after = 35
+        }
+        copy_action = {
+          delete_after = 365
+        }
+      }
+    ]
+  }
+}
+
+variable "iam_role_permissions_boundary" {
+  description = "Optional permissions boundary ARN for backup role"
+  type        = string
+  default     = "" # Empty by default
+}
+
+variable "api_endpoint" {
+  description = "API endpoint to send post build version notifications to"
+  type        = string
+  default     = ""
+}
+
+variable "lambda_copy_recovery_point_enable" {
+  description = "Flag to enable the copy recovery point lambda (copy recovery point from destination vault back to source)."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_copy_recovery_point_poll_interval_seconds" {
+  description = "Polling interval in seconds for copy job status checks."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_copy_recovery_point_max_wait_minutes" {
+  description = "Maximum number of minutes to wait for a copy job to reach a terminal state before returning running status."
+  type        = number
+  default     = 10
+}
+
+variable "lambda_copy_recovery_point_destination_vault_arn" {
+  description = "Destination vault ARN containing the recovery point to be copied back (the air-gapped vault)."
+  type        = string
+  default     = ""
+}
+
+variable "api_token" {
+  description = "API token to authenticate with the API endpoint"
+  type        = string
+  default     = ""
+}
+
+variable "lambda_copy_recovery_point_source_vault_arn" {
+  description = "Source vault ARN to which the recovery point will be copied back."
+  type        = string
+  default     = ""
+}
+
+variable "lambda_copy_recovery_point_assume_role_arn" {
+  description = "ARN of role in destination account the lambda assumes to initiate the copy job (if required for cross-account)."
+  type        = string
+  default     = ""
+}
+
+variable "destination_parameter_store_kms_key_arn" {
+  description = "The ARN of the KMS key used to encrypt Parameter Store backups."
+  type        = string
+  default     = ""
+}
+
+variable "lambda_restore_to_s3_enable" {
+  description = "Enable the Lambda function to restore Parameter Store backups to S3."
+  type        = bool
+  default     = false
+}
+
+variable "lambda_restore_to_s3_poll_interval_seconds" {
+  description = "Poll interval in seconds for checking the status of the restore job."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_restore_to_s3_max_wait_minutes" {
+  description = "Maximum wait time in minutes for the restore job to complete."
+  type        = number
+  default     = 5
 }
