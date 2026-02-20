@@ -7,7 +7,7 @@ Use this skill when the user adds or modifies backup plans, tag-based resource s
 Resources are included in backups via tags. Tags are **case-sensitive** — only `True` matches.
 
 | Service | Default Selection Tag | Default Value | Config Variable |
-|---------|----------------------|---------------|-----------------|
+| --------- | ---------------------- | --------------- | ----------------- |
 | S3/RDS (default plan) | `BackupLocal` | `True` | `backup_plan_config` |
 | DynamoDB | `BackupDynamoDB` | `True` | `backup_plan_config_dynamodb` |
 | EBS | `BackupEBSVol` | `True` | `backup_plan_config_ebsvol` |

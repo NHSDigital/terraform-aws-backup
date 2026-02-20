@@ -5,7 +5,7 @@ Use this skill when the user works on Python Lambda code under `modules/aws-back
 ## Lambda Catalogue
 
 | Lambda | File | Purpose | Trigger | Has Tests |
-|--------|------|---------|---------|-----------|
+| -------- | ------ | --------- | --------- | ----------- |
 | **parameter-store-backup** | `parameter_store_backup.py` | Discovers SSM parameters by tag, encrypts with KMS, writes to S3 as `.encrypted` files | EventBridge cron (default: `0 6 * * ? *`) | Yes (4 cases) |
 | **copy-recovery-point** | `copy_recovery_point.py` + `lambda_function.py` | Copies recovery points from destination vault back to source vault cross-account via STS | EventBridge / manual | Yes (4 cases) |
 | **restore-to-s3** | `restore_to_s3.py` | Starts/monitors AWS Backup S3 recovery point restore jobs | Step Function / manual | Yes (6 cases, uses `botocore.stub.Stubber`) |
