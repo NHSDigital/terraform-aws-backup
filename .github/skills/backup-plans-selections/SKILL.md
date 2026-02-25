@@ -1,3 +1,8 @@
+---
+name: backup-plans-selections
+description: Knowledge for managing AWS Backup plans, tag-based resource selections, retention lifecycle, and compliance framework checks.
+---
+
 # Backup Plans & Selections
 
 Use this skill when the user adds or modifies backup plans, tag-based resource selections, retention lifecycle, or compliance framework checks.

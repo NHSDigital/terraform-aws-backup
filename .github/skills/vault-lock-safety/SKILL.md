@@ -1,3 +1,8 @@
+---
+name: vault-lock-safety
+description: Knowledge for safely managing AWS Backup vault lock modes, compliance settings, and immutability configuration.
+---
+
 # Vault Lock Safety
 
 Use this skill when the user mentions vault lock, compliance mode, immutability settings, or vault protection.

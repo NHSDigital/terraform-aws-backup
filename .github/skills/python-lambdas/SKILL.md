@@ -1,3 +1,8 @@
+---
+name: python-lambdas
+description: Knowledge for working with Python Lambda functions under the aws-backup-source module, including catalogue, conventions, testing, and deployment details.
+---
+
 # Python Lambdas
 
 Use this skill when the user works on Python Lambda code under `modules/aws-backup-source/resources/`.
