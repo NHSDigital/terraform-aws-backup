@@ -1,5 +1,5 @@
 resource "aws_sns_topic" "backup" {
-  count             = var.notifications_target_email_address != "" ? 1 : 0
+  count             = local.enable_sns_notifications ? 1 : 0
   name              = "${var.name_prefix}-notifications"
   kms_master_key_id = var.bootstrap_kms_key_arn
   policy            = data.aws_iam_policy_document.allow_backup_to_sns.json
@@ -31,5 +31,13 @@ resource "aws_sns_topic_subscription" "aws_backup_notifications_email_target" {
   topic_arn     = aws_sns_topic.backup[0].arn
   protocol      = "email"
   endpoint      = var.notifications_target_email_address
+  filter_policy = jsonencode({ "State" : [{ "anything-but" : "COMPLETED" }] })
+}
+
+resource "aws_sns_topic_subscription" "aws_backup_notifications_targets" {
+  for_each      = var.notifications_targets
+  topic_arn     = aws_sns_topic.backup[0].arn
+  protocol      = each.value.protocol
+  endpoint      = each.value.endpoint
   filter_policy = jsonencode({ "State" : [{ "anything-but" : "COMPLETED" }] })
 }

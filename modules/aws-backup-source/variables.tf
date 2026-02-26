@@ -9,9 +9,19 @@ variable "environment_name" {
 }
 
 variable "notifications_target_email_address" {
-  description = "The email address to which backup notifications will be sent via SNS."
+  description = "The email address to which backup notifications will be sent via SNS"
   type        = string
   default     = ""
+}
+
+
+variable "notifications_targets" {
+  description = "Additional endpoints to send backup notifications via SNS"
+  type = map(object({
+    protocol = string
+    endpoint = string
+  }))
+  default = {}
 }
 
 variable "bootstrap_kms_key_arn" {
