@@ -36,7 +36,7 @@ Copilot loads skills automatically when relevant to a task. Always-on rules stay
 
 ## Terraform Conventions
 
-- Required versions (per module README): Terraform `>= 1.9.5`; Providers: `aws ~> 5`, `awscc ~> 1`, `archive ~> 2`.
+- Required versions (per module README): Terraform `>= 1.14.6`; Providers: `aws ~> 5`, `awscc ~> 1`, `archive ~> 2`.
 - Preserve input variable schemas; don't rename existing variables unless part of an approved refactor.
 - Avoid expanding resource surface unless justified (e.g., adding new AWS service support). If adding service support: supply docs update + variable toggles + tests.
 - Run `terraform fmt` implicitly (do not show command unless asked). Keep modules deterministic.
