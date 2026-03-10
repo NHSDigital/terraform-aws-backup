@@ -48,7 +48,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda_restore_to_s3" {
         Effect   = "Allow"
       },
       {
-        Action = "iam:PassRole"
+        Action   = "iam:PassRole"
         Resource = aws_iam_role.backup.arn
         Condition = {
           StringEquals = {
@@ -69,8 +69,8 @@ resource "aws_iam_role_policy_attachment" "lambda_restore_to_s3_policy_attach" {
 
 
 resource "aws_lambda_function" "lambda_restore_to_s3" {
-  count            = var.lambda_restore_to_s3_enable ? 1 : 0
-  function_name    = "${local.resource_name_prefix}_lambda-restore-to-s3"
+  count         = var.lambda_restore_to_s3_enable ? 1 : 0
+  function_name = "${local.resource_name_prefix}_lambda-restore-to-s3"
 
   role             = aws_iam_role.iam_for_lambda_restore_to_s3[0].arn
   handler          = "restore_to_s3.lambda_handler"
@@ -83,7 +83,7 @@ resource "aws_lambda_function" "lambda_restore_to_s3" {
     variables = {
       POLL_INTERVAL_SECONDS = var.lambda_restore_to_s3_poll_interval_seconds
       MAX_WAIT_MINUTES      = var.lambda_restore_to_s3_max_wait_minutes
-      IAM_ROLE_ARN         = aws_iam_role.backup.arn
+      IAM_ROLE_ARN          = aws_iam_role.backup.arn
     }
   }
 }
