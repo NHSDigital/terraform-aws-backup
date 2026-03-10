@@ -21,17 +21,17 @@ module "test_aws_backup" {
 ## Requirements
 
 | Name | Version |
-| ------ | --------- |
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.14.6 |
+| --- | --- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9.5 |
 | <a name="requirement_archive"></a> [archive](#requirement\_archive) | ~> 2 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5 |
 | <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | ~> 1 |
 
 ## Providers
 
 | Name | Version |
-| ------ | --------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6 |
+| --- | --- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5 |
 | <a name="provider_awscc"></a> [awscc](#provider\_awscc) | ~> 1 |
 
 ## Modules
@@ -41,7 +41,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-| ------ | ------ |
+| --- | --- |
 | [aws_backup_framework.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_framework) | resource |
 | [aws_backup_framework.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_framework) | resource |
 | [aws_backup_plan.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_plan) | resource |
