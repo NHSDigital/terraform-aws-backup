@@ -10,23 +10,23 @@ data "aws_iam_policy_document" "lambda_post_build_version_assume_role" {
 }
 
 resource "aws_iam_role" "iam_for_lambda_post_build_version" {
-  name               = "${var.name_prefix}_iam_for_lambda_post_build_version"
+  name               = "${local.resource_name_prefix}_iam_for_lambda_post_build_version"
   assume_role_policy = data.aws_iam_policy_document.lambda_post_build_version_assume_role.json
 }
 
 data "aws_iam_policy_document" "lambda_post_build_version_permissions" {
   version = "2012-10-17"
   statement {
-    effect    = "Allow"
-    actions   = [
+    effect = "Allow"
+    actions = [
       "iam:PassRole"
     ]
     resources = [aws_iam_role.iam_for_lambda_post_build_version.arn]
   }
 
   statement {
-    effect    = "Allow"
-    actions   = [
+    effect = "Allow"
+    actions = [
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents"
@@ -40,7 +40,7 @@ locals {
 }
 
 resource "aws_iam_role_policy" "lambda_post_build_version_iam_permissions" {
-  name   = "${var.name_prefix}_lambda_post_build_version_iam_permissions_policy"
+  name   = "${local.resource_name_prefix}_lambda_post_build_version_iam_permissions_policy"
   role   = aws_iam_role.iam_for_lambda_post_build_version.id
   policy = data.aws_iam_policy_document.lambda_post_build_version_permissions.json
 }
@@ -54,7 +54,7 @@ data "archive_file" "lambda_post_build_version_zip" {
 resource "aws_lambda_function" "lambda_post_build_version" {
   filename         = data.archive_file.lambda_post_build_version_zip.output_path
   source_code_hash = data.archive_file.lambda_post_build_version_zip.output_base64sha256
-  function_name    = "${var.name_prefix}-post_build_version"
+  function_name    = "${local.resource_name_prefix}-post_build_version"
   role             = aws_iam_role.iam_for_lambda_post_build_version.arn
   handler          = "post_build_version.lambda_handler"
   runtime          = "python3.12"
@@ -69,14 +69,14 @@ resource "aws_lambda_function" "lambda_post_build_version" {
 }
 
 resource "aws_cloudwatch_event_rule" "aws_backup_post_build_version_event_rule" {
-  name        = "${var.name_prefix}-post-build-version-rule"
+  name        = "${local.resource_name_prefix}-post-build-version-rule"
   description = "Triggers the lambda on successful AWS Backup job completion."
 
   event_pattern = jsonencode({
-    "source": ["aws.backup"],
-    "detail-type": ["Backup Job State Change"],
-    "detail": {
-      "state": ["COMPLETED"]
+    "source" : ["aws.backup"],
+    "detail-type" : ["Backup Job State Change"],
+    "detail" : {
+      "state" : ["COMPLETED"]
     }
   })
 }
@@ -84,19 +84,19 @@ resource "aws_cloudwatch_event_rule" "aws_backup_post_build_version_event_rule" 
 resource "aws_cloudwatch_event_target" "lambda_post_build_version_target" {
   rule      = aws_cloudwatch_event_rule.aws_backup_post_build_version_event_rule.name
   arn       = aws_lambda_function.lambda_post_build_version.arn
-  target_id = "${var.name_prefix}postBuildVersionLambdaTarget"
+  target_id = "${local.resource_name_prefix}postBuildVersionLambdaTarget"
 }
 
 resource "aws_lambda_permission" "post_build_allow_eventbridge" {
-  statement_id  = "${var.name_prefix}AllowExecutionFromEventbridge"
+  statement_id  = "${local.resource_name_prefix}AllowExecutionFromEventbridge"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.lambda_post_build_version.function_name
   principal     = "events.amazonaws.com"
 
-  source_arn    = aws_cloudwatch_event_rule.aws_backup_post_build_version_event_rule.arn
+  source_arn = aws_cloudwatch_event_rule.aws_backup_post_build_version_event_rule.arn
 }
 
 resource "aws_cloudwatch_log_group" "post_build_version_logs" {
-  name              = "/aws/lambda/${var.name_prefix}-post_build_version"
+  name              = "/aws/lambda/${local.resource_name_prefix}-post_build_version"
   retention_in_days = 30
 }
