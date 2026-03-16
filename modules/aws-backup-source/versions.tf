@@ -7,7 +7,7 @@ terraform {
 
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6"
+      version = "> 5"
     }
 
     awscc = {
@@ -16,5 +16,5 @@ terraform {
     }
   }
 
-  required_version = ">= 1.14.6"
+  required_version = ">= 1.9.5"
 }
