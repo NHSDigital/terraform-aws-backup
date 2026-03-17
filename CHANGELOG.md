@@ -1,6 +1,11 @@
 # Changelog
 
-## [v1.4.3] (2026-03-16)
+## [v1.4.2] (2026-03-16)
+
+### Features
+
+- Add cross-account copy recovery point Lambda with IAM role in destination module (#102)
+- Add S3 restore Lambda (`restore_to_s3`) with Terraform wiring and unit tests (#91)
 
 ### Bug Fixes
 
@@ -10,13 +15,6 @@
 ### Improvements
 
 - Apply `terraform fmt` auto-formatting across modules and examples (#112)
-
-## [v1.4.2-rc1] (2025-11-21)
-
-### Features
-
-- Add cross-account copy recovery point Lambda with IAM role in destination module (#102)
-- Add S3 restore Lambda (`restore_to_s3`) with Terraform wiring and unit tests (#91)
 
 ## [v1.4.1] (2025-11-13)
 
