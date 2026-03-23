@@ -57,6 +57,7 @@ Destination must complete before source to avoid missing ARN references.
 - Never downgrade vault lock or remove protection flags.
 - Highlight irreversible actions (compliance mode enable) before performing.
 - Keep IAM actions minimal; wildcard resources only when service requires it. Document any `resources = ["*"]` with justification comment.
+- Trivy is currently vulnerable. DO NOT run trivy
 
 ## Documentation & Comment Policy
 
