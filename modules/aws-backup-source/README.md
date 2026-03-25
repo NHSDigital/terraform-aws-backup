@@ -60,6 +60,7 @@ No modules.
 | [aws_kms_key.aws_backup_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
 | [aws_sns_topic.backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic) | resource |
 | [aws_sns_topic_subscription.aws_backup_notifications_email_target](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
+| [aws_sns_topic_subscription.aws_backup_notifications](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [awscc_backup_restore_testing_plan.backup_restore_testing_plan](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/backup_restore_testing_plan) | resource |
 | [awscc_backup_restore_testing_selection.backup_restore_testing_selection_dynamodb](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/backup_restore_testing_selection) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
@@ -84,6 +85,7 @@ No modules.
 | <a name="input_environment_name"></a> [environment\_name](#input\_environment\_name) | The name of the environment where AWS Backup is configured. | `string` | n/a | yes |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Optional name prefix for vault resources | `string` | `null` | no |
 | <a name="input_notifications_target_email_address"></a> [notifications\_target\_email\_address](#input\_notifications\_target\_email\_address) | The email address to which backup notifications will be sent via SNS. | `string` | `""` | no |
+| <a name="input_notifications_targets"></a> [notifications\_target](#input\_notifications\_target) | Additional endpoints to send backup notifications via SNS | `string` | `""` |    no    |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | The name of the project this relates to. | `string` | n/a | yes |
 | <a name="input_reports_bucket"></a> [reports\_bucket](#input\_reports\_bucket) | Bucket to drop backup reports into | `string` | n/a | yes |
 | <a name="input_restore_testing_plan_algorithm"></a> [restore\_testing\_plan\_algorithm](#input\_restore\_testing\_plan\_algorithm) | Algorithm of the Recovery Selection Point | `string` | `"LATEST_WITHIN_WINDOW"` | no |
@@ -95,6 +97,11 @@ No modules.
 
 ## Outputs
 
-No outputs.
+| Name                            | Description              |
+|---------------------------------| -------------------------|
+| backup_role_arn                 | ARN of the of the backup role |
+| backup_vault_arn                | ARN of the of the Backup Vault |
+| backup_vault_name               | Name of the of the Backup Vault |
+| backup_sns_topic_arn            | ARN of SNS topic to which the Backup events are being send to |
 <!-- END_TF_DOCS -->
 <!-- markdownlint-enable MD037 -->

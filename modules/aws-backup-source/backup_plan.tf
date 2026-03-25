@@ -27,6 +27,10 @@ resource "aws_backup_plan" "default" {
       }
     }
   }
+
+  tags = {
+    "environment_name" = var.environment_name
+  }
 }
 
 # this backup plan shouldn't include a continous backup rule as it isn't supported for DynamoDB
@@ -59,6 +63,10 @@ resource "aws_backup_plan" "dynamodb" {
       }
     }
   }
+
+  tags = {
+    "environment_name" = var.environment_name
+  }
 }
 
 resource "aws_backup_plan" "ebsvol" {
@@ -89,9 +97,13 @@ resource "aws_backup_plan" "ebsvol" {
       }
     }
   }
+
+  tags = {
+    "environment_name" = var.environment_name
+  }
 }
 
-# this backup plan shouldn't include a continous backup rule as it isn't supported for Aurora
+# this backup plan shouldn't include a continuous backup rule as it isn't supported for Aurora
 resource "aws_backup_plan" "aurora" {
   count = var.backup_plan_config_aurora.enable ? 1 : 0
   name  = "${local.resource_name_prefix}-aurora-plan"
@@ -119,6 +131,10 @@ resource "aws_backup_plan" "aurora" {
         }
       }
     }
+  }
+
+  tags = {
+    "environment_name" = var.environment_name
   }
 }
 
@@ -152,6 +168,10 @@ resource "aws_backup_plan" "parameter_store" {
         }
       }
     }
+  }
+
+  tags = {
+    "environment_name" = var.environment_name
   }
 }
 
@@ -230,7 +250,7 @@ resource "aws_backup_selection" "aurora" {
   selection_tag {
     key   = var.backup_plan_config_aurora.selection_tag
     type  = "STRINGEQUALS"
-    value = "True"
+    value = (var.backup_plan_config_aurora.selection_tag_value == null) ? "True" : var.backup_plan_config_aurora.selection_tag_value
   }
 }
 
