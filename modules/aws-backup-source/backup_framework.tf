@@ -1,4 +1,6 @@
 resource "aws_backup_framework" "main" {
+  count = var.backup_plan_config.enable ? 1 : 0
+
   # must be underscores instead of dashes
   name        = replace("${local.resource_name_prefix}-framework", "-", "_")
   description = "${var.project_name} Backup Framework"
@@ -291,4 +293,11 @@ resource "aws_backup_framework" "parameter_store" {
       }
     }
   }
+}
+
+# -----
+
+moved {
+  from = aws_backup_framework.main
+  to   = aws_backup_framework.main[0]
 }
