@@ -520,3 +520,9 @@ variable "lambda_restore_to_s3_max_wait_minutes" {
   type        = number
   default     = 5
 }
+
+variable "include_environment_in_resource_names" {
+  description = "Should the environment name be included in resource names. Required for 'all resources in the same account'"
+  type        = bool
+  default     = false
+}
