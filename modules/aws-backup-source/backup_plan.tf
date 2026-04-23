@@ -1,5 +1,6 @@
 resource "aws_backup_plan" "default" {
-  name = "${local.resource_name_prefix}-plan"
+  count = var.backup_plan_config.enable && var.resources_in_same_account == "" ? 1 : 0
+  name  = "${local.resource_name_prefix}-plan"
 
   dynamic "rule" {
     for_each = var.backup_plan_config.rules
@@ -31,7 +32,7 @@ resource "aws_backup_plan" "default" {
 
 # this backup plan shouldn't include a continous backup rule as it isn't supported for DynamoDB
 resource "aws_backup_plan" "dynamodb" {
-  count = var.backup_plan_config_dynamodb.enable ? 1 : 0
+  count = var.backup_plan_config_dynamodb.enable && var.resources_in_same_account == "" ? 1 : 0
   name  = "${local.resource_name_prefix}-dynamodb-plan"
 
   dynamic "rule" {
@@ -62,7 +63,7 @@ resource "aws_backup_plan" "dynamodb" {
 }
 
 resource "aws_backup_plan" "ebsvol" {
-  count = var.backup_plan_config_ebsvol.enable ? 1 : 0
+  count = var.backup_plan_config_ebsvol.enable && var.resources_in_same_account == "" ? 1 : 0
   name  = "${local.resource_name_prefix}-ebsvol-plan"
 
   dynamic "rule" {
@@ -93,7 +94,7 @@ resource "aws_backup_plan" "ebsvol" {
 
 # this backup plan shouldn't include a continous backup rule as it isn't supported for Aurora
 resource "aws_backup_plan" "aurora" {
-  count = var.backup_plan_config_aurora.enable ? 1 : 0
+  count = var.backup_plan_config_aurora.enable && var.resources_in_same_account == "" ? 1 : 0
   name  = "${local.resource_name_prefix}-aurora-plan"
 
   dynamic "rule" {
@@ -122,9 +123,8 @@ resource "aws_backup_plan" "aurora" {
   }
 }
 
-
 resource "aws_backup_plan" "parameter_store" {
-  count = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  count = var.backup_plan_config_parameter_store.enable && var.resources_in_same_account == "" ? 1 : 0
   name  = "${local.resource_name_prefix}-ps-plan"
 
   dynamic "rule" {
@@ -157,6 +157,8 @@ resource "aws_backup_plan" "parameter_store" {
 
 
 resource "aws_backup_selection" "default" {
+  count = var.backup_plan_config.enable && var.resources_in_same_account == "" ? 1 : 0
+
   iam_role_arn = aws_iam_role.backup.arn
   name         = "${local.resource_name_prefix}-selection"
   plan_id      = aws_backup_plan.default.id
@@ -178,7 +180,7 @@ resource "aws_backup_selection" "default" {
 }
 
 resource "aws_backup_selection" "dynamodb" {
-  count        = var.backup_plan_config_dynamodb.enable ? 1 : 0
+  count        = var.backup_plan_config_dynamodb.enable && var.resources_in_same_account == "" ? 1 : 0
   iam_role_arn = aws_iam_role.backup.arn
   name         = "${local.resource_name_prefix}-dynamodb-selection"
   plan_id      = aws_backup_plan.dynamodb[0].id
@@ -200,7 +202,7 @@ resource "aws_backup_selection" "dynamodb" {
 }
 
 resource "aws_backup_selection" "ebsvol" {
-  count        = var.backup_plan_config_ebsvol.enable ? 1 : 0
+  count        = var.backup_plan_config_ebsvol.enable && var.resources_in_same_account == "" ? 1 : 0
   iam_role_arn = aws_iam_role.backup.arn
   name         = "${local.resource_name_prefix}-ebsvol-selection"
   plan_id      = aws_backup_plan.ebsvol[0].id
@@ -222,7 +224,7 @@ resource "aws_backup_selection" "ebsvol" {
 }
 
 resource "aws_backup_selection" "aurora" {
-  count        = var.backup_plan_config_aurora.enable ? 1 : 0
+  count        = var.backup_plan_config_aurora.enable && var.resources_in_same_account == "" ? 1 : 0
   iam_role_arn = aws_iam_role.backup.arn
   name         = "${local.resource_name_prefix}-aurora-selection"
   plan_id      = aws_backup_plan.aurora[0].id
@@ -235,7 +237,7 @@ resource "aws_backup_selection" "aurora" {
 }
 
 resource "aws_backup_selection" "parameter_store" {
-  count        = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  count        = var.backup_plan_config_parameter_store.enable && var.resources_in_same_account == "" ? 1 : 0
   iam_role_arn = aws_iam_role.backup.arn
   name         = "${local.resource_name_prefix}-ps-selection"
   plan_id      = aws_backup_plan.parameter_store[0].id

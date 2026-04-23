@@ -12,7 +12,7 @@ locals {
     [aws_backup_framework.main.arn],
     var.backup_plan_config_ebsvol.enable ? [aws_backup_framework.ebsvol[0].arn] : [],
     var.backup_plan_config_dynamodb.enable ? [aws_backup_framework.dynamodb[0].arn] : [],
-    var.backup_plan_config_aurora.enable ? [aws_backup_framework.aurora[0].arn] : [],
+    var.backup_plan_config_aurora.enable ? [var.resources_in_same_account == "" ? aws_backup_framework.aurora[0].arn : data.aws_backup_framework.aurora[0].arn] : [],
     var.backup_plan_config_parameter_store.enable ? [aws_backup_framework.parameter_store[0].arn] : []
 
   ))

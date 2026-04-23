@@ -1,4 +1,11 @@
+data "aws_backup_framework" "main" {
+  count = var.backup_plan_config.enable && var.resources_in_same_account != "" ? 1 : 0
+  name  = replace("${var.name_prefix}-${var.resources_in_same_account}-framework", "-", "_")
+}
+
 resource "aws_backup_framework" "main" {
+  count = var.backup_plan_config.enable && var.resources_in_same_account == "" ? 1 : 0
+
   # must be underscores instead of dashes
   name        = replace("${local.resource_name_prefix}-framework", "-", "_")
   description = "${var.project_name} Backup Framework"
@@ -131,8 +138,14 @@ resource "aws_backup_framework" "main" {
   }
 }
 
+data "aws_backup_framework" "dynamodb" {
+  count = var.backup_plan_config_dynamodb.enable && var.resources_in_same_account != "" ? 1 : 0
+  name  = replace("${var.name_prefix}-${var.resources_in_same_account}-dynamodb-framework", "-", "_")
+}
+
 resource "aws_backup_framework" "dynamodb" {
-  count = var.backup_plan_config_dynamodb.enable ? 1 : 0
+  count = var.backup_plan_config_dynamodb.enable && var.resources_in_same_account == "" ? 1 : 0
+
   # must be underscores instead of dashes
   name        = replace("${local.resource_name_prefix}-dynamodb-framework", "-", "_")
   description = "${var.project_name} DynamoDB Backup Framework"
@@ -172,8 +185,14 @@ resource "aws_backup_framework" "dynamodb" {
   }
 }
 
+data "aws_backup_framework" "ebsvol" {
+  count = var.backup_plan_config_ebsvol.enable && var.resources_in_same_account != "" ? 1 : 0
+  name  = replace("${var.name_prefix}-${var.resources_in_same_account}-ebsvol-framework", "-", "_")
+}
+
 resource "aws_backup_framework" "ebsvol" {
-  count = var.backup_plan_config_ebsvol.enable ? 1 : 0
+  count = var.backup_plan_config_ebsvol.enable && var.resources_in_same_account == "" ? 1 : 0
+
   # must be underscores instead of dashes
   name        = replace("${local.resource_name_prefix}-ebsvol-framework", "-", "_")
   description = "${var.project_name} EBS Backup Framework"
@@ -213,8 +232,14 @@ resource "aws_backup_framework" "ebsvol" {
   }
 }
 
+data "aws_backup_framework" "aurora" {
+  count = var.backup_plan_config_aurora.enable && var.resources_in_same_account != "" ? 1 : 0
+  name  = replace("${var.name_prefix}-${var.resources_in_same_account}-aurora-framework", "-", "_")
+}
+
 resource "aws_backup_framework" "aurora" {
-  count = var.backup_plan_config_aurora.enable ? 1 : 0
+  count = var.backup_plan_config_aurora.enable && var.resources_in_same_account == "" ? 1 : 0
+
   # must be underscores instead of dashes
   name        = replace("${local.resource_name_prefix}-aurora-framework", "-", "_")
   description = "${var.project_name} Aurora Backup Framework"
@@ -253,8 +278,14 @@ resource "aws_backup_framework" "aurora" {
   }
 }
 
+data "aws_backup_framework" "parameter_store" {
+  count = var.backup_plan_config_parameter_store.enable && var.resources_in_same_account != "" ? 1 : 0
+  name  = replace("${var.name_prefix}-${var.resources_in_same_account}-parameter-store-framework", "-", "_")
+}
+
 resource "aws_backup_framework" "parameter_store" {
-  count = var.backup_plan_config_parameter_store.enable ? 1 : 0
+  count = var.backup_plan_config_parameter_store.enable && var.resources_in_same_account == "" ? 1 : 0
+
   # must be underscores instead of dashes
   name        = replace("${local.resource_name_prefix}-parameter-store-framework", "-", "_")
   description = "${var.project_name} Parameter Store Backup Framework"
