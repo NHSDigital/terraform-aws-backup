@@ -104,7 +104,7 @@ resource "aws_backup_plan" "aurora" {
         backup_rule_name = rule.value.name
       }
       rule_name         = rule.value.name
-      target_vault_name = aws_backup_vault.main.name
+      target_vault_name = aws_backup_vault.main[0].name
       schedule          = rule.value.schedule
       lifecycle {
         delete_after       = rule.value.lifecycle.delete_after != null ? rule.value.lifecycle.delete_after : null

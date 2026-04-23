@@ -4,11 +4,11 @@ output "backup_role_arn" {
 }
 
 output "backup_vault_arn" {
-  value       = aws_backup_vault.main.arn
+  value       =  var.resources_in_same_account == "" ? aws_backup_vault.main[0].arn : null
   description = "ARN of the of the vault"
 }
 
 output "backup_vault_name" {
-  value       = aws_backup_vault.main.name
+  value       = var.resources_in_same_account == "" ? aws_backup_vault.main[0].name : null
   description = "Name of the of the vault"
 }

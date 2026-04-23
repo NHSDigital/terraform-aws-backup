@@ -1,10 +1,12 @@
 resource "aws_backup_vault_policy" "vault_policy" {
-  backup_vault_name = aws_backup_vault.main.name
-  policy            = data.aws_iam_policy_document.vault_policy.json
+  count = var.resources_in_same_account == "" ? 1 : 0
+
+  backup_vault_name = aws_backup_vault.main[0].name
+  policy            = data.aws_iam_policy_document.vault_policy[0].json
 }
 
 data "aws_iam_policy_document" "vault_policy" {
-
+  count = var.resources_in_same_account == "" ? 1 : 0
 
   statement {
     sid    = "DenyApartFromTerraform"
@@ -44,4 +46,14 @@ data "aws_iam_policy_document" "vault_policy" {
       }
     }
   }
+}
+
+moved {
+  from = aws_backup_vault_policy.vault_policy
+  to   = aws_backup_vault_policy.vault_policy[0]
+}
+
+moved {
+  from = data.aws_iam_policy_document.vault_policy
+  to   = data.aws_iam_policy_document.vault_policy[0]
 }
