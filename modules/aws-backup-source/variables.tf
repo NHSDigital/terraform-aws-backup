@@ -526,3 +526,13 @@ variable "include_environment_in_resource_names" {
   type        = bool
   default     = false
 }
+
+# Plans etc are _account_ specific, not _environment_ specific, so we only want to create some resources
+# once. As in, when this is `""` (empty string). For additional envs in the account, set this to the environment
+# where the "base" resources are (for example `dev`).
+# NOTE: Require `include_environment_in_resource_names` set to `true` for this to work!
+variable "resources_in_same_account" {
+  description = "Should all resources be created in the same account. Set to 'true' if base resources already exists in the account, and they should be reused."
+  type        = string
+  default     = ""
+}
