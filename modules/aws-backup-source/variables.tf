@@ -265,6 +265,7 @@ variable "backup_plan_config_ebsvol" {
   default = {
     enable                    = true
     selection_tag             = "BackupEBSVol"
+    selection_tag_value       = "True"
     compliance_resource_types = ["EBS"]
     rules = [
       {
@@ -306,7 +307,12 @@ variable "backup_plan_config_aurora" {
   description = "Configuration for backup plans with aurora"
   type = object({
     enable                    = bool
-    selection_tag             = string
+    selection_tag             = optional(string)
+    selection_tag_value       = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
     compliance_resource_types = list(string)
     restore_testing_overrides = optional(string)
     rules = optional(list(object({
@@ -325,6 +331,8 @@ variable "backup_plan_config_aurora" {
   default = {
     enable                    = true
     selection_tag             = "BackupAurora"
+    selection_tag_value       = "True"
+    selection_tags            = []
     compliance_resource_types = ["Aurora"]
     rules = [
       {
