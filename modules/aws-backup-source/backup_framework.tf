@@ -66,7 +66,7 @@ resource "aws_backup_framework" "main" {
 
     input_parameter {
       name  = "requiredRetentionDays"
-      value = "35"
+      value = var.vault_lock_min_retention_days
     }
   }
 
@@ -87,7 +87,7 @@ resource "aws_backup_framework" "main" {
 
     input_parameter {
       name  = "requiredRetentionDays"
-      value = "35"
+      value = var.vault_lock_min_retention_days
     }
 
     input_parameter {
