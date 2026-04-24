@@ -42,7 +42,7 @@ resource "aws_iam_role" "copy_recovery_point" {
 }
 
 data "aws_iam_policy_document" "copy_recovery_point_permissions" {
-  count = var.enable_cross_account_vault_access ? 1 : 0
+  count = var.enable_cross_account_vault_access && var.resources_in_same_account ? 1 : 0
 
   # Start copy job (resource-level supports recoveryPoint*)
   statement {
@@ -71,7 +71,7 @@ data "aws_iam_policy_document" "copy_recovery_point_permissions" {
     ]
     resources = [
       "arn:aws:backup:${var.region}:${var.account_id}:recovery-point:*",
-      "arn:aws:backup:${var.region}:${var.account_id}:backup-vault:${aws_backup_vault.vault.name}",
+      "arn:aws:backup:${var.region}:${var.account_id}:backup-vault:${aws_backup_vault.vault[0].name}",
       "arn:aws:backup:${var.region}:${var.source_account_id}:backup-vault:*"
     ]
   }

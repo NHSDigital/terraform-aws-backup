@@ -1,4 +1,6 @@
 data "aws_iam_policy_document" "kms_key_policy" {
+  count = var.resources_in_same_account ? 1 : 0
+
   statement {
     sid    = "Enable IAM User Permissions"
     effect = "Allow"
@@ -33,17 +35,38 @@ data "aws_iam_policy_document" "kms_key_policy" {
 }
 
 resource "aws_kms_key" "parameter_store_key" {
+  count = var.resources_in_same_account ? 1 : 0
+
   description             = "KMS key for cross-account encryption of Parameter Store backups."
   deletion_window_in_days = 7
-  policy                  = data.aws_iam_policy_document.kms_key_policy.json
+  policy                  = data.aws_iam_policy_document.kms_key_policy[0].json
 }
 
 resource "aws_kms_alias" "parameter_store_alias" {
+  count = var.resources_in_same_account ? 1 : 0
+
   name          = "alias/parameter-store-backup-key"
-  target_key_id = aws_kms_key.parameter_store_key.key_id
+  target_key_id = aws_kms_key.parameter_store_key[0].key_id
 }
 
 output "parameter_store_kms_key_arn" {
   description = "The ARN of the KMS key created in the backup account."
-  value       = aws_kms_key.parameter_store_key.arn
+  value       = var.resources_in_same_account ? aws_kms_key.parameter_store_key[0].arn : null
+}
+
+# -----
+
+moved {
+  from = data.aws_iam_policy_document.kms_key_policy
+  to   = data.aws_iam_policy_document.kms_key_policy[0]
+}
+
+moved {
+  from = aws_kms_key.parameter_store_key
+  to   = aws_kms_key.parameter_store_key[0]
+}
+
+moved {
+  from = aws_kms_alias.parameter_store_alias
+  to   = aws_kms_alias.parameter_store_alias[0]
 }
