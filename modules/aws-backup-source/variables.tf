@@ -533,7 +533,7 @@ variable "vault_lock_min_retention_days" {
   default     = 35
 
   validation {
-    condition     = var.logically_air_gapped_vault_lock_min_retention_days >= 7
+    condition     = var.vault_lock_min_retention_days >= 7
     error_message = "The minimum retention in days must be at least 7"
   }
 }
