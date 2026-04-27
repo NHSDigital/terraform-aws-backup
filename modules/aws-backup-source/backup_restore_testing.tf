@@ -1,5 +1,5 @@
 resource "awscc_backup_restore_testing_plan" "backup_restore_testing_plan" {
-  restore_testing_plan_name = var.name_prefix != null ? "${var.name_prefix}_backup_restore_testing_plan" : "backup_restore_testing_plan"
+  restore_testing_plan_name = var.name_prefix != null ? "${replace(local.resource_name_prefix, "-", "_")}_backup_restore_testing_plan" : "backup_restore_testing_plan"
   schedule_expression       = var.restore_testing_plan_scheduled_expression
   start_window_hours        = var.restore_testing_plan_start_window
   recovery_point_selection = {
@@ -18,10 +18,17 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   restore_testing_selection_name = "backup_restore_testing_selection_dynamodb"
   protected_resource_arns        = ["*"]
   protected_resource_conditions = {
-    string_equals = [{
-      key   = "aws:ResourceTag/${var.backup_plan_config_dynamodb.selection_tag}"
-      value = "True"
-    }]
+    string_equals = concat([
+      {
+	key   = "aws:ResourceTag/${var.backup_plan_config_dynamodb.selection_tag}"
+	value = "True"
+      }
+    ], [
+      for tag in local.selection_tags_dynamodb_null_checked: {
+	key   = "aws:ResourceTag/${tag.key}",
+	value = tag.value
+      }
+    ])
   }
 }
 
@@ -34,10 +41,17 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   restore_testing_selection_name = "backup_restore_testing_selection_ebsvol"
   protected_resource_arns        = ["*"]
   protected_resource_conditions = {
-    string_equals = [{
-      key   = "aws:ResourceTag/${var.backup_plan_config_ebsvol.selection_tag}"
-      value = "True"
-    }]
+    string_equals = concat([
+      {
+	key   = "aws:ResourceTag/${var.backup_plan_config_ebsvol.selection_tag}"
+	value = "True"
+      }
+    ], [
+      for tag in local.selection_tags_ebsvol_null_checked: {
+	key   = "aws:ResourceTag/${tag.key}",
+	value = tag.value
+      }
+    ])
   }
 }
 
@@ -49,10 +63,17 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   restore_testing_selection_name = "backup_restore_testing_selection_aurora"
   protected_resource_arns        = ["*"]
   protected_resource_conditions = {
-    string_equals = [{
-      key   = "aws:ResourceTag/${var.backup_plan_config_aurora.selection_tag}"
-      value = "True"
-    }]
+    string_equals = concat([
+      {
+	key   = "aws:ResourceTag/${var.backup_plan_config_aurora.selection_tag}"
+	value = "True"
+      }
+    ], [
+      for tag in local.selection_tags_aurora_null_checked: {
+	key   = "aws:ResourceTag/${tag.key}",
+	value = tag.value
+      }
+    ])
   }
   restore_metadata_overrides = local.aurora_overrides
 }
