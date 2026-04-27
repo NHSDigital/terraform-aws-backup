@@ -306,9 +306,9 @@ variable "backup_plan_config_ebsvol" {
 variable "backup_plan_config_aurora" {
   description = "Configuration for backup plans with aurora"
   type = object({
-    enable                    = bool
-    selection_tag             = optional(string)
-    selection_tag_value       = optional(string)
+    enable              = bool
+    selection_tag       = optional(string)
+    selection_tag_value = optional(string)
     selection_tags = optional(list(object({
       key   = optional(string)
       value = optional(string)
