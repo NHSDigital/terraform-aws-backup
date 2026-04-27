@@ -1,5 +1,5 @@
 resource "aws_backup_vault_lock_configuration" "vault_lock" {
-  count               = var.enable_vault_protection && var.resources_in_same_account ? 1 : 0
+  count = var.enable_vault_protection && var.resources_in_same_account ? 1 : 0
 
   backup_vault_name   = aws_backup_vault.vault[0].name
   changeable_for_days = var.vault_lock_type == "compliance" ? var.changeable_for_days : null
