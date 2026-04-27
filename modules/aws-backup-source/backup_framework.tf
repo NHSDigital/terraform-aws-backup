@@ -6,7 +6,7 @@
 
 data "aws_backup_framework" "main" {
   count = var.backup_plan_config.enable && var.resources_in_same_account != "" ? 1 : 0
-  name = replace("${var.name_prefix}-${var.resources_in_same_account}-framework", "-", "_")
+  name  = replace("${var.name_prefix}-${var.resources_in_same_account}-framework", "-", "_")
 }
 resource "aws_backup_framework" "main" {
   count = var.backup_plan_config.enable && var.resources_in_same_account == "" ? 1 : 0
@@ -145,7 +145,7 @@ resource "aws_backup_framework" "main" {
 
 data "aws_backup_framework" "dynamodb" {
   count = var.backup_plan_config_dynamodb.enable && var.resources_in_same_account != "" ? 1 : 0
-  name = replace("${var.name_prefix}-${var.resources_in_same_account}-dynamodb-framework", "-", "_")
+  name  = replace("${var.name_prefix}-${var.resources_in_same_account}-dynamodb-framework", "-", "_")
 }
 resource "aws_backup_framework" "dynamodb" {
   count = var.backup_plan_config_dynamodb.enable && var.resources_in_same_account == "" ? 1 : 0
@@ -190,7 +190,7 @@ resource "aws_backup_framework" "dynamodb" {
 
 data "aws_backup_framework" "ebsvol" {
   count = var.backup_plan_config_ebsvol.enable && var.resources_in_same_account != "" ? 1 : 0
-  name = replace("${var.name_prefix}-${var.resources_in_same_account}-ebsvol-framework", "-", "_")
+  name  = replace("${var.name_prefix}-${var.resources_in_same_account}-ebsvol-framework", "-", "_")
 }
 resource "aws_backup_framework" "ebsvol" {
   count = var.backup_plan_config_ebsvol.enable && var.resources_in_same_account == "" ? 1 : 0
@@ -235,7 +235,7 @@ resource "aws_backup_framework" "ebsvol" {
 
 data "aws_backup_framework" "aurora" {
   count = var.backup_plan_config_aurora.enable && var.resources_in_same_account != "" ? 1 : 0
-  name = replace("${var.name_prefix}-${var.resources_in_same_account}-aurora-framework", "-", "_")
+  name  = replace("${var.name_prefix}-${var.resources_in_same_account}-aurora-framework", "-", "_")
 }
 resource "aws_backup_framework" "aurora" {
   count = var.backup_plan_config_aurora.enable && var.resources_in_same_account == "" ? 1 : 0
@@ -279,7 +279,7 @@ resource "aws_backup_framework" "aurora" {
 
 data "aws_backup_framework" "parameter_store" {
   count = var.backup_plan_config_parameter_store.enable && var.resources_in_same_account != "" ? 1 : 0
-  name = replace("${var.name_prefix}-${var.resources_in_same_account}-parameter-store-framework", "-", "_")
+  name  = replace("${var.name_prefix}-${var.resources_in_same_account}-parameter-store-framework", "-", "_")
 }
 resource "aws_backup_framework" "parameter_store" {
   count = var.backup_plan_config_parameter_store.enable && var.resources_in_same_account == "" ? 1 : 0
