@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.4.3] (2026-05-05)
+
+### Improvements
+
+- Update Copilot instructions to not run Trivy (#115)
+- Bump actions/checkout from 3 to 6 (#121)
+
 ## [v1.4.2] (2026-03-16)
 
 ### Features
