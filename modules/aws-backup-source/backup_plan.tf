@@ -1,8 +1,10 @@
 resource "aws_backup_plan" "default" {
+  count = var.backup_plan_config.enable ? 1 : 0
+
   name = "${local.resource_name_prefix}-plan"
 
   dynamic "rule" {
-    for_each = var.backup_plan_config.rules
+    for_each = var.backup_plan_config.enable ? var.backup_plan_config.rules : []
     content {
       recovery_point_tags = {
         backup_rule_name = rule.value.name
@@ -157,9 +159,11 @@ resource "aws_backup_plan" "parameter_store" {
 
 
 resource "aws_backup_selection" "default" {
+  count = var.backup_plan_config.enable ? 1 : 0
+
   iam_role_arn = aws_iam_role.backup.arn
   name         = "${local.resource_name_prefix}-selection"
-  plan_id      = aws_backup_plan.default.id
+  plan_id      = aws_backup_plan.default[0].id
 
   selection_tag {
     key   = var.backup_plan_config.selection_tag
@@ -254,4 +258,16 @@ resource "aws_backup_selection" "parameter_store" {
       }
     }
   }
+}
+
+# -----
+
+moved {
+  from = aws_backup_plan.default
+  to   = aws_backup_plan.default[0]
+}
+
+moved {
+  from = aws_backup_selection.default
+  to   = aws_backup_selection.default[0]
 }

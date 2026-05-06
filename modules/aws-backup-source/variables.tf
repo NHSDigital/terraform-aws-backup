@@ -88,14 +88,15 @@ variable "backup_copy_vault_account_id" {
 variable "backup_plan_config" {
   description = "Configuration for backup plans"
   type = object({
-    selection_tag       = string
+    enable              = bool
+    selection_tag       = optional(string)
     selection_tag_value = optional(string)
     selection_tags = optional(list(object({
       key   = optional(string)
       value = optional(string)
     })))
-    compliance_resource_types = list(string)
-    rules = list(object({
+    compliance_resource_types = optional(list(string))
+    rules = optional(list(object({
       name                     = string
       schedule                 = string
       completion_window        = optional(number)
@@ -107,9 +108,10 @@ variable "backup_plan_config" {
       copy_action = optional(object({
         delete_after = optional(number)
       }))
-    }))
+    })))
   })
   default = {
+    enable                    = true
     selection_tag             = "BackupLocal"
     selection_tag_value       = "True"
     selection_tags            = []
@@ -165,13 +167,13 @@ variable "backup_plan_config_dynamodb" {
   description = "Configuration for backup plans with dynamodb"
   type = object({
     enable              = bool
-    selection_tag       = string
+    selection_tag       = optional(string)
     selection_tag_value = optional(string)
     selection_tags = optional(list(object({
       key   = optional(string)
       value = optional(string)
     })))
-    compliance_resource_types = list(string)
+    compliance_resource_types = optional(list(string))
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -242,13 +244,13 @@ variable "backup_plan_config_ebsvol" {
   description = "Configuration for backup plans with EBS"
   type = object({
     enable              = bool
-    selection_tag       = string
+    selection_tag       = optional(string)
     selection_tag_value = optional(string)
     selection_tags = optional(list(object({
       key   = optional(string)
       value = optional(string)
     })))
-    compliance_resource_types = list(string)
+    compliance_resource_types = optional(list(string))
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -306,8 +308,8 @@ variable "backup_plan_config_aurora" {
   description = "Configuration for backup plans with aurora"
   type = object({
     enable                    = bool
-    selection_tag             = string
-    compliance_resource_types = list(string)
+    selection_tag             = optional(string)
+    compliance_resource_types = optional(list(string))
     restore_testing_overrides = optional(string)
     rules = optional(list(object({
       name                     = string
@@ -366,7 +368,7 @@ variable "backup_plan_config_parameter_store" {
   description = "Configuration for backup plans with parameter store"
   type = object({
     enable              = bool
-    selection_tag       = string
+    selection_tag       = optional(string)
     selection_tag_value = optional(string)
     selection_tags = optional(list(object({
       key   = optional(string)
