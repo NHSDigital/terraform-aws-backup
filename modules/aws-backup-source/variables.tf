@@ -520,3 +520,32 @@ variable "lambda_restore_to_s3_max_wait_minutes" {
   type        = number
   default     = 5
 }
+
+variable "enable_logically_air_gapped_vault" {
+  description = "Enable backing up to Logically Air-gapped Vault for supported resources"
+  type        = bool
+  default     = false
+}
+
+variable "vault_lock_min_retention_days" {
+  description = "The minimum retention period that the Backup Vault retains its recovery points"
+  type        = number
+  default     = 35
+
+  validation {
+    condition     = var.vault_lock_min_retention_days >= 7
+    error_message = "The minimum retention in days must be at least 7"
+  }
+}
+
+variable "vault_lock_max_retention_days" {
+  description = "The maximum retention period that the Backup Vault retains its recovery points"
+  type        = number
+  default     = 365
+}
+
+variable "logically_air_gapped_vault_approval_team_arn" {
+  description = "The ARN of the Multi-party approval Team to be assigned to the logically air-gapped vault"
+  type        = string
+  default     = null
+}
