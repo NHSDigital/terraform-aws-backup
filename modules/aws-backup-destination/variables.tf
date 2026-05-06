@@ -100,3 +100,12 @@ variable "enable_cross_account_vault_access" {
   type        = bool
   default     = false
 }
+
+# If we're building this for multiple environments in the same account, some things
+# should not be created. Such as the vault! There can be only one - the environment
+# vaults should all copy to this, main/backup/immutable vault.
+variable "resources_in_same_account" {
+  description = "Should all resources be created in the same account. Set to 'true' if base resources already exists in the account, and they should be reused."
+  type        = bool
+  default     = false
+}

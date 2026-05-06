@@ -265,6 +265,7 @@ variable "backup_plan_config_ebsvol" {
   default = {
     enable                    = true
     selection_tag             = "BackupEBSVol"
+    selection_tag_value       = "True"
     compliance_resource_types = ["EBS"]
     rules = [
       {
@@ -305,8 +306,13 @@ variable "backup_plan_config_ebsvol" {
 variable "backup_plan_config_aurora" {
   description = "Configuration for backup plans with aurora"
   type = object({
-    enable                    = bool
-    selection_tag             = string
+    enable              = bool
+    selection_tag       = optional(string)
+    selection_tag_value = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
     compliance_resource_types = list(string)
     restore_testing_overrides = optional(string)
     rules = optional(list(object({
@@ -325,6 +331,8 @@ variable "backup_plan_config_aurora" {
   default = {
     enable                    = true
     selection_tag             = "BackupAurora"
+    selection_tag_value       = "True"
+    selection_tags            = []
     compliance_resource_types = ["Aurora"]
     rules = [
       {
@@ -519,4 +527,20 @@ variable "lambda_restore_to_s3_max_wait_minutes" {
   description = "Maximum wait time in minutes for the restore job to complete."
   type        = number
   default     = 5
+}
+
+variable "include_environment_in_resource_names" {
+  description = "Should the environment name be included in resource names. Required for 'all resources in the same account'"
+  type        = bool
+  default     = false
+}
+
+# Plans etc are _account_ specific, not _environment_ specific, so we only want to create some resources
+# once. As in, when this is `""` (empty string). For additional envs in the account, set this to the environment
+# where the "base" resources are (for example `dev`).
+# NOTE: Require `include_environment_in_resource_names` set to `true` for this to work!
+variable "resources_in_same_account" {
+  description = "Should all resources be created in the same account. Set to 'true' if base resources already exists in the account, and they should be reused."
+  type        = string
+  default     = ""
 }
