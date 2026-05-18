@@ -39,7 +39,7 @@ resource "aws_kms_key" "parameter_store_key" {
 }
 
 resource "aws_kms_alias" "parameter_store_alias" {
-  name          = "alias/parameter-store-backup-key"
+  name          = var.name_prefix != null ? "alias/${var.name_prefix}-parameter-store-backup-key" : "alias/${var.source_account_name}-parameter-store-backup-key"
   target_key_id = aws_kms_key.parameter_store_key.key_id
 }
 
