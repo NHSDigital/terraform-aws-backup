@@ -40,7 +40,7 @@ def lambda_handler(event, context):
     data = json.dumps(payload).encode('utf-8')
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': API_TOKEN
+        'Authorization': f"Token {API_TOKEN}"
     }
 
     try:
