@@ -479,8 +479,8 @@ variable "lambda_copy_recovery_point_destination_vault_arn" {
   default     = ""
 }
 
-variable "api_token" {
-  description = "API token to authenticate with the API endpoint"
+variable "api_token_parameter" {
+  description = "SSM Parameter Store name containing the API token to authenticate with the API endpoint"
   type        = string
   default     = ""
 }

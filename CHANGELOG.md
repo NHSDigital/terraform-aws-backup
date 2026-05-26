@@ -1,5 +1,19 @@
 # Changelog
 
+
+## [v1.4.5] (2026-05-26)
+
+### Improvements
+
+- Read post-build API token from SSM Parameter Store using `api_token_parameter` instead of passing a plain token value
+
+## [v1.4.4] (2026-05-21)
+
+### Bug Fixes
+
+- Correct post-build version API authorization to use the expected `Authorization: Token <token>` header format
+
+
 ## [v1.4.3] (2026-05-05)
 
 ### Improvements

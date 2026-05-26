@@ -1,8 +1,8 @@
 import os
 import json
 import urllib.request
-import urllib.parse
 import logging
+import boto3
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
@@ -10,7 +10,13 @@ logger.setLevel(os.environ.get('LOG_LEVEL', 'INFO'))
 API_ENDPOINT = os.environ.get('API_ENDPOINT')
 MODULE_VERSION = os.environ.get('MODULE_VERSION')
 AWS_ACCOUNT_ID = os.environ.get('AWS_ACCOUNT_ID')
-API_TOKEN = os.environ.get('API_TOKEN')
+API_TOKEN_PARAMETER = os.environ.get('API_TOKEN_PARAMETER')
+
+
+def get_ssm_parameter(parameter_name):
+    ssm_client = boto3.client('ssm')
+    response = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
+    return response['Parameter']['Value']
 
 
 def lambda_handler(event, context):
@@ -24,8 +30,8 @@ def lambda_handler(event, context):
     """
     logger.info(f"Received Event: {json.dumps(event)}")
 
-    if not API_ENDPOINT or not MODULE_VERSION:
-        logger.error("Configuration error: API_ENDPOINT or MODULE_VERSION environment variables are missing.")
+    if not API_ENDPOINT or not MODULE_VERSION or not API_TOKEN_PARAMETER:
+        logger.error("Configuration error: API_ENDPOINT, MODULE_VERSION, or API_TOKEN_PARAMETER environment variables are missing.")
         return {
             'statusCode': 500,
             'body': json.dumps({'message': 'Configuration error.'})
@@ -36,11 +42,19 @@ def lambda_handler(event, context):
         "moduleVersion": MODULE_VERSION,
         "awsAccountId": AWS_ACCOUNT_ID
     }
+    try:
+        token = get_ssm_parameter(API_TOKEN_PARAMETER)
+    except Exception as e:
+        logger.error(f"Failed to read API token from SSM parameter '{API_TOKEN_PARAMETER}': {e}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'message': 'Failed to read API token from SSM.'})
+        }
 
     data = json.dumps(payload).encode('utf-8')
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f"Token {API_TOKEN}"
+        'Authorization': f"Token {token}"
     }
 
     try:
