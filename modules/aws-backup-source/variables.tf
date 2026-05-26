@@ -452,7 +452,7 @@ variable "iam_role_permissions_boundary" {
 variable "api_endpoint" {
   description = "API endpoint to send post build version notifications to"
   type        = string
-  default     = ""
+  default     = "https://dashboarding.engineering.england.nhs.uk/hub/api/v1/backups"
 }
 
 variable "lambda_copy_recovery_point_enable" {
