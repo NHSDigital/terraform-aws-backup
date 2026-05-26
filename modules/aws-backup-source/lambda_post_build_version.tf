@@ -39,7 +39,7 @@ data "aws_iam_policy_document" "lambda_post_build_version_permissions" {
     actions = [
       "ssm:GetParameter",
     ]
-    resources = ["arn:aws:ssm:eu-west-2:${data.aws_caller_identity.current.account_id}:parameter/${var.api_token_parameter}"]
+    resources = ["arn:aws:ssm:eu-west-2:${data.aws_caller_identity.current.account_id}:parameter/${trimprefix(var.api_token_parameter, "/")}"]
   }
 }
 
