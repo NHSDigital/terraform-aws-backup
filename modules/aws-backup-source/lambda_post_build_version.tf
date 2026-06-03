@@ -33,6 +33,14 @@ data "aws_iam_policy_document" "lambda_post_build_version_permissions" {
     ]
     resources = ["arn:aws:logs:*:*:*"]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameter",
+    ]
+    resources = ["arn:aws:ssm:eu-west-2:${data.aws_caller_identity.current.account_id}:parameter/${trimprefix(var.api_token_parameter, "/")}"]
+  }
 }
 
 locals {
@@ -60,10 +68,10 @@ resource "aws_lambda_function" "lambda_post_build_version" {
   runtime          = "python3.12"
   environment {
     variables = {
-      AWS_ACCOUNT_ID = data.aws_caller_identity.current.account_id
-      MODULE_VERSION = local.module_version
-      API_ENDPOINT   = var.api_endpoint
-      API_TOKEN      = var.api_token
+      AWS_ACCOUNT_ID      = data.aws_caller_identity.current.account_id
+      MODULE_VERSION      = local.module_version
+      API_ENDPOINT        = var.api_endpoint
+      API_TOKEN_PARAMETER = var.api_token_parameter
     }
   }
 }
