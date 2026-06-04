@@ -4,7 +4,7 @@ resource "awscc_backup_restore_testing_plan" "backup_restore_testing_plan" {
   start_window_hours        = var.restore_testing_plan_start_window
   recovery_point_selection = {
     algorithm             = var.restore_testing_plan_algorithm
-    include_vaults        = [aws_backup_vault.main.arn]
+    include_vaults        = concat([aws_backup_vault.main.arn], (var.enable_logically_air_gapped_vault ? [aws_backup_logically_air_gapped_vault.main[0].arn] : []))
     recovery_point_types  = var.restore_testing_plan_recovery_point_types
     selection_window_days = var.restore_testing_plan_selection_window_days
   }
@@ -20,7 +20,7 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   protected_resource_conditions = {
     string_equals = [{
       key   = "aws:ResourceTag/${var.backup_plan_config_dynamodb.selection_tag}"
-      value = "True"
+      value = (var.backup_plan_config_dynamodb.selection_tag_value == null) ? "True" : var.backup_plan_config_dynamodb.selection_tag_value
     }]
   }
 }
@@ -36,7 +36,7 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   protected_resource_conditions = {
     string_equals = [{
       key   = "aws:ResourceTag/${var.backup_plan_config_ebsvol.selection_tag}"
-      value = "True"
+      value = (var.backup_plan_config_ebsvol.selection_tag_value == null) ? "True" : var.backup_plan_config_ebsvol.selection_tag_value
     }]
   }
 }
@@ -51,7 +51,7 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   protected_resource_conditions = {
     string_equals = [{
       key   = "aws:ResourceTag/${var.backup_plan_config_aurora.selection_tag}"
-      value = "True"
+      value = (var.backup_plan_config_aurora.selection_tag_value == null) ? "True" : var.backup_plan_config_aurora.selection_tag_value
     }]
   }
   restore_metadata_overrides = local.aurora_overrides

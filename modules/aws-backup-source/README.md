@@ -49,7 +49,9 @@ No modules.
 | [aws_backup_selection.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_selection) | resource |
 | [aws_backup_selection.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_selection) | resource |
 | [aws_backup_vault.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_vault) | resource |
+| [aws_backup_logically_air_gapped_vault.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_logically_air_gapped_vault) | resource |
 | [aws_backup_vault_notifications.backup_notification](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_vault_notifications) | resource |
+| [aws_backup_vault_notifications.backup_notification_lag](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_vault_notifications) | resource |
 | [aws_backup_vault_policy.vault_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_vault_policy) | resource |
 | [aws_iam_role.backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy_attachment.backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
@@ -95,6 +97,13 @@ No modules.
 
 ## Outputs
 
-No outputs.
+| Name                            | Description              |
+|---------------------------------| -------------------------|
+| backup_role_arn                 | ARN of the of the backup role |
+| backup_vault_arn                | ARN of the of the Backup Vault |
+| backup_vault_name               | Name of the of the Backup Vault |
+| logically_air_gapped_vault_arn  | ARN of the of the Logically Air-gapped Vault |
+| logically_air_gapped_vault_name | Name of the of the Logically Air-gapped Vault |
 <!-- END_TF_DOCS -->
+
 <!-- markdownlint-enable MD037 -->
