@@ -1,5 +1,5 @@
 resource "aws_backup_vault_notifications" "backup_notification" {
-  count             = var.notifications_target_email_address != "" ? 1 : 0
+  count             = local.enable_sns_notifications ? 1 : 0
   backup_vault_name = aws_backup_vault.main.name
   sns_topic_arn     = aws_sns_topic.backup[0].arn
   backup_vault_events = [

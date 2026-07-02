@@ -9,9 +9,19 @@ variable "environment_name" {
 }
 
 variable "notifications_target_email_address" {
-  description = "The email address to which backup notifications will be sent via SNS."
+  description = "The email address to which backup notifications will be sent via SNS"
   type        = string
   default     = ""
+}
+
+
+variable "notifications_targets" {
+  description = "Additional endpoints to send backup notifications via SNS"
+  type = map(object({
+    protocol = string
+    endpoint = string
+  }))
+  default = {}
 }
 
 variable "bootstrap_kms_key_arn" {
@@ -307,6 +317,7 @@ variable "backup_plan_config_aurora" {
   type = object({
     enable                    = bool
     selection_tag             = string
+    selection_tag_value       = optional(string)
     compliance_resource_types = list(string)
     restore_testing_overrides = optional(string)
     rules = optional(list(object({

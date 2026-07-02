@@ -20,7 +20,7 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   protected_resource_conditions = {
     string_equals = [{
       key   = "aws:ResourceTag/${var.backup_plan_config_dynamodb.selection_tag}"
-      value = "True"
+      value = (var.backup_plan_config_dynamodb.selection_tag_value == null) ? "True" : var.backup_plan_config_dynamodb.selection_tag_value
     }]
   }
 }
@@ -36,7 +36,7 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   protected_resource_conditions = {
     string_equals = [{
       key   = "aws:ResourceTag/${var.backup_plan_config_ebsvol.selection_tag}"
-      value = "True"
+      value = (var.backup_plan_config_ebsvol.selection_tag_value == null) ? "True" : var.backup_plan_config_ebsvol.selection_tag_value
     }]
   }
 }
@@ -51,7 +51,7 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   protected_resource_conditions = {
     string_equals = [{
       key   = "aws:ResourceTag/${var.backup_plan_config_aurora.selection_tag}"
-      value = "True"
+      value = (var.backup_plan_config_aurora.selection_tag_value == null) ? "True" : var.backup_plan_config_aurora.selection_tag_value
     }]
   }
   restore_metadata_overrides = local.aurora_overrides

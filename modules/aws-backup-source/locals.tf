@@ -16,6 +16,7 @@ locals {
     var.backup_plan_config_parameter_store.enable ? [aws_backup_framework.parameter_store[0].arn] : []
 
   ))
-  aurora_overrides    = var.backup_plan_config_aurora.restore_testing_overrides == null ? null : jsondecode(var.backup_plan_config_aurora.restore_testing_overrides)
-  terraform_role_arns = length(var.terraform_role_arns) > 0 ? var.terraform_role_arns : [var.terraform_role_arn]
+  aurora_overrides         = var.backup_plan_config_aurora.restore_testing_overrides == null ? null : jsondecode(var.backup_plan_config_aurora.restore_testing_overrides)
+  terraform_role_arns      = length(var.terraform_role_arns) > 0 ? var.terraform_role_arns : [var.terraform_role_arn]
+  enable_sns_notifications = var.notifications_target_email_address != "" || var.notifications_targets != {}
 }
