@@ -95,12 +95,6 @@ variable "enable_cross_account_role_permissions" {
   default     = false
 }
 
-variable "enable_cross_account_vault_access" {
-  description = "Flag to enable cross account vault access for AWS Backup"
-  type        = bool
-  default     = false
-}
-
 # If we're building this for multiple environments in the same account, some things
 # should not be created. Such as the vault! There can be only one - the environment
 # vaults should all copy to this, main/backup/immutable vault.
