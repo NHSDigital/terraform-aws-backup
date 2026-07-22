@@ -1,5 +1,15 @@
 # Changelog
 
+## [v1.4.6] (2026-07-22)
+
+### Features
+
+- Add optional `restore_acl` flag to the restore-to-s3 Lambda event contract, defaulting to `false`
+
+### Improvements
+
+- Update name prefix validation to allow hyphens (`-`) in `name_prefix`
+
 
 ## [v1.4.5] (2026-05-26)
 
