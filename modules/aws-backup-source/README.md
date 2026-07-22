@@ -95,6 +95,12 @@ No modules.
 
 ## Outputs
 
-No outputs.
+| Name | Description | Type |
+| --- | --- | --- |
+| <a name="output_backup_role_arn"></a> [backup_role_arn](#output_backup_role_arn) | ARN of the backup role | `string` |
+| <a name="output_backup_vault_arn"></a> [backup_vault_arn](#output_backup_vault_arn) | ARN of the backup vault | `string` |
+| <a name="output_backup_vault_name"></a> [backup_vault_name](#output_backup_vault_name) | Name of the backup vault | `string` |
+| <a name="output_lambda_copy_recovery_point_to_s3_arn"></a> [lambda_copy_recovery_point_to_s3_arn](#output_lambda_copy_recovery_point_to_s3_arn) | ARN of the Lambda function that copies recovery points to S3. Only created when `lambda_copy_recovery_point_enable` is true. | `string` or `null` | n/a | no |
+| <a name="output_lambda_restore_to_s3_arn"></a> [lambda_restore_to_s3_arn](#output_lambda_restore_to_s3_arn) | ARN of the Lambda function that restores to S3. Only created when `lambda_restore_to_s3_enable` is true. | `string`  or `null`|
 <!-- END_TF_DOCS -->
 <!-- markdownlint-enable MD037 -->

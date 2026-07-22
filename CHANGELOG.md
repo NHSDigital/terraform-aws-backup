@@ -1,5 +1,11 @@
 # Changelog
 
+## [v1.4.7] (2026-07-22)
+
+### Improvements
+
+- Output arns of copy-recovery-point lambda and restore-to-s3-lambda if created.
+
 ## [v1.4.6] (2026-07-22)
 
 ### Features
