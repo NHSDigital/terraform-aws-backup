@@ -93,6 +93,7 @@ def lambda_handler(event, context):
 
     destination_s3_bucket = event.get('destination_s3_bucket')
     recovery_point_arn = event.get('recovery_point_arn')
+    restore_acl = event.get('restore_acl', 'false')
     resource_type = 'S3'
 
     if job_id_from_event:
@@ -112,7 +113,7 @@ def lambda_handler(event, context):
         try:
             start_response = backup_client.start_restore_job(
                 RecoveryPointArn=recovery_point_arn,
-                Metadata={'DestinationBucketName': destination_s3_bucket},
+                Metadata={'DestinationBucketName': destination_s3_bucket, 'RestoreACLs': restore_acl},
                 IamRoleArn=iam_role_arn,
                 IdempotencyToken=context.aws_request_id,
                 ResourceType=resource_type

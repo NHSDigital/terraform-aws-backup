@@ -19,9 +19,14 @@ The first is when to trigger a restore job.
 {
   "destination_s3_bucket": "...",
   "recovery_point_arn": "...",
-  "iam_role_arn": "..."
+  "iam_role_arn": "...",
+  "restore_acl": "..."
 }
 ```
+
+`destination_s3_bucket` must be the destination bucket name, not an S3 ARN.
+
+`restore_acl` is optional and defaults to `false`. This disables ACL restoration by default, which is the expected setting for destination buckets using S3 Object Ownership with ACLs disabled. Set it to `true` only when the destination bucket requires restored object ACLs.
 
 The second is to trigger a status check on an existing restore job.
 
