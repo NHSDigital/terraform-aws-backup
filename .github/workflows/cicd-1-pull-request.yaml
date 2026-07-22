@@ -3,14 +3,14 @@ name: "CI/CD pull request"
 on:
   push:
     branches:
-      - "**"
+      - "main"
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
+    branches:
+      - main
 
 jobs:
   check-version:
-    # Only enforce version bump on main branch pushes or version tag pushes
-    if: startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v')
     name: "Check version"
     runs-on: ubuntu-latest
     steps:
