@@ -2,6 +2,8 @@
 
 The AWS Backup Module helps automates the setup of AWS Backup resources in a source account. It streamlines the process of creating, managing, and standardising backup configurations.
 
+For guidance on choosing `selection_tag` values, multi-environment deployments, and the `selection_tags` additional filter feature, see the [Tagging Strategy](../../README.md#tagging-strategy) section in the root README.
+
 ## Example
 
 ```terraform

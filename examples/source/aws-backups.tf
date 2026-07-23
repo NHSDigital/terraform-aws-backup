@@ -147,9 +147,15 @@ module "source" {
         "schedule" : "cron(0 0 * * ? *)"
       }
     ],
+    # selection_tag determines which resources this plan backs up.
+    # Use any tag key that suits your project. For production, we recommend "NHSE-Enable-Backup".
+    # For multi-environment accounts, use a distinct tag per environment to avoid plan collisions.
+    # See the Tagging Strategy section in the root README for full guidance.
     "selection_tag" : "NHSE-Enable-Backup"
-    # The selection_tags are optional and can be used to
-    # provide fine grained resource selection with existing tagging
+    # selection_tags (optional) adds extra tag conditions as a logical AND.
+    # Only resources matching ALL tags (selection_tag + selection_tags) will be backed up.
+    # Note: the compliance framework only evaluates the primary selection_tag, so using
+    # selection_tags for environment separation may cause false non-compliance reports.
     "selection_tags" : [
       {
         "key" : "Environment"
