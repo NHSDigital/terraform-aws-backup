@@ -4,7 +4,7 @@ resource "aws_backup_plan" "default" {
   name = "${local.resource_name_prefix}-plan"
 
   dynamic "rule" {
-    for_each = var.backup_plan_config.enable ? var.backup_plan_config.rules : []
+    for_each = var.backup_plan_config.rules
     content {
       recovery_point_tags = {
         backup_rule_name = rule.value.name
