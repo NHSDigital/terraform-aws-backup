@@ -249,7 +249,7 @@ resource "aws_backup_selection" "aurora" {
   selection_tag {
     key   = var.backup_plan_config_aurora.selection_tag
     type  = "STRINGEQUALS"
-    value = (var.backup_plan_config_aurora.selection_tag_value == null) ? "True" : var.backup_plan_config_aurora.selection_tag_value
+    value = var.backup_plan_config_aurora.selection_tag_value == null ? "True" : var.backup_plan_config_aurora.selection_tag_value
   }
   condition {
     dynamic "string_equals" {
@@ -260,7 +260,7 @@ resource "aws_backup_selection" "aurora" {
         }
       ])
       content {
-        key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
+        key   = try(string_equals.value.key, null) == null ? null : "aws:ResourceTag/${string_equals.value.key}"
         value = try(string_equals.value.value, null)
       }
     }

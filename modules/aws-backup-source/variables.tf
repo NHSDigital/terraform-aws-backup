@@ -85,6 +85,11 @@ variable "backup_copy_vault_account_id" {
   default     = ""
 }
 
+# If/when creating multiple environments in the same AWS account, the
+# `create_framework` value needs to be `true` for only ONE of the
+# environments, and `false` for others - "There Can Only Be One"
+# [framework with the same ruleset] per account.
+
 variable "backup_plan_config" {
   description = "Configuration for backup plans"
   type = object({
@@ -95,8 +100,9 @@ variable "backup_plan_config" {
       key   = optional(string)
       value = optional(string)
     })))
-    compliance_resource_types = optional(list(string))
-    rules = optional(list(object({
+    compliance_resource_types = list(string)
+    create_framework          = optional(bool, true)
+    rules = list(object({
       name                     = string
       schedule                 = string
       completion_window        = optional(number)
@@ -173,7 +179,8 @@ variable "backup_plan_config_dynamodb" {
       key   = optional(string)
       value = optional(string)
     })))
-    compliance_resource_types = optional(list(string))
+    compliance_resource_types = list(string)
+    create_framework          = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -250,7 +257,8 @@ variable "backup_plan_config_ebsvol" {
       key   = optional(string)
       value = optional(string)
     })))
-    compliance_resource_types = optional(list(string))
+    compliance_resource_types = list(string)
+    create_framework          = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -317,6 +325,7 @@ variable "backup_plan_config_aurora" {
     })))
     compliance_resource_types = optional(list(string))
     restore_testing_overrides = optional(string)
+    create_framework          = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -384,6 +393,7 @@ variable "backup_plan_config_parameter_store" {
     })))
     lambda_backup_cron     = optional(string)
     lambda_timeout_seconds = optional(number)
+    create_framework       = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -535,14 +545,4 @@ variable "include_environment_in_resource_names" {
   description = "Should the environment name be included in resource names. Required for 'all resources in the same account'"
   type        = bool
   default     = false
-}
-
-# Plans etc are _account_ specific, not _environment_ specific, so we only want to create some resources
-# once. As in, when this is `""` (empty string). For additional envs in the account, set this to the environment
-# where the "base" resources are (for example `dev`).
-# NOTE: Require `include_environment_in_resource_names` set to `true` for this to work!
-variable "resources_in_same_account" {
-  description = "Should all resources be created in the same account. Set to 'true' if base resources already exists in the account, and they should be reused."
-  type        = string
-  default     = ""
 }
