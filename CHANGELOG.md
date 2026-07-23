@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.4.7] (2026-07-23)
+
+### Documentation
+
+- Add Tagging Strategy section to README covering `selection_tag` configuration, multi-environment guidance, `selection_tags` AND-filter usage, and compliance framework limitations
+
+
 ## [v1.4.6] (2026-07-22)
 
 ### Features
