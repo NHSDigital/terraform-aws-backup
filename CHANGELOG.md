@@ -1,5 +1,36 @@
 # Changelog
 
+## [v1.4.6] (2026-07-22)
+
+### Features
+
+- Add optional `restore_acl` flag to the restore-to-s3 Lambda event contract, defaulting to `false`
+
+### Improvements
+
+- Update name prefix validation to allow hyphens (`-`) in `name_prefix`
+
+
+## [v1.4.5] (2026-05-26)
+
+### Improvements
+
+- Read post-build API token from SSM Parameter Store using `api_token_parameter` instead of passing a plain token value
+
+## [v1.4.4] (2026-05-21)
+
+### Bug Fixes
+
+- Correct post-build version API authorization to use the expected `Authorization: Token <token>` header format
+
+
+## [v1.4.3] (2026-05-05)
+
+### Improvements
+
+- Update Copilot instructions to not run Trivy (#115)
+- Bump actions/checkout from 3 to 6 (#121)
+
 ## [v1.4.2] (2026-03-16)
 
 ### Features
