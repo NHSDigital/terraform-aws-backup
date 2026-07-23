@@ -1,5 +1,9 @@
 # Changelog
 
+## [v1.4.7] (2026-07-23)
+
+- Allow backup plans to be unset.
+
 ## [v1.4.6] (2026-07-22)
 
 ### Features
