@@ -85,11 +85,6 @@ variable "backup_copy_vault_account_id" {
   default     = ""
 }
 
-# If/when creating multiple environments in the same AWS account, the
-# `create_framework` value needs to be `true` for only ONE of the
-# environments, and `false` for others - "There Can Only Be One"
-# [framework with the same ruleset] per account.
-
 variable "backup_plan_config" {
   description = "Configuration for backup plans"
   type = object({
