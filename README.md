@@ -284,7 +284,7 @@ For **production** environments, we recommend using `NHSE-Enable-Backup` = `True
 
 For **non-production** environments, you have flexibility:
 
-- Use the same tag (`NHSE-Enable-Backup` = `True`) if you want identical backup behaviour and are happy for the same plan to cover all tagged resources in the account.
+- Use the same tag (`NHSE-Enable-Backup` = `True`) if you are going to create a single backup plan in the account.
 - Use a different tag value (e.g. `NHSE-Enable-Backup` = `dev`) or a different tag key entirely (e.g. `BackupDev` = `True`) if you need to distinguish which resources belong to which environment's backup plan.
 
 The tag value comparison is **case-sensitive**. `True`, `true`, and `TRUE` are all different values. The module defaults to `True`.
