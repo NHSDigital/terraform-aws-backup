@@ -88,7 +88,7 @@ variable "backup_copy_vault_account_id" {
 variable "backup_plan_config" {
   description = "Configuration for backup plans"
   type = object({
-    enable              = bool
+    enable              = optional(bool, true)
     selection_tag       = optional(string)
     selection_tag_value = optional(string)
     selection_tags = optional(list(object({
