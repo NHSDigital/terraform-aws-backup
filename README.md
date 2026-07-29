@@ -101,7 +101,16 @@ I will assume that your project uses the [repository template structure](https:/
 
 Similarly I will assume that you have your backup destination account configuration at `infrastructure/environments/dev-backup`. We'll configure that first.
 
-Copy the `modules/aws-backup-source` and `modules/aws-backup-destination` directories into your `infrastructure/modules` directory, giving you `infrastructure/modules/aws-backup-source` and `infrastructure/modules/aws-backup-destination`.
+Reference the `aws-backup-source` and `aws-backup-destination` modules directly from this repository rather than copying them into your own. Using a versioned module source ensures you receive updates and security fixes automatically:
+
+```terraform
+module "source" {
+  source = "git::https://github.com/NHSDigital/terraform-aws-backup.git//modules/aws-backup-source?ref=v1.4.8"
+  # ...
+}
+```
+
+Pin the `ref` to a release tag so that upgrades are deliberate.
 
 ### IAM roles
 
@@ -285,7 +294,7 @@ For **production** environments, we recommend using `NHSE-Enable-Backup` = `True
 For **non-production** environments, you have flexibility:
 
 - Use the same tag (`NHSE-Enable-Backup` = `True`) if you are going to create a single backup plan in the account.
-- Use a different tag value (e.g. `NHSE-Enable-Backup` = `dev`) or a different tag key entirely (e.g. `BackupDev` = `True`) if you need to distinguish which resources belong to which environment's backup plan.
+- Use a different tag value (e.g. `NHSE-Enable-Backup` = `dev`) or a different tag key entirely (e.g. `BackupDev` = `True`) if you will have multiple backup plans in the account and need to distinguish which resources belong to which backup plan.
 
 The tag value comparison is **case-sensitive**. `True`, `true`, and `TRUE` are all different values. The module defaults to `True`.
 
