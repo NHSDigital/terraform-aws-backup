@@ -147,21 +147,8 @@ module "source" {
         "schedule" : "cron(0 0 * * ? *)"
       }
     ],
-    # selection_tag determines which resources this plan backs up.
-    # Use any tag key that suits your project. For production, we recommend "NHSE-Enable-Backup".
-    # For multi-environment accounts, use a distinct tag per environment to avoid plan collisions.
-    # See the Tagging Strategy section in the root README for full guidance.
+    # See the Tagging Strategy section in the root README for full guidance on selection_tag values.
     "selection_tag" : "NHSE-Enable-Backup"
-    # selection_tags (optional) adds extra tag conditions as a logical AND.
-    # Only resources matching ALL tags (selection_tag + selection_tags) will be backed up.
-    # Note: the compliance framework only evaluates the primary selection_tag, so using
-    # selection_tags for environment separation may cause false non-compliance reports.
-    "selection_tags" : [
-      {
-        "key" : "Environment"
-        "value" : "myenvironment"
-      }
-    ]
   }
   # Note here that we need to explicitly disable DynamoDB and Aurora backups in the source account.
   # The default config in the module enables backups for all resource types.
