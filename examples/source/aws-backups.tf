@@ -147,15 +147,8 @@ module "source" {
         "schedule" : "cron(0 0 * * ? *)"
       }
     ],
+    # See the Tagging Strategy section in the root README for full guidance on selection_tag values.
     "selection_tag" : "NHSE-Enable-Backup"
-    # The selection_tags are optional and can be used to
-    # provide fine grained resource selection with existing tagging
-    "selection_tags" : [
-      {
-        "key" : "Environment"
-        "value" : "myenvironment"
-      }
-    ]
   }
   # Note here that we need to explicitly disable DynamoDB and Aurora backups in the source account.
   # The default config in the module enables backups for all resource types.

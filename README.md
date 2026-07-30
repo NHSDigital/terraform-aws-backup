@@ -9,6 +9,10 @@
   - [IAM roles](#iam-roles)
   - [Destination account configuration](#destination-account-configuration)
   - [Source account configuration](#source-account-configuration)
+- [Tagging Strategy](#tagging-strategy)
+  - [Choosing a selection tag](#choosing-a-selection-tag)
+  - [Multiple environments in the same account](#multiple-environments-in-the-same-account)
+  - [Additional tag filters (selection_tags)](#additional-tag-filters-selection_tags)
 - [Next steps](#next-steps)
 - [FAQs](#faqs)
 - [Procedural notes](#procedural-notes)
@@ -97,7 +101,16 @@ I will assume that your project uses the [repository template structure](https:/
 
 Similarly I will assume that you have your backup destination account configuration at `infrastructure/environments/dev-backup`. We'll configure that first.
 
-Copy the `modules/aws-backup-source` and `modules/aws-backup-destination` directories into your `infrastructure/modules` directory, giving you `infrastructure/modules/aws-backup-source` and `infrastructure/modules/aws-backup-destination`.
+Reference the `aws-backup-source` and `aws-backup-destination` modules directly from this repository rather than copying them into your own. Using a versioned module source ensures you receive updates and security fixes automatically:
+
+```terraform
+module "source" {
+  source = "git::https://github.com/NHSDigital/terraform-aws-backup.git//modules/aws-backup-source?ref=v1.4.9"
+  # ...
+}
+```
+
+Pin the `ref` to a release tag so that upgrades are deliberate.
 
 ### IAM roles
 
@@ -239,7 +252,7 @@ The `name` is an arbitrary label. Change it to match the actual schedule. It wil
 
 The `schedule` is a cron expression that determines when the backup will be taken. If you are unfamiliar with cron syntax, AWS document it [here](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-scheduled-rule-pattern.html#eb-cron-expressions). In this example, the backup will be taken at midnight every day. If you are testing this configuration in a development environment, you may wish to change this to a more frequent schedule, or to a more convenient time of day.
 
-The final detail to be aware of here is the `selection_tag`. This defines the tag that AWS Backup will use to determine which resources to back up, and which you will have seen above. Resources that you want to back up must have this tag. If you have followed the instructions above, you will have already tagged the resources you want to back up. The name of the tag has been chosen such that it is unlikely to conflict with any existing tags.
+The final detail to be aware of here is the `selection_tag`. This defines the tag that AWS Backup will use to determine which resources to back up, and which you will have seen above. Resources that you want to back up must have this tag. If you have followed the instructions above, you will have already tagged the resources you want to back up. See the [Tagging Strategy](#tagging-strategy) section below for full guidance on choosing tag values.
 
 The `aws-backup-source` module requires the ARN of the role in the destination account that terraform will assume to create the resources. This is passed in as the `destination_terraform_role_arn` variable. In my usage of the blueprint, this is passed in as an environment variable in the GitHub Actions pipeline. The terraform invocation looks like this:
 
@@ -269,6 +282,91 @@ The `aws-backup-source` module requires the ARN of the role in the destination a
 ```
 
 When the earlier step wrote to the `$GITHUB_ENV` file, it wrote the `destination_vault_arn` output from the destination configuration. This is passed in as the `destination_vault_arn` variable to the source configuration, so we don't need to explicitly configure it here. Your CI/CD pipeline will need to ensure that the destination configuration is applied before the source configuration and that the `destination_vault_arn` output is passed along, and probably has a similar mechanism to the above.
+
+## Tagging Strategy
+
+The `selection_tag` variable controls which resources AWS Backup will protect. It is fully configurable — you can use any tag key and value that suits your project. The examples in this README use `NHSE-Enable-Backup` as the tag key with a value of `True`, but this is a recommendation, not a requirement.
+
+### Choosing a selection tag
+
+For **production** environments, we recommend using `NHSE-Enable-Backup` = `True` as the standard tag. This aligns with organisational reporting and makes it straightforward for centralised compliance dashboards to identify backed-up resources.
+
+For **non-production** environments, you have flexibility:
+
+- Use the same tag (`NHSE-Enable-Backup` = `True`) if you are going to create a single backup plan in the account.
+- Use a different tag value (e.g. `NHSE-Enable-Backup` = `dev`) or a different tag key entirely (e.g. `BackupDev` = `True`) if you will have multiple backup plans in the account and need to distinguish which resources belong to which backup plan.
+
+The tag value comparison is **case-sensitive**. `True`, `true`, and `TRUE` are all different values. The module defaults to `True`.
+
+### Multiple environments in the same account
+
+If you deploy multiple environments (e.g. dev, test, staging) into a single AWS account, each environment's backup module instance will create its own backup plan with a resource selection based on `selection_tag`. If all instances use the same tag, they will all select the same resources — which is usually not what you want.
+
+The simplest approach is to **use a distinct `selection_tag` per environment**:
+
+```terraform
+# Dev environment
+backup_plan_config = {
+  selection_tag             = "BackupDev"
+  selection_tag_value       = "True"
+  compliance_resource_types = ["S3"]
+  rules                     = [ ... ]
+}
+
+# Test environment
+backup_plan_config = {
+  selection_tag             = "BackupTest"
+  selection_tag_value       = "True"
+  compliance_resource_types = ["S3"]
+  rules                     = [ ... ]
+}
+```
+
+Alternatively, use the same tag key with different values:
+
+```terraform
+# Dev environment
+backup_plan_config = {
+  selection_tag             = "NHSE-Enable-Backup"
+  selection_tag_value       = "dev"
+  compliance_resource_types = ["S3"]
+  rules                     = [ ... ]
+}
+
+# Test environment
+backup_plan_config = {
+  selection_tag             = "NHSE-Enable-Backup"
+  selection_tag_value       = "test"
+  compliance_resource_types = ["S3"]
+  rules                     = [ ... ]
+}
+```
+
+If all environments genuinely share the same retention requirements and schedules, consider deploying a **single module instance** with one shared tag. This avoids duplication and is the simplest configuration.
+
+### Additional tag filters (selection_tags)
+
+The `selection_tags` variable (plural) allows you to add extra tag conditions as a logical AND on top of the primary `selection_tag`. This is useful when you already have a broad backup tag on all resources but want to narrow the selection — for example, to only back up resources that are also tagged with a specific environment:
+
+```terraform
+backup_plan_config = {
+  selection_tag             = "NHSE-Enable-Backup"
+  compliance_resource_types = ["S3"]
+  rules                     = [ ... ]
+  selection_tags = [
+    {
+      key   = "Environment"
+      value = "production"
+    }
+  ]
+}
+```
+
+With this configuration, only resources tagged with BOTH `NHSE-Enable-Backup = True` AND `Environment = production` will be selected for backup.
+
+**Known limitation:** The AWS Backup compliance framework evaluates resources based on the primary `selection_tag` only. It does not support filtering by multiple tags in its scope. This means that if you use `selection_tags` to narrow your backup selection, the framework may report false non-compliance for resources that have the primary tag but lack the additional tags. Those resources won't actually be backed up (because the plan requires all tags), but the framework will flag them as unprotected.
+
+If you rely on framework compliance reports for operational dashboards, be aware of this gap. The recommended mitigation is to use distinct `selection_tag` values per environment (as described above) rather than relying on `selection_tags` for environment separation.
 
 ## Next steps
 
