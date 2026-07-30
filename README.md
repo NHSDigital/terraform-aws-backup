@@ -105,7 +105,7 @@ Reference the `aws-backup-source` and `aws-backup-destination` modules directly 
 
 ```terraform
 module "source" {
-  source = "git::https://github.com/NHSDigital/terraform-aws-backup.git//modules/aws-backup-source?ref=v1.4.8"
+  source = "git::https://github.com/NHSDigital/terraform-aws-backup.git//modules/aws-backup-source?ref=v1.4.9"
   # ...
 }
 ```
