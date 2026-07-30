@@ -1,11 +1,15 @@
 # Changelog
 
-## [v1.4.8] (2026-07-29)
+## [v1.4.9] (2026-07-29)
 
 ### Documentation
 
 - Add Tagging Strategy section to README covering `selection_tag` configuration, multi-environment guidance, `selection_tags` AND-filter usage, and compliance framework limitations
 
+## [v1.4.8] (2026-07-28)
+
+- Allow backup plans to be unset.
+- 
 ## [v1.4.7] (2026-07-22)
 
 ### Improvements
