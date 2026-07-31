@@ -383,6 +383,7 @@ variable "backup_plan_config_parameter_store" {
       key   = optional(string)
       value = optional(string)
     })))
+    create_framework          = optional(bool, true)
     lambda_backup_cron     = optional(string)
     lambda_timeout_seconds = optional(number)
     rules = optional(list(object({
