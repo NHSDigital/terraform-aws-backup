@@ -172,7 +172,12 @@ resource "aws_backup_selection" "default" {
   }
   condition {
     dynamic "string_equals" {
-      for_each = local.selection_tags_null_checked
+      for_each = concat(local.selection_tags_null_checked, [
+        {
+          "key" : var.backup_plan_config.selection_tag,
+          "value" : var.backup_plan_config.selection_tag_value != null ? var.backup_plan_config.selection_tag_value : "True"
+        }
+      ])
       content {
         key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
         value = try(string_equals.value.value, null)
@@ -194,7 +199,12 @@ resource "aws_backup_selection" "dynamodb" {
   }
   condition {
     dynamic "string_equals" {
-      for_each = local.selection_tags_dynamodb_null_checked
+      for_each = concat(local.selection_tags_dynamodb_null_checked, [
+        {
+          "key" : var.backup_plan_config_dynamodb.selection_tag,
+          "value" : var.backup_plan_config_dynamodb.selection_tag_value != null ? var.backup_plan_config_dynamodb.selection_tag_value : "True"
+        }
+      ])
       content {
         key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
         value = try(string_equals.value.value, null)
@@ -216,7 +226,12 @@ resource "aws_backup_selection" "ebsvol" {
   }
   condition {
     dynamic "string_equals" {
-      for_each = local.selection_tags_ebsvol_null_checked
+      for_each = concat(local.selection_tags_ebsvol_null_checked, [
+        {
+          "key" : var.backup_plan_config_ebsvol.selection_tag,
+          "value" : var.backup_plan_config_ebsvol.selection_tag_value != null ? var.backup_plan_config_ebsvol.selection_tag_value : "True"
+        }
+      ])
       content {
         key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
         value = try(string_equals.value.value, null)
@@ -234,7 +249,21 @@ resource "aws_backup_selection" "aurora" {
   selection_tag {
     key   = var.backup_plan_config_aurora.selection_tag
     type  = "STRINGEQUALS"
-    value = "True"
+    value = var.backup_plan_config_aurora.selection_tag_value == null ? "True" : var.backup_plan_config_aurora.selection_tag_value
+  }
+  condition {
+    dynamic "string_equals" {
+      for_each = concat(local.selection_tags_aurora_null_checked, [
+        {
+          "key" : var.backup_plan_config_aurora.selection_tag,
+          "value" : var.backup_plan_config_aurora.selection_tag_value != null ? var.backup_plan_config_aurora.selection_tag_value : "True"
+        }
+      ])
+      content {
+        key   = try(string_equals.value.key, null) == null ? null : "aws:ResourceTag/${string_equals.value.key}"
+        value = try(string_equals.value.value, null)
+      }
+    }
   }
 }
 
@@ -251,7 +280,12 @@ resource "aws_backup_selection" "parameter_store" {
   }
   condition {
     dynamic "string_equals" {
-      for_each = local.selection_tags_parameter_store_null_checked
+      for_each = concat(local.selection_tags_parameter_store_null_checked, [
+        {
+          "key" : var.backup_plan_config_parameter_store.selection_tag,
+          "value" : var.backup_plan_config_parameter_store.selection_tag_value != null ? var.backup_plan_config_parameter_store.selection_tag_value : "True"
+        }
+      ])
       content {
         key   = (try(string_equals.value.key, null) == null) ? null : "aws:ResourceTag/${string_equals.value.key}"
         value = try(string_equals.value.value, null)

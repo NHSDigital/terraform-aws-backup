@@ -6,7 +6,7 @@ resource "aws_kms_key" "aws_backup_key" {
 }
 
 resource "aws_kms_alias" "backup_key" {
-  name          = var.name_prefix != null ? "alias/${var.name_prefix}/backup-key" : "alias/${var.environment_name}/backup-key"
+  name          = var.name_prefix != null ? "alias/${var.include_environment_in_resource_names ? "${local.resource_name_prefix}" : var.name_prefix}/backup-key" : "alias/${var.environment_name}/backup-key"
   target_key_id = aws_kms_key.aws_backup_key.key_id
 }
 

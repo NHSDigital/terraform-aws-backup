@@ -95,8 +95,9 @@ variable "backup_plan_config" {
       key   = optional(string)
       value = optional(string)
     })))
-    compliance_resource_types = optional(list(string))
-    rules = optional(list(object({
+    compliance_resource_types = list(string)
+    create_framework          = optional(bool, true)
+    rules = list(object({
       name                     = string
       schedule                 = string
       completion_window        = optional(number)
@@ -173,7 +174,8 @@ variable "backup_plan_config_dynamodb" {
       key   = optional(string)
       value = optional(string)
     })))
-    compliance_resource_types = optional(list(string))
+    compliance_resource_types = list(string)
+    create_framework          = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -250,7 +252,8 @@ variable "backup_plan_config_ebsvol" {
       key   = optional(string)
       value = optional(string)
     })))
-    compliance_resource_types = optional(list(string))
+    compliance_resource_types = list(string)
+    create_framework          = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -267,6 +270,7 @@ variable "backup_plan_config_ebsvol" {
   default = {
     enable                    = true
     selection_tag             = "BackupEBSVol"
+    selection_tag_value       = "True"
     compliance_resource_types = ["EBS"]
     rules = [
       {
@@ -307,10 +311,16 @@ variable "backup_plan_config_ebsvol" {
 variable "backup_plan_config_aurora" {
   description = "Configuration for backup plans with aurora"
   type = object({
-    enable                    = bool
-    selection_tag             = optional(string)
+    enable              = bool
+    selection_tag       = optional(string)
+    selection_tag_value = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
     compliance_resource_types = optional(list(string))
     restore_testing_overrides = optional(string)
+    create_framework          = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -327,6 +337,8 @@ variable "backup_plan_config_aurora" {
   default = {
     enable                    = true
     selection_tag             = "BackupAurora"
+    selection_tag_value       = "True"
+    selection_tags            = []
     compliance_resource_types = ["Aurora"]
     rules = [
       {
@@ -376,6 +388,7 @@ variable "backup_plan_config_parameter_store" {
     })))
     lambda_backup_cron     = optional(string)
     lambda_timeout_seconds = optional(number)
+    create_framework       = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -521,4 +534,10 @@ variable "lambda_restore_to_s3_max_wait_minutes" {
   description = "Maximum wait time in minutes for the restore job to complete."
   type        = number
   default     = 5
+}
+
+variable "include_environment_in_resource_names" {
+  description = "Should the environment name be included in resource names. Required for 'all resources in the same account'"
+  type        = bool
+  default     = false
 }
