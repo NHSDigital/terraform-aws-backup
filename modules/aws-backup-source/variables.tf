@@ -58,7 +58,7 @@ variable "restore_testing_plan_start_window" {
 variable "restore_testing_plan_scheduled_expression" {
   description = "Scheduled Expression of Recovery Selection Point"
   type        = string
-  default     = "cron(0 1 ? * SUN *)"
+  default     = "cron(0 1 15 1 ? *)"
 }
 
 variable "restore_testing_plan_recovery_point_types" {
