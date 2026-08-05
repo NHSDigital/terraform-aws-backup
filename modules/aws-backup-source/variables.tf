@@ -455,6 +455,12 @@ variable "backup_plan_config_parameter_store" {
   }
 }
 
+variable "framework_arns" {
+  description = "List of ARNs of backup frameworks to associate with the backup plan."
+  type        = list(string)
+  default     = []
+}
+
 variable "iam_role_permissions_boundary" {
   description = "Optional permissions boundary ARN for backup role"
   type        = string

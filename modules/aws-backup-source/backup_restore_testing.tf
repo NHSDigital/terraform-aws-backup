@@ -18,12 +18,20 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   restore_testing_selection_name = "backup_restore_testing_selection_dynamodb"
   protected_resource_arns        = ["*"]
   protected_resource_conditions = {
-    string_equals = [
-      for tag in local.selection_tags_dynamodb_null_checked : {
-        key   = "aws:ResourceTag/${tag.key}"
-        value = tag.value
-      }
-    ]
+    string_equals = concat(
+      [
+        for tag in local.selection_tags_dynamodb_null_checked : {
+          key   = "aws:ResourceTag/${tag.key}"
+          value = tag.value
+        }
+      ],
+      [
+        {
+          key   = var.backup_plan_config_dynamodb.selection_tag
+          value = selection_tag_value_dynamodb_null_checked
+        }
+      ]
+    )
   }
 }
 
@@ -36,12 +44,20 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   restore_testing_selection_name = "backup_restore_testing_selection_ebsvol"
   protected_resource_arns        = ["*"]
   protected_resource_conditions = {
-    string_equals = [
-      for tag in local.selection_tags_ebsvol_null_checked : {
-        key   = "aws:ResourceTag/${tag.key}"
-        value = tag.value
-      }
-    ]
+    string_equals = concat(
+      [
+        for tag in local.selection_tags_ebsvol_null_checked : {
+          key   = "aws:ResourceTag/${tag.key}"
+          value = tag.value
+        }
+      ],
+      [
+        {
+          key   = var.backup_plan_config_ebsvol.selection_tag
+          value = selection_tag_value_ebsvol_null_checked
+        }
+      ]
+    )
   }
 }
 
@@ -53,12 +69,20 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
   restore_testing_selection_name = "backup_restore_testing_selection_aurora"
   protected_resource_arns        = ["*"]
   protected_resource_conditions = {
-    string_equals = [
-      for tag in local.selection_tags_aurora_null_checked : {
-        key   = "aws:ResourceTag/${tag.key}"
-        value = tag.value
-      }
-    ]
+    string_equals = concat(
+      [
+        for tag in local.selection_tags_aurora_null_checked : {
+          key   = "aws:ResourceTag/${tag.key}"
+          value = tag.value
+        }
+      ],
+      [
+        {
+          key   = var.backup_plan_config_aurora.selection_tag
+          value = selection_tag_value_aurora_null_checked
+        }
+      ]
+    )
   }
   restore_metadata_overrides = local.aurora_overrides
 }
