@@ -96,6 +96,7 @@ variable "backup_plan_config" {
       value = optional(string)
     })))
     compliance_resource_types = optional(list(string))
+    create_framework          = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -174,6 +175,7 @@ variable "backup_plan_config_dynamodb" {
       value = optional(string)
     })))
     compliance_resource_types = optional(list(string))
+    create_framework          = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -251,6 +253,7 @@ variable "backup_plan_config_ebsvol" {
       value = optional(string)
     })))
     compliance_resource_types = optional(list(string))
+    create_framework          = optional(bool, true)
     rules = optional(list(object({
       name                     = string
       schedule                 = string
@@ -309,6 +312,12 @@ variable "backup_plan_config_aurora" {
   type = object({
     enable                    = bool
     selection_tag             = optional(string)
+    selection_tag_value       = optional(string)
+    selection_tags = optional(list(object({
+      key   = optional(string)
+      value = optional(string)
+    })))
+    create_framework          = optional(bool, true)
     compliance_resource_types = optional(list(string))
     restore_testing_overrides = optional(string)
     rules = optional(list(object({
@@ -374,6 +383,7 @@ variable "backup_plan_config_parameter_store" {
       key   = optional(string)
       value = optional(string)
     })))
+    create_framework          = optional(bool, true)
     lambda_backup_cron     = optional(string)
     lambda_timeout_seconds = optional(number)
     rules = optional(list(object({
@@ -443,6 +453,12 @@ variable "backup_plan_config_parameter_store" {
       }
     ]
   }
+}
+
+variable "framework_arns" {
+  description = "List of ARNs of backup frameworks to associate with the backup plan."
+  type        = list(string)
+  default     = []
 }
 
 variable "iam_role_permissions_boundary" {

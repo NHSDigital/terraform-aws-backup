@@ -1,5 +1,20 @@
 # Changelog
 
+## [v1.5.0] (2026-07-30)
+
+### Features
+
+- Add optional `create_framework` toggle (default `true`) to each backup plan config so backup frameworks can be managed independently from plan enablement
+
+### Bug Fixes
+
+- Guard framework ARN aggregation with `enable && create_framework` to avoid invalid index references when frameworks are disabled
+
+### Improvements
+
+- Align Aurora selection behavior with other resource types by supporting `selection_tag_value` and `selection_tags`
+- Align restore testing selection tag filters (DynamoDB, EBS, Aurora) to derive from local null-checked tag lists instead of hardcoded `"True"`
+
 ## [v1.4.9] (2026-07-29)
 
 ### Documentation
