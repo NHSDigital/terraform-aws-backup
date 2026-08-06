@@ -27,7 +27,7 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
       ],
       [
         {
-          key   = var.backup_plan_config_dynamodb.selection_tag
+          key   = "aws:ResourceTag/${var.backup_plan_config_dynamodb.selection_tag}"
           value = local.selection_tag_value_dynamodb_null_checked
         }
       ]
@@ -53,7 +53,7 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
       ],
       [
         {
-          key   = var.backup_plan_config_ebsvol.selection_tag
+          key   = "aws:ResourceTag/${var.backup_plan_config_ebsvol.selection_tag}"
           value = local.selection_tag_value_ebsvol_null_checked
         }
       ]
@@ -78,7 +78,7 @@ resource "awscc_backup_restore_testing_selection" "backup_restore_testing_select
       ],
       [
         {
-          key   = var.backup_plan_config_aurora.selection_tag
+          key   = "aws:ResourceTag/${var.backup_plan_config_aurora.selection_tag}"
           value = local.selection_tag_value_aurora_null_checked
         }
       ]
