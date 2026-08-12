@@ -83,6 +83,8 @@ These modules will deploy a number of AWS resources:
 
 Note that there are always two vaults. In most restoration cases you should only need the `source` vault, so there is no need to copy data from the second, `destination`, vault. The latter is only used in the case of a disaster recovery scenario where the source account is compromised beyond use. As such the recovery time and recovery point objectives you will care about for situations in which the second vault is used should take this into account.
 
+Restore testing is configured separately from backup schedules. The source module defaults to annual restore testing. If your operational needs require it, you can override the restore testing schedule to run monthly instead.
+
 ## Developer Guide
 
 This document will guide you through the set-up and deployment of the AWS Backup solution in a typical project. You will need:
