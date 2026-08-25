@@ -2,7 +2,7 @@
 
 ## [v2.0.1] (2026-08-25)
 
-### Bug fixes
+### Improvements
 
 - Update comment about aurora continuous backup features
 
