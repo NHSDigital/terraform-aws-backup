@@ -93,7 +93,10 @@ resource "aws_backup_plan" "ebsvol" {
   }
 }
 
-# this backup plan shouldn't include a continous backup rule as it isn't supported for Aurora
+# This backup plan does not currently include the ability to enable continous backups.
+# To see more information on continous backups for Aurora
+# see: https://docs.aws.amazon.com/aws-backup/latest/devguide/point-in-time-recovery.html#point-in-time-recovery-supported-services
+# To enable this feature please raise a PR.
 resource "aws_backup_plan" "aurora" {
   count = var.backup_plan_config_aurora.enable ? 1 : 0
   name  = "${local.resource_name_prefix}-aurora-plan"
