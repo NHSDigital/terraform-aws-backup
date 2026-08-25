@@ -34,7 +34,7 @@
 ## [v1.4.8] (2026-07-28)
 
 - Allow backup plans to be unset.
--
+
 ## [v1.4.7] (2026-07-22)
 
 ### Improvements
