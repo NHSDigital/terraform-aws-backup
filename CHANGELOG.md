@@ -1,5 +1,11 @@
 # Changelog
 
+## [v2.0.1] (2026-08-25)
+
+### Improvements
+
+- Update comment about aurora continuous backup features
+
 ## [v2.0.0] (2026-08-25)
 
 ### Bug fixes
