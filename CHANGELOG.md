@@ -1,5 +1,15 @@
 # Changelog
 
+## [v2.0.0] (2026-08-25)
+
+### Bug fixes
+
+- Normalize restore testing plan names by replacing hyphens with underscores to satisfy AWS Backup naming requirements
+
+### Features
+
+- Add optional `lambda_insights_enable` toggle (default `false`) to enable lambda insights
+
 ## [v1.5.0] (2026-07-30)
 
 ### Features
@@ -24,7 +34,7 @@
 ## [v1.4.8] (2026-07-28)
 
 - Allow backup plans to be unset.
-- 
+
 ## [v1.4.7] (2026-07-22)
 
 ### Improvements
