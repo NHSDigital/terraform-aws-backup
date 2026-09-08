@@ -1,0 +1,110 @@
+@startuml restore-validation-sequence
+' Title & Legend
+!theme plain
+skinparam ParticipantPadding 8
+skinparam BoxPadding 6
+skinparam Shadowing false
+skinparam ArrowThickness 1
+skinparam ArrowColor #2d5d86
+skinparam ActorStyle awesome
+skinparam SequenceMessageAlign center
+skinparam BackgroundColor #ffffff
+
+title AWS Backup Restore Testing & Validation Flow
+
+legend left
+  This diagram illustrates the post-restore validation workflow:
+  1. Scheduled restore tests run via an AWS Backup Restore Testing Plan.
+  2. When a restore job COMPLETES, an EventBridge rule targets a Step Functions
+     state machine that orchestrates validation.
+  3. Lambda validator loads per-resource validation config from SSM Parameter Store
+     and executes resource‑type specific checks (e.g. RDS SQL assertions,
+     DynamoDB item sampling, S3 manifest / object probes).
+  4. Validation result is published back to AWS Backup using PutRestoreValidationResult.
+endlegend
+
+actor User as U
+participant "AWS Backup Restore\nTesting Plan" as Plan
+participant "AWS Backup\n(Service)" as Backup
+participant "Restore Job" as Restore
+participant "EventBridge Rule" as EB
+participant "Step Functions\n(State Machine)" as SFN
+participant "State: Enrich" as Enrich
+participant "State: Route" as Route
+participant "Lambda Validator" as Lambda
+participant "SSM Parameter\n(Store Config)" as SSM
+participant "Resource APIs\n(RDS | DynamoDB | S3 | etc.)" as APIs
+participant "AWS Backup API\n(PutRestoreValidationResult)" as ResultAPI
+participant "CloudWatch Logs" as Logs
+
+' 1. Scheduled restore initiated
+U -> Plan : (Schedule configured)
+Plan -> Backup : Initiate restore test jobs (per selection)
+Backup -> Restore ++ : Create restore job(s)
+
+' 2. Restore completes
+Restore -> Backup : Status = COMPLETED (success)
+Backup -> EB : Event: Restore Job State Change\n(detail.status = COMPLETED)
+
+' 3. EventBridge triggers Step Functions
+EB -> SFN : StartExecution (input = restore job event)
+activate SFN
+SFN -> Enrich : Pass original event / add metadata
+activate Enrich
+Enrich --> SFN : Enriched context
+deactivate Enrich
+
+SFN -> Route : Determine resourceType
+activate Route
+
+alt Supported resource type
+  Route -> Lambda : Invoke validator (payload: job + configRef)
+  activate Lambda
+  Lambda -> SSM : Get config parameter
+  SSM --> Lambda : JSON config
+  Lambda -> APIs : Perform type-specific checks
+  APIs --> Lambda : Check results / metrics
+  Lambda -> Logs : Structured validation logs
+  Lambda --> SFN : { status: SUCCESSFUL | FAILED, details }
+  deactivate Lambda
+else Unsupported / disabled type
+  Route --> SFN : { status: SKIPPED, reason }
+end
+
+deactivate Route
+
+' 4. Publish result back to AWS Backup
+SFN -> ResultAPI : PutRestoreValidationResult\n(status, message, resourceType, metadata)
+ResultAPI --> SFN : 200 OK
+
+SFN -> Logs : State machine execution log (success path)
+SFN --> EB : (Implicit: EventBridge metrics / tracing)
+SFN --> U : (Optional surfacing via reporting / notifications)
+
+SFN --> Backup : (Validation outcome associated to restore job)
+deactivate SFN
+
+== Failure Handling ==
+
+group Validator Error Path
+  Lambda -> Logs : Error + stack trace
+  Lambda --> SFN : { status: FAILED, errorMessage }
+  SFN -> ResultAPI : PutRestoreValidationResult (FAILED)
+  ResultAPI --> SFN : 200 OK
+end
+
+== Notes ==
+note over Lambda,APIs
+  Validation logic pluggable per resource type.
+  Future extensions: metrics, alarms, custom plugins.
+end note
+
+note over SFN
+  States (conceptual):
+  1. EnrichRestoreJob
+  2. RouteByResourceType
+  3. InvokeValidator (task) OR SkipUnsupported (pass)
+  4. PublishResult
+end note
+
+@enduml

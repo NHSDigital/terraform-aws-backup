@@ -1,0 +1,19 @@
+{
+  "name": "aws-backup-validation-lambda",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Validator Lambda for AWS Backup restore testing (scaffold)",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist || rm -rf dist",
+    "package": "npm run build"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.129",
+    "@types/node": "^20.11.30",
+    "typescript": "^5.4.0",
+    "rimraf": "^5.0.5"
+  }
+}
